@@ -2,6 +2,39 @@
 
 基于 CAMEL `HybridBrowserToolkit` 的网页点击模拟 Agent。
 
+## 环境配置
+
+已导出完成，文件在：[requirements.txt]
+
+创建 `psyber` 环境步骤如下（可直接复制）：
+
+```bash
+# 1) 创建并激活环境
+conda create -y -n psyber python=3.11 pip
+conda activate psyber
+
+# 2) 安装依赖
+pip install -U pip
+pip install -r /Users/chongzhang/PsyBer-Agent/requirements.txt
+
+# 3) 安装 Playwright 浏览器（给 web_sim_camel_agent 用）
+playwright install chromium
+```
+
+验证命令：
+
+```bash
+python /Users/chongzhang/PsyBer-Agent/prelearning_agent.py --help
+python /Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py --help
+python /Users/chongzhang/Web_sim/app.py
+```
+
+后续如果你改了环境，重新导出可用：
+
+```bash
+conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/requirements.txt
+```
+
 ## 功能
 
 - 从 `/Users/chongzhang/PsyBer-Agent/task.yaml` 读取任务设置：`dataset`、`model`、`track`、`agent_num`
