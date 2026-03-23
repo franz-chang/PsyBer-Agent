@@ -1,0 +1,64 @@
+{
+  "task_config": {
+    "dataset": [
+      "Amazon Musical Instruments"
+    ],
+    "model": [
+      "SASRec"
+    ],
+    "track": 3,
+    "agent_num": 100
+  },
+  "selected_dataset_key": "amazon_mi",
+  "selected_model_key": "sasrec",
+  "track_target": 3,
+  "agent_num": 100,
+  "click_count": 3,
+  "skip_count": 3,
+  "click_sequence": [
+    {
+      "order": 1,
+      "item_id": "B01E5GGU7Q",
+      "title": "Zoom U-24 Channel Audio Interface",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments：初始随机 4 个样本（当前模型：SASRec）",
+      "timestamp_utc": "2026-03-18T12:48:44.841636+00:00"
+    },
+    {
+      "order": 2,
+      "item_id": "B00004U8LC",
+      "title": "Cakewalk Guitar Tracks 2.0",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T12:48:51.353598+00:00"
+    },
+    {
+      "order": 3,
+      "item_id": "B000066J6D",
+      "title": "Music Maker G7 Deluxe",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 5 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T12:49:01.302922+00:00"
+    }
+  ],
+  "skip_sequence": [
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T12:48:48.695138+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T12:48:54.773691+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T12:48:58.631534+00:00"
+    }
+  ]
+}

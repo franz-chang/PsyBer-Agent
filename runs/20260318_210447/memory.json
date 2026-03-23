@@ -1,0 +1,64 @@
+{
+  "task_config": {
+    "dataset": [
+      "Amazon Musical Instruments"
+    ],
+    "model": [
+      "SASRec"
+    ],
+    "track": 3,
+    "agent_num": 100
+  },
+  "selected_dataset_key": "amazon_mi",
+  "selected_model_key": "sasrec",
+  "track_target": 3,
+  "agent_num": 100,
+  "click_count": 3,
+  "skip_count": 3,
+  "click_sequence": [
+    {
+      "order": 1,
+      "item_id": "B0002V5X86",
+      "title": "Remo Djembe Bag 14\" Deluxe Black with Shoulder Strap",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments：初始随机 4 个样本（当前模型：SASRec）",
+      "timestamp_utc": "2026-03-18T13:05:02.621427+00:00"
+    },
+    {
+      "order": 2,
+      "item_id": "B00004U8LC",
+      "title": "Cakewalk Guitar Tracks 2.0",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:05:13.194608+00:00"
+    },
+    {
+      "order": 3,
+      "item_id": "B000066J6D",
+      "title": "Music Maker G7 Deluxe",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 5 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:05:28.460797+00:00"
+    }
+  ],
+  "skip_sequence": [
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:05:08.652533+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:05:18.938430+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:05:23.864960+00:00"
+    }
+  ]
+}

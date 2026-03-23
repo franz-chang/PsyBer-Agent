@@ -1,0 +1,400 @@
+{
+  "task_config": {
+    "dataset": [
+      "Amazon Musical Instruments"
+    ],
+    "model": [
+      "SASRec"
+    ],
+    "track": 200,
+    "agent_num": 100
+  },
+  "selected_dataset_key": "amazon_mi",
+  "selected_model_key": "sasrec",
+  "track_target": 200,
+  "agent_num": 100,
+  "click_count": 37,
+  "skip_count": 9,
+  "click_sequence": [
+    {
+      "order": 1,
+      "item_id": "B00UK7ZQXO",
+      "title": "beyerdynamic Custom Street Headphones, Black",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments：初始随机 4 个样本（当前模型：SASRec）",
+      "timestamp_utc": "2026-03-18T13:11:47.347974+00:00"
+    },
+    {
+      "order": 2,
+      "item_id": "B005HZ4BLW",
+      "title": "Fender 001-0272-100 Stratocaster&reg; Tremolo Claw, nickel",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments：初始随机 4 个样本（当前模型：SASRec）",
+      "timestamp_utc": "2026-03-18T13:11:54.369830+00:00"
+    },
+    {
+      "order": 3,
+      "item_id": "3099",
+      "title": "Audio-Technica ATH-P1 Lightweight Open-back Dynamic Stereo Headphones",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:11:57.358151+00:00"
+    },
+    {
+      "order": 4,
+      "item_id": "101",
+      "title": "Bottle Rocket",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:01.699378+00:00"
+    },
+    {
+      "order": 5,
+      "item_id": "3951",
+      "title": "Two Family House",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:05.377561+00:00"
+    },
+    {
+      "order": 6,
+      "item_id": "8",
+      "title": "Tom and Huck",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:22.209012+00:00"
+    },
+    {
+      "order": 7,
+      "item_id": "3",
+      "title": "Grumpier Old Men",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:30.094507+00:00"
+    },
+    {
+      "order": 8,
+      "item_id": "2",
+      "title": "Jumanji",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:33.692820+00:00"
+    },
+    {
+      "order": 9,
+      "item_id": "3947",
+      "title": "Get Carter",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:37.237293+00:00"
+    },
+    {
+      "order": 10,
+      "item_id": "1",
+      "title": "Toy Story",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:39.940040+00:00"
+    },
+    {
+      "order": 11,
+      "item_id": "3949",
+      "title": "Requiem for a Dream",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:43.006900+00:00"
+    },
+    {
+      "order": 12,
+      "item_id": "3950",
+      "title": "Tigerland",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:46.160499+00:00"
+    },
+    {
+      "order": 13,
+      "item_id": "3946",
+      "title": "Get Carter",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:49.335042+00:00"
+    },
+    {
+      "order": 14,
+      "item_id": "10",
+      "title": "GoldenEye",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:13:01.930274+00:00"
+    },
+    {
+      "order": 15,
+      "item_id": "3945",
+      "title": "Digimon: The Movie",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:13:10.065911+00:00"
+    },
+    {
+      "order": 16,
+      "item_id": "3943",
+      "title": "Bamboozled",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:13:17.975156+00:00"
+    },
+    {
+      "order": 17,
+      "item_id": "3942",
+      "title": "Sorority House Massacre II",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:13:26.182267+00:00"
+    },
+    {
+      "order": 18,
+      "item_id": "3939",
+      "title": "Slumber Party Massacre II",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:13:43.206159+00:00"
+    },
+    {
+      "order": 19,
+      "item_id": "3937",
+      "title": "Runaway",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:14:09.370211+00:00"
+    },
+    {
+      "order": 20,
+      "item_id": "3938",
+      "title": "The Slumber Party Massacre",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:14:26.031319+00:00"
+    },
+    {
+      "order": 21,
+      "item_id": "3948",
+      "title": "Meet the Parents",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:14:34.025225+00:00"
+    },
+    {
+      "order": 22,
+      "item_id": "3940",
+      "title": "Slumber Party Massacre III",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:14:41.581298+00:00"
+    },
+    {
+      "order": 23,
+      "item_id": "3941",
+      "title": "Sorority House Massacre",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:14:54.194921+00:00"
+    },
+    {
+      "order": 24,
+      "item_id": "3933",
+      "title": "The Killer Shrews",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:06.588469+00:00"
+    },
+    {
+      "order": 25,
+      "item_id": "101",
+      "title": "Bottle Rocket",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:09.706404+00:00"
+    },
+    {
+      "order": 26,
+      "item_id": "3951",
+      "title": "Two Family House",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:12.876635+00:00"
+    },
+    {
+      "order": 27,
+      "item_id": "3944",
+      "title": "Bootmen",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:15.997959+00:00"
+    },
+    {
+      "order": 28,
+      "item_id": "9",
+      "title": "Sudden Death",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:23.130932+00:00"
+    },
+    {
+      "order": 29,
+      "item_id": "3932",
+      "title": "The Invisible Man",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:32.579909+00:00"
+    },
+    {
+      "order": 30,
+      "item_id": "3934",
+      "title": "Kronos",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:40.730565+00:00"
+    },
+    {
+      "order": 31,
+      "item_id": "3",
+      "title": "Grumpier Old Men",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:49.245908+00:00"
+    },
+    {
+      "order": 32,
+      "item_id": "1",
+      "title": "Toy Story",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:52.465476+00:00"
+    },
+    {
+      "order": 33,
+      "item_id": "2",
+      "title": "Jumanji",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:56.110643+00:00"
+    },
+    {
+      "order": 34,
+      "item_id": "3947",
+      "title": "Get Carter",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:59.092913+00:00"
+    },
+    {
+      "order": 35,
+      "item_id": "3946",
+      "title": "Get Carter",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:16:02.068378+00:00"
+    },
+    {
+      "order": 36,
+      "item_id": "18",
+      "title": "Four Rooms",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 5 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:16:13.155190+00:00"
+    },
+    {
+      "order": 37,
+      "item_id": "3945",
+      "title": "Digimon: The Movie",
+      "dataset_key": "amazon_mi",
+      "model_key": "sasrec",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:16:16.303097+00:00"
+    }
+  ],
+  "skip_sequence": [
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "Amazon Musical Instruments / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:11:51.594629+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:14.494071+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:12:53.510431+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:13:35.234840+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:14:18.606628+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:03.556487+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:15:20.231452+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "MovieLens-1M / SASRec 推荐第 1 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:16:06.204339+00:00"
+    },
+    {
+      "reason": "user_not_interested_next_page",
+      "status_text": "MovieLens-1M / SASRec 推荐第 3 页（每页 4 个）",
+      "timestamp_utc": "2026-03-18T13:16:10.241602+00:00"
+    }
+  ]
+}
