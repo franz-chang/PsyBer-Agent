@@ -5,7 +5,7 @@ Pipeline:
 1) Load movie metadata from movies_details_clean.csv.
 2) Extract poster visual embeddings from posters/ with local CLIP.
 3) Extract movie description text embeddings with the same CLIP text encoder.
-4) Save JSON keyed by item_id under Dataset/MM-ML-1M-main/Embeddings.
+4) Save JSON keyed by item_id under WebSim_Dataset/MM-ML-1M-main/Embeddings.
 5) Verify completeness and write a report.
 """
 
@@ -24,7 +24,7 @@ import torch.nn.functional as F
 from transformers import CLIPModel, CLIPProcessor
 
 
-DEFAULT_DATASET_DIR = Path("/Users/chongzhang/Web_sim/Dataset/MM-ML-1M-main")
+DEFAULT_DATASET_DIR = Path(__file__).resolve().parent.parent / "WebSim_Dataset" / "MM-ML-1M-main"
 DEFAULT_MODEL_PATH = Path("/Users/chongzhang/openai-clip-vit-base-patch16")
 
 
