@@ -56,6 +56,3 @@ model:
 track: 100
 agent_num: 100
 ```
-
-> 其中 dataset/model 若给多个候选，会按随机种子选择其中一个用于本次运行。
-# PsyBer-Agent
