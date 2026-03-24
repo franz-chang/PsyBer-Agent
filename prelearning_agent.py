@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """PreLearning-Agent for MM-ML-1M multimodal embeddings.
-
 Pipeline:
 1) Load movie metadata from movies_details_clean.csv.
 2) Extract poster visual embeddings from posters/ with local CLIP.
@@ -13,6 +12,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ import pandas as pd
 from PIL import Image
 import torch
 import torch.nn.functional as F
+import numpy as np
 from transformers import CLIPModel, CLIPProcessor
 
 
@@ -128,6 +130,140 @@ def batched(items: list[Any], batch_size: int):
         yield items[i : i + batch_size]
 
 
+def to_feature_tensor(raw: Any) -> torch.Tensor:
+    """Normalize model outputs to a 2D feature tensor [batch, dim]."""
+    if torch.is_tensor(raw):
+        return raw
+    pool = getattr(raw, "pooler_output", None)
+    if torch.is_tensor(pool):
+        return pool
+    last = getattr(raw, "last_hidden_state", None)
+    if torch.is_tensor(last):
+        if last.ndim == 3:
+            return last[:, 0, :]
+        return last
+    raise TypeError(f"Unsupported feature output type: {type(raw)}")
+
+
+def l2_normalize(vec: list[float]) -> list[float]:
+    arr = np.array(vec, dtype=np.float32)
+    norm = float(np.linalg.norm(arr))
+    if norm <= 1e-12:
+        return arr.tolist()
+    return (arr / norm).tolist()
+
+
+def cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
+    a = np.array(vec1, dtype=np.float32)
+    b = np.array(vec2, dtype=np.float32)
+    na = float(np.linalg.norm(a))
+    nb = float(np.linalg.norm(b))
+    if na <= 1e-12 or nb <= 1e-12:
+        return 0.0
+    return float(np.dot(a, b) / (na * nb))
+
+
+def stable_float_01(text: str) -> float:
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    raw = int(digest[:8], 16)
+    return raw / float(0xFFFFFFFF)
+
+
+def build_psy_input(
+    *,
+    item_id: str,
+    description: str,
+    text_vec: list[float],
+    visual_vec: list[float],
+) -> dict[str, Any]:
+    fused = l2_normalize(
+        ((np.array(text_vec, dtype=np.float32) + np.array(visual_vec, dtype=np.float32)) / 2.0).tolist()
+    )
+    cross_sim = cosine_similarity(text_vec, visual_vec)
+    # 映射到 [0,1]：越不一致争议性越强
+    item_n = max(0.0, min(1.0, (1.0 - cross_sim) / 2.0))
+
+    # 描述长度映射成认知负荷，长度越大负荷通常越高
+    desc_len = len((description or "").strip())
+    item_c = max(0.0, min(1.0, desc_len / 400.0))
+
+    # 先验社会验证分，使用 item_id 的稳定哈希避免每次变化
+    item_pop = stable_float_01(item_id)
+
+    return {
+        "item_v": fused,
+        "item_n": float(item_n),
+        "item_c": float(item_c),
+        "item_pop": float(item_pop),
+    }
+
+
+def generate_agent_profiles(
+    *,
+    agent_num: int,
+    emb_dim: int,
+    seed: int,
+) -> list[dict[str, Any]]:
+    rng = np.random.default_rng(seed)
+    genders = ["female", "male", "non-binary"]
+    occupations = [
+        "student",
+        "engineer",
+        "teacher",
+        "designer",
+        "medical_worker",
+        "civil_servant",
+        "entrepreneur",
+        "sales",
+        "freelancer",
+        "researcher",
+    ]
+    social_classes = ["lower", "working", "middle", "upper-middle", "upper"]
+    personalities = [
+        "analytical",
+        "novelty-seeking",
+        "risk-averse",
+        "social-driven",
+        "goal-oriented",
+        "impulsive",
+        "balanced",
+    ]
+    consumption_values = [
+        "value_for_money",
+        "experience_first",
+        "brand_loyal",
+        "pragmatic",
+        "status_oriented",
+        "trend_sensitive",
+    ]
+
+    profiles: list[dict[str, Any]] = []
+    for idx in range(agent_num):
+        u_base = rng.normal(0, 1, emb_dim).astype(np.float32)
+        u_ideal = rng.normal(0, 1, emb_dim).astype(np.float32)
+        u_real = rng.normal(0, 1, emb_dim).astype(np.float32)
+        u_base = u_base / max(float(np.linalg.norm(u_base)), 1e-12)
+        u_ideal = u_ideal / max(float(np.linalg.norm(u_ideal)), 1e-12)
+        u_real = u_real / max(float(np.linalg.norm(u_real)), 1e-12)
+
+        profiles.append(
+            {
+                "agent_id": idx + 1,
+                "age": int(rng.integers(18, 61)),
+                "gender": str(rng.choice(genders)),
+                "occupation": str(rng.choice(occupations)),
+                "social_class": str(rng.choice(social_classes)),
+                "personality": str(rng.choice(personalities)),
+                "consumption_value": str(rng.choice(consumption_values)),
+                "u_base": [float(x) for x in u_base.tolist()],
+                "u_ideal": [float(x) for x in u_ideal.tolist()],
+                "u_real": [float(x) for x in u_real.tolist()],
+                "created_utc": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    return profiles
+
+
 class PreLearningAgent:
     def __init__(
         self,
@@ -137,6 +273,8 @@ class PreLearningAgent:
         text_batch_size: int,
         image_batch_size: int,
         strict_check: bool,
+        agent_num: int,
+        seed: int,
     ):
         self.dataset_dir = dataset_dir
         self.model_path = model_path
@@ -144,11 +282,15 @@ class PreLearningAgent:
         self.text_batch_size = max(1, text_batch_size)
         self.image_batch_size = max(1, image_batch_size)
         self.strict_check = strict_check
+        self.agent_num = max(1, agent_num)
+        self.seed = seed
 
         self.csv_path = self.dataset_dir / "movies_details_clean.csv"
         self.poster_dir = self.dataset_dir / "posters"
         self.output_json = self.output_dir / "item_embeddings.json"
         self.report_json = self.output_dir / "prelearning_report.json"
+        self.profiles_json = self.output_dir / "agent_profiles.json"
+        self.project_profiles_json = Path(__file__).resolve().parent / "agent_profiles.json"
 
         self.device = choose_device()
         self.model: CLIPModel | None = None
@@ -181,6 +323,7 @@ class PreLearningAgent:
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
             with torch.no_grad():
                 feats = self.model.get_text_features(**inputs)
+                feats = to_feature_tensor(feats)
                 feats = F.normalize(feats, p=2, dim=-1)
             feats = feats.detach().cpu().float().tolist()
             for item_id, vec in zip(ids, feats):
@@ -222,6 +365,7 @@ class PreLearningAgent:
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
                 with torch.no_grad():
                     feats = self.model.get_image_features(**inputs)
+                    feats = to_feature_tensor(feats)
                     feats = F.normalize(feats, p=2, dim=-1)
                 feats = feats.detach().cpu().float().tolist()
                 for item_id, vec in zip(ids, feats):
@@ -254,11 +398,19 @@ class PreLearningAgent:
                 visual_vec = [0.0] * embed_dim
                 visual_source = "zero_fallback_missing_poster_or_decode_error"
 
+            psy_input = build_psy_input(
+                item_id=rec.item_id,
+                description=rec.description,
+                text_vec=text_vec,
+                visual_vec=visual_vec,
+            )
+
             items[rec.item_id] = {
                 "visual_embedding": visual_vec,
                 "text_embedding": text_vec,
                 "visual_source": visual_source,
                 "text_source": text_source,
+                "psy_input": psy_input,
             }
         return items
 
@@ -346,7 +498,12 @@ class PreLearningAgent:
         report["all_checks_passed"] = blockers == 0
         return report
 
-    def save_outputs(self, items: dict[str, dict[str, Any]], report: dict[str, Any]) -> None:
+    def save_outputs(
+        self,
+        items: dict[str, dict[str, Any]],
+        report: dict[str, Any],
+        profiles: list[dict[str, Any]],
+    ) -> None:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.output_json.write_text(
             json.dumps(items, ensure_ascii=False, indent=2),
@@ -354,6 +511,14 @@ class PreLearningAgent:
         )
         self.report_json.write_text(
             json.dumps(report, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        self.profiles_json.write_text(
+            json.dumps(profiles, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        self.project_profiles_json.write_text(
+            json.dumps(profiles, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
 
@@ -367,10 +532,17 @@ class PreLearningAgent:
 
         items = self.build_output_items(records, text_embeddings, visual_embeddings)
         report = self.verify(records, items, duplicates, image_errors)
-        self.save_outputs(items, report)
+        profiles = generate_agent_profiles(
+            agent_num=self.agent_num,
+            emb_dim=int(self.embed_dim or 0),
+            seed=self.seed,
+        )
+        self.save_outputs(items, report, profiles)
 
         print(f"[Save] embeddings_json={self.output_json}")
         print(f"[Save] report_json={self.report_json}")
+        print(f"[Save] profiles_json={self.profiles_json}")
+        print(f"[Save] profiles_json_project={self.project_profiles_json}")
         print(
             "[Check] "
             f"total={report['total_records']}, "
@@ -397,6 +569,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--text-batch-size", type=int, default=128)
     parser.add_argument("--image-batch-size", type=int, default=64)
+    parser.add_argument("--agent-num", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
         "--allow-missing",
         action="store_true",
@@ -414,6 +588,8 @@ def main() -> None:
         text_batch_size=args.text_batch_size,
         image_batch_size=args.image_batch_size,
         strict_check=not args.allow_missing,
+        agent_num=args.agent_num,
+        seed=args.seed,
     )
     agent.run()
 

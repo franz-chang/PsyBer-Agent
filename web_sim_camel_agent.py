@@ -16,6 +16,8 @@ import json
 import os
 import re
 import shutil
+import hashlib
+import importlib.util
 import signal
 import subprocess
 import sys
@@ -29,6 +31,7 @@ from urllib.request import urlopen
 
 from openai import OpenAI
 import yaml
+import numpy as np
 
 CAMEL_ROOT = Path("/Users/chongzhang/camel")
 if str(CAMEL_ROOT) not in sys.path:
@@ -49,6 +52,19 @@ WEB_SIM_TASK_FILE = PROJECT_DIR / "task.yaml"
 LEGACY_WEB_SIM_TASK_FILE = WEB_SIM_DIR / "task.yaml"
 SERVICE_URL = "http://127.0.0.1:19002"
 RUN_SERVICE_SCRIPT = WEB_SIM_DIR / "run_service.sh"
+ML1M_EMBEDDINGS_FILE = Path(
+    "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/item_embeddings.json"
+)
+ML1M_PROFILES_FILE = Path(
+    "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/agent_profiles.json"
+)
+AMAZON_MI_EMBEDDINGS_FILE = Path(
+    "/Users/chongzhang/WebSim_Dataset/amazon_v2/Musical_Instruments/Embeddings/item_embeddings.json"
+)
+AMAZON_MI_PROFILES_FILE = Path(
+    "/Users/chongzhang/WebSim_Dataset/amazon_v2/Musical_Instruments/Embeddings/agent_profiles.json"
+)
+PSY_ENGINE_FILE = PROJECT_DIR / "Psy-engine.py"
 # Default to Qwen official OpenAI-compatible endpoint.
 # You can override by env:
 # - QWEN_API_KEY / DASHSCOPE_API_KEY
@@ -118,6 +134,8 @@ class AgentMemory:
     selected_model_key: str
     track_target: int
     agent_num: int
+    agent_profile: dict[str, Any] = field(default_factory=dict)
+    psy_state_history: list[dict[str, Any]] = field(default_factory=list)
     click_sequence: list[ClickRecord] = field(default_factory=list)
     skip_sequence: list[SkipRecord] = field(default_factory=list)
 
@@ -127,6 +145,9 @@ class AgentMemory:
     def append_skip(self, record: SkipRecord) -> None:
         self.skip_sequence.append(record)
 
+    def append_psy_state(self, record: dict[str, Any]) -> None:
+        self.psy_state_history.append(record)
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "task_config": self.task_config,
@@ -134,10 +155,13 @@ class AgentMemory:
             "selected_model_key": self.selected_model_key,
             "track_target": self.track_target,
             "agent_num": self.agent_num,
+            "agent_profile": self.agent_profile,
             "click_count": len(self.click_sequence),
             "skip_count": len(self.skip_sequence),
+            "psy_state_count": len(self.psy_state_history),
             "click_sequence": [asdict(x) for x in self.click_sequence],
             "skip_sequence": [asdict(x) for x in self.skip_sequence],
+            "psy_state_history": self.psy_state_history,
         }
 
 
@@ -183,6 +207,9 @@ class WebSimCamelAgent:
         self.summary_file = self.run_dir / "summary.txt"
         self.service_log_file = self.run_dir / "web_service.log"
         self.openai_client: OpenAI | None = None
+        self.item_feature_map: dict[str, dict[str, Any]] = {}
+        self.agent_profiles: list[dict[str, Any]] = []
+        self.psy_engine: Any = None
 
     @staticmethod
     def _utc_now() -> str:
@@ -428,6 +455,128 @@ class WebSimCamelAgent:
             return None
         return None
 
+    @staticmethod
+    def _stable_float_01(text: str) -> float:
+        digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        raw = int(digest[:8], 16)
+        return raw / float(0xFFFFFFFF)
+
+    @staticmethod
+    def _deterministic_vector(item_id: str, dim: int) -> list[float]:
+        seed_int = int(hashlib.sha256(item_id.encode("utf-8")).hexdigest()[:8], 16)
+        rng = np.random.default_rng(seed_int)
+        vec = rng.normal(0, 1, dim).astype(np.float32)
+        norm = float(np.linalg.norm(vec))
+        if norm > 1e-12:
+            vec = vec / norm
+        return [float(x) for x in vec.tolist()]
+
+    def _get_embedding_paths(self, dataset_key: str) -> tuple[Path, Path]:
+        if dataset_key == "amazon_mi":
+            return AMAZON_MI_EMBEDDINGS_FILE, AMAZON_MI_PROFILES_FILE
+        return ML1M_EMBEDDINGS_FILE, ML1M_PROFILES_FILE
+
+    def _load_psy_resources(self, dataset_key: str) -> None:
+        emb_file, profile_file = self._get_embedding_paths(dataset_key)
+        self.item_feature_map = {}
+        self.agent_profiles = []
+
+        if emb_file.exists():
+            raw = json.loads(emb_file.read_text(encoding="utf-8"))
+            if isinstance(raw, dict):
+                for item_id, payload in raw.items():
+                    if not isinstance(payload, dict):
+                        continue
+                    psy_input = payload.get("psy_input")
+                    if isinstance(psy_input, dict):
+                        self.item_feature_map[str(item_id)] = psy_input
+                        continue
+
+                    # Backward compatibility: construct from legacy embeddings
+                    text_vec = payload.get("text_embedding")
+                    visual_vec = payload.get("visual_embedding")
+                    if isinstance(text_vec, list) and isinstance(visual_vec, list) and text_vec and visual_vec:
+                        text_arr = np.array(text_vec, dtype=np.float32)
+                        visual_arr = np.array(visual_vec, dtype=np.float32)
+                        fused = ((text_arr + visual_arr) / 2.0).astype(np.float32)
+                        fused_norm = float(np.linalg.norm(fused))
+                        if fused_norm > 1e-12:
+                            fused = fused / fused_norm
+                        cos = float(np.dot(text_arr, visual_arr) / max(float(np.linalg.norm(text_arr) * np.linalg.norm(visual_arr)), 1e-12))
+                        self.item_feature_map[str(item_id)] = {
+                            "item_v": [float(x) for x in fused.tolist()],
+                            "item_n": max(0.0, min(1.0, (1.0 - cos) / 2.0)),
+                            "item_c": 0.5,
+                            "item_pop": self._stable_float_01(str(item_id)),
+                        }
+
+        if profile_file.exists():
+            raw_profiles = json.loads(profile_file.read_text(encoding="utf-8"))
+            if isinstance(raw_profiles, list):
+                self.agent_profiles = [x for x in raw_profiles if isinstance(x, dict)]
+
+    def _load_psyber_engine_class(self) -> type:
+        if not PSY_ENGINE_FILE.exists():
+            raise FileNotFoundError(f"Missing psy engine file: {PSY_ENGINE_FILE}")
+        spec = importlib.util.spec_from_file_location("psy_engine_runtime", str(PSY_ENGINE_FILE))
+        if spec is None or spec.loader is None:
+            raise RuntimeError("Failed to load PsyBerEngine module spec")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        engine_cls = getattr(module, "PsyBerEngine", None)
+        if engine_cls is None:
+            raise RuntimeError("PsyBerEngine class not found in Psy-engine.py")
+        return engine_cls
+
+    def _build_initial_engine_memory(self, memory: AgentMemory) -> list[list[float]]:
+        history_vectors: list[list[float]] = []
+        for rec in memory.click_sequence:
+            feat = self.item_feature_map.get(str(rec.item_id))
+            if isinstance(feat, dict) and isinstance(feat.get("item_v"), list):
+                history_vectors.append([float(x) for x in feat["item_v"]])
+        return history_vectors
+
+    def _select_agent_profile(self, agent_num: int) -> dict[str, Any]:
+        if not self.agent_profiles:
+            return {}
+        idx = max(0, agent_num - 1) % len(self.agent_profiles)
+        return dict(self.agent_profiles[idx])
+
+    def _build_psy_candidates(
+        self,
+        cards: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for card in cards:
+            item_id = str(card.get("item_id") or "")
+            title = str(card.get("title") or "")
+            feat = self.item_feature_map.get(item_id, {})
+            item_v = feat.get("item_v")
+            item_n = feat.get("item_n")
+            item_c = feat.get("item_c")
+            item_pop = feat.get("item_pop")
+
+            if not isinstance(item_v, list) or not item_v:
+                item_v = self._deterministic_vector(item_id or title or "unknown", 512)
+            if not isinstance(item_n, (int, float)):
+                item_n = self._stable_float_01(f"n::{item_id}")
+            if not isinstance(item_c, (int, float)):
+                item_c = self._stable_float_01(f"c::{item_id}")
+            if not isinstance(item_pop, (int, float)):
+                item_pop = self._stable_float_01(f"pop::{item_id}")
+
+            out.append(
+                {
+                    "item_id": item_id,
+                    "title": title,
+                    "v": np.array(item_v, dtype=np.float32),
+                    "n": float(max(0.0, min(1.0, float(item_n)))),
+                    "c": float(max(0.0, min(1.0, float(item_c)))),
+                    "pop": float(max(0.0, min(1.0, float(item_pop)))),
+                }
+            )
+        return out
+
     def _ensure_openai_client(self) -> OpenAI:
         if self.openai_client is not None:
             return self.openai_client
@@ -478,6 +627,8 @@ class WebSimCamelAgent:
         next_enabled: bool,
         status_text: str,
         memory: AgentMemory,
+        psy_state: dict[str, Any],
+        psy_engine_choice: dict[str, Any],
     ) -> str:
         card_lines = []
         for idx, card in enumerate(cards, start=1):
@@ -500,6 +651,8 @@ class WebSimCamelAgent:
             f"dataset={memory.selected_dataset_key}, model={memory.selected_model_key}\n"
             f"next_enabled={str(next_enabled).lower()}\n"
             f"status_text={status_text}\n"
+            f"psy_state={psy_state}\n"
+            f"psy_engine_choice={psy_engine_choice}\n"
             f"recent_clicks={recent_lines}\n"
             f"candidates={card_lines}\n"
         )
@@ -557,12 +710,16 @@ class WebSimCamelAgent:
         next_enabled: bool,
         status_text: str,
         memory: AgentMemory,
+        psy_state: dict[str, Any],
+        psy_engine_choice: dict[str, Any],
     ) -> tuple[str, str, str]:
         prompt = self._build_decision_prompt(
             cards=cards,
             next_enabled=next_enabled,
             status_text=status_text,
             memory=memory,
+            psy_state=psy_state,
+            psy_engine_choice=psy_engine_choice,
         )
         reply_text = self._call_openai_decision(
             prompt=prompt,
@@ -699,6 +856,23 @@ class WebSimCamelAgent:
             )
             memory.selected_dataset_key = final_dataset_key
             memory.selected_model_key = final_model_key
+
+            self._load_psy_resources(final_dataset_key)
+            profile = self._select_agent_profile(memory.agent_num)
+            memory.agent_profile = profile
+            PsyBerEngineCls = self._load_psyber_engine_class()
+            init_memory = self._build_initial_engine_memory(memory)
+            emb_dim = 512
+            if self.item_feature_map:
+                first = next(iter(self.item_feature_map.values()))
+                if isinstance(first, dict) and isinstance(first.get("item_v"), list) and first["item_v"]:
+                    emb_dim = len(first["item_v"])
+            self.psy_engine = PsyBerEngineCls(
+                emb_dim=emb_dim,
+                persona=profile,
+                initial_memory=init_memory,
+                stochastic=False,
+            )
             self._persist_memory(memory)
 
             decision_step = 0
@@ -745,14 +919,75 @@ class WebSimCamelAgent:
                 screenshot_path = await self._capture_som_screenshot_path(toolkit)
                 decision_step += 1
                 decision_start = time.perf_counter()
-                action, selected_item_id, _reply_text = self._decide_action_with_agent(
-                    screenshot_path=screenshot_path,
-                    cards=cards,
-                    next_enabled=next_enabled,
-                    status_text=status_text,
-                    memory=memory,
+                psy_recovered_pre = list(self.psy_engine.apply_recovery_if_needed())
+                psy_state_before = self.psy_engine.export_state()
+                psy_candidates = self._build_psy_candidates(cards)
+                psy_choice_idx, pareto_front = self.psy_engine.select_best_item(psy_candidates)
+                psy_choice = psy_candidates[psy_choice_idx]
+                psy_deltas, psy_recovered, psy_metrics = self.psy_engine.consume_item(
+                    psy_choice["v"],
+                    psy_choice["n"],
+                    psy_choice["c"],
+                    psy_choice["pop"],
                 )
+                psy_state = self.psy_engine.export_state()
+                psy_record = {
+                    "step": decision_step,
+                    "timestamp_utc": self._utc_now(),
+                    "selected_item_id": psy_choice.get("item_id", ""),
+                    "selected_title": psy_choice.get("title", ""),
+                    "pareto_front": [int(x) for x in pareto_front],
+                    "deltas": [float(x) for x in np.array(psy_deltas, dtype=np.float32).tolist()],
+                    "recovered_before_round": list(psy_recovered_pre),
+                    "recovered": list(psy_recovered),
+                    "metrics": {k: float(v) for k, v in psy_metrics.items()},
+                    "state_before": psy_state_before,
+                    "state": psy_state,
+                }
+                memory.append_psy_state(psy_record)
+
+                force_next_by_psy = (
+                    int(psy_state.get("Surf", 1)) == 0
+                    or any(float(psy_state.get(k, 1.0)) <= 0.0 for k in ("P", "C", "E", "S"))
+                )
+                if force_next_by_psy:
+                    action, selected_item_id, _reply_text = (
+                        "next",
+                        "",
+                        "[FORCED_NEXT_BY_PSYBER_SURF_0]",
+                    )
+                else:
+                    action, selected_item_id, _reply_text = self._decide_action_with_agent(
+                        screenshot_path=screenshot_path,
+                        cards=cards,
+                        next_enabled=next_enabled,
+                        status_text=status_text,
+                        memory=memory,
+                        psy_state=psy_state,
+                        psy_engine_choice={
+                            "item_id": psy_choice.get("item_id", ""),
+                            "title": psy_choice.get("title", ""),
+                            "item_n": float(psy_choice.get("n", 0.0)),
+                            "item_c": float(psy_choice.get("c", 0.0)),
+                            "item_pop": float(psy_choice.get("pop", 0.0)),
+                        },
+                    )
                 decision_seconds = time.perf_counter() - decision_start
+                psy_delta_vals = np.array(psy_deltas, dtype=np.float32).tolist()
+                psy_state_log = (
+                    f"P={float(psy_state.get('P', 0.0)):.3f},"
+                    f"C={float(psy_state.get('C', 0.0)):.3f},"
+                    f"E={float(psy_state.get('E', 0.0)):.3f},"
+                    f"S={float(psy_state.get('S', 0.0)):.3f},"
+                    f"Surf={int(psy_state.get('Surf', 1))}"
+                )
+                recovered_log = ",".join(psy_recovered_pre) if psy_recovered_pre else "-"
+                psy_delta_log = (
+                    f"dP={float(psy_delta_vals[0]):+.3f},"
+                    f"dC={float(psy_delta_vals[1]):+.3f},"
+                    f"dE={float(psy_delta_vals[2]):+.3f},"
+                    f"dS={float(psy_delta_vals[3]):+.3f}"
+                )
                 page_pos: str | int = "-"
                 if action == "click":
                     for idx, card in enumerate(cards, start=1):
@@ -761,23 +996,48 @@ class WebSimCamelAgent:
                             break
                 decision_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(
-                    f"[QWEN决策] time={decision_time} step={decision_step} "
+                    f"[QWEN] {decision_time} step={decision_step} "
                     f"action={action} item_id={selected_item_id or '-'} "
-                    f"page_pos={page_pos} decision_seconds={decision_seconds:.3f}"
+                    f"page_pos={page_pos} DT={decision_seconds:.3f} "
+                    f"forced_next={str(force_next_by_psy).lower()} "
+                    f"recovered_before_round={recovered_log} "
+                    f"psy_state=({psy_state_log}) "
+                    f"psy_delta=({psy_delta_log})"
                 )
 
-                if action == "next" and next_enabled:
-                    await self._click_by_ref(toolkit, next_ref, "click next")
-                    memory.append_skip(
-                        SkipRecord(
-                            reason="user_not_interested_next_page",
-                            status_text=status_text,
-                            timestamp_utc=self._utc_now(),
+                if action == "next":
+                    if next_enabled:
+                        await self._click_by_ref(toolkit, next_ref, "click next")
+                        memory.append_skip(
+                            SkipRecord(
+                                reason=(
+                                    "psyber_forced_next_due_surf_0"
+                                    if force_next_by_psy
+                                    else "user_not_interested_next_page"
+                                ),
+                                status_text=status_text,
+                                timestamp_utc=self._utc_now(),
+                            )
                         )
-                    )
-                    self._persist_memory(memory)
-                    await asyncio.sleep(0.6)
-                    continue
+                        self._persist_memory(memory)
+                        await asyncio.sleep(0.6)
+                        continue
+
+                    reset_ref = str(state.get("reset_ref") or "")
+                    if reset_ref:
+                        await self._click_by_ref(toolkit, reset_ref, "click reset")
+                        memory.append_skip(
+                            SkipRecord(
+                                reason="next_not_available_then_reset",
+                                status_text=status_text,
+                                timestamp_utc=self._utc_now(),
+                            )
+                        )
+                        self._persist_memory(memory)
+                        await asyncio.sleep(0.5)
+                        continue
+
+                    raise RuntimeError("Action next selected but no next/reset available")
 
                 match = [
                     x for x in cards if str(x.get("item_id") or "") == selected_item_id
@@ -838,7 +1098,7 @@ class WebSimCamelAgent:
                     )
                 )
                 self._persist_memory(memory)
-                await asyncio.sleep(0.8)
+                await asyncio.sleep(0.5)
 
             return memory
         finally:
@@ -895,7 +1155,7 @@ def main() -> None:
     parser.add_argument(
         "--skip-probability",
         type=float,
-        default=0.2,
+        default=0.3,
         help="[Deprecated] kept for compatibility, ignored",
     )
     parser.add_argument(
