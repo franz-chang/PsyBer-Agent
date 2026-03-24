@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Web_sim click simulator based on CAMEL HybridBrowserToolkit.
-
 Workflow:
 1) Read task config from /Users/chongzhang/PsyBer-Agent/task.yaml.
 2) Ensure Web_sim service is running at http://127.0.0.1:19002/.
@@ -10,13 +9,11 @@ Workflow:
 """
 
 from __future__ import annotations
-
 import argparse
 import asyncio
 import base64
 import json
 import os
-import random
 import re
 import shutil
 import signal
@@ -52,15 +49,16 @@ WEB_SIM_TASK_FILE = PROJECT_DIR / "task.yaml"
 LEGACY_WEB_SIM_TASK_FILE = WEB_SIM_DIR / "task.yaml"
 SERVICE_URL = "http://127.0.0.1:19002"
 RUN_SERVICE_SCRIPT = WEB_SIM_DIR / "run_service.sh"
-# DECISION_MODEL = "gpt-5-mini-2025-08-07"
-DECISION_MODEL = "gpt-5-mini-2025-08-07"
-
-# Optional inline API config.
-# If OPENAI_API_KEY env var is set, env takes precedence.
-# Otherwise, fill OPENAI_API_KEY_OVERRIDE directly.
-OPENAI_API_KEY_OVERRIDE = "sk-783591fb1fd345f1aa12a1cd91e96b4d"
-# Optional custom gateway, e.g. https://api.openai.com/v1
-OPENAI_BASE_URL_OVERRIDE = "https://api.openai.com/v1"
+# Default to Qwen official OpenAI-compatible endpoint.
+# You can override by env:
+# - QWEN_API_KEY / DASHSCOPE_API_KEY
+# - QWEN_BASE_URL
+# - QWEN_MODEL
+QWEN_MODEL_DEFAULT = "qwen3-vl-flash"
+QWEN_BASE_URL_DEFAULT = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+# Fill your key here if you don't want to use environment variables.
+# Example: QWEN_API_KEY = "sk-xxxx"
+QWEN_API_KEY = "sk-fc7990c58df346f6909e29ba6a3daf1a"
 
 DATASET_KEY_MAP = {
     "ml1m": "ml1m",
@@ -153,13 +151,26 @@ class WebSimCamelAgent:
         seed: int,
         close_service_when_done: bool,
         track_override: int | None,
+        decision_model: str | None,
+        qwen_base_url: str | None,
     ):
         self.output_root = output_root
         self.headless = headless
-        self.skip_probability = max(0.0, min(1.0, skip_probability))
-        self.random = random.Random(seed)
+        # Deprecated legacy args are accepted for compatibility only.
+        _ = skip_probability
+        _ = seed
         self.close_service_when_done = close_service_when_done
         self.track_override = track_override if (track_override or 0) > 0 else None
+        self.decision_model = (
+            (decision_model or "").strip()
+            or os.getenv("QWEN_MODEL", "").strip()
+            or QWEN_MODEL_DEFAULT
+        )
+        self.qwen_base_url = (
+            (qwen_base_url or "").strip()
+            or os.getenv("QWEN_BASE_URL", "").strip()
+            or QWEN_BASE_URL_DEFAULT
+        )
 
         self.service_proc: subprocess.Popen[str] | None = None
         self.service_started_by_agent = False
@@ -420,17 +431,17 @@ class WebSimCamelAgent:
     def _ensure_openai_client(self) -> OpenAI:
         if self.openai_client is not None:
             return self.openai_client
-        api_key = os.getenv("OPENAI_API_KEY", "sk-4k6V1X9KeEICmXuKdRG8DWz1kg7VMTCmMCZfzf6nk9YC4cnz").strip() or OPENAI_API_KEY_OVERRIDE.strip()
+        api_key = (
+            os.getenv("QWEN_API_KEY", "").strip()
+            or os.getenv("DASHSCOPE_API_KEY", "").strip()
+            or os.getenv("OPENAI_API_KEY", "").strip()
+            or QWEN_API_KEY.strip()
+        )
         if not api_key:
             raise RuntimeError(
-                "OpenAI API key missing. Set OPENAI_API_KEY env var or fill OPENAI_API_KEY_OVERRIDE in code."
+                "Qwen API key missing. Please set QWEN_API_KEY or DASHSCOPE_API_KEY."
             )
-        base_url = (
-            os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").strip()
-            or OPENAI_BASE_URL_OVERRIDE.strip()
-            or None
-        )
-        self.openai_client = OpenAI(api_key=api_key, base_url=base_url)
+        self.openai_client = OpenAI(api_key=api_key, base_url=self.qwen_base_url)
         return self.openai_client
 
     @staticmethod
@@ -438,19 +449,6 @@ class WebSimCamelAgent:
         payload = Path(image_path).read_bytes()
         encoded = base64.b64encode(payload).decode("ascii")
         return f"data:image/png;base64,{encoded}"
-
-    def _fallback_random_action(
-        self,
-        cards: list[dict[str, Any]],
-        next_enabled: bool,
-        first_click_done: bool,
-    ) -> tuple[str, str]:
-        allow_skip = first_click_done and next_enabled
-        do_skip = allow_skip and (self.random.random() < self.skip_probability)
-        if do_skip:
-            return "next", ""
-        choice = self.random.choice(cards)
-        return "click", str(choice.get("item_id") or "")
 
     def _decide_action_from_agent_reply(
         self,
@@ -513,20 +511,35 @@ class WebSimCamelAgent:
         screenshot_path: str | None,
     ) -> str:
         client = self._ensure_openai_client()
-        content: list[dict[str, Any]] = [{"type": "input_text", "text": prompt}]
-        if screenshot_path and Path(screenshot_path).exists():
-            content.append(
+        text_only_content: list[dict[str, Any]] = [
+            {"type": "input_text", "text": prompt}
+        ]
+        with_image_content = list(text_only_content)
+        has_image = bool(screenshot_path and Path(screenshot_path).exists())
+        if has_image:
+            with_image_content.append(
                 {
                     "type": "input_image",
                     "image_url": self._image_to_data_url(screenshot_path),
                 }
             )
-        resp = client.responses.create(
-            model=DECISION_MODEL,
-            input=[{"role": "user", "content": content}],
-            temperature=0,
-            max_output_tokens=200,
-        )
+        try:
+            resp = client.responses.create(
+                model=self.decision_model,
+                input=[{"role": "user", "content": with_image_content}],
+                temperature=0,
+                max_output_tokens=200,
+            )
+        except Exception:
+            if not has_image:
+                raise
+            # Some Qwen models are text-only; retry without image.
+            resp = client.responses.create(
+                model=self.decision_model,
+                input=[{"role": "user", "content": text_only_content}],
+                temperature=0,
+                max_output_tokens=200,
+            )
         if isinstance(resp, str):
             return resp
         text = getattr(resp, "output_text", "") or ""
@@ -542,26 +555,23 @@ class WebSimCamelAgent:
         screenshot_path: str | None,
         cards: list[dict[str, Any]],
         next_enabled: bool,
-        first_click_done: bool,
         status_text: str,
         memory: AgentMemory,
-    ) -> tuple[str, str]:
-        try:
-            prompt = self._build_decision_prompt(
-                cards=cards,
-                next_enabled=next_enabled,
-                status_text=status_text,
-                memory=memory,
-            )
-            reply_text = self._call_openai_decision(
-                prompt=prompt,
-                screenshot_path=screenshot_path,
-            )
-            return self._decide_action_from_agent_reply(
-                reply_text, cards, next_enabled
-            )
-        except Exception:
-            return self._fallback_random_action(cards, next_enabled, first_click_done)
+    ) -> tuple[str, str, str]:
+        prompt = self._build_decision_prompt(
+            cards=cards,
+            next_enabled=next_enabled,
+            status_text=status_text,
+            memory=memory,
+        )
+        reply_text = self._call_openai_decision(
+            prompt=prompt,
+            screenshot_path=screenshot_path,
+        )
+        action, item_id = self._decide_action_from_agent_reply(
+            reply_text, cards, next_enabled
+        )
+        return action, item_id, reply_text
 
     @staticmethod
     async def _ensure_snapshot(toolkit: HybridBrowserToolkit) -> None:
@@ -638,9 +648,7 @@ class WebSimCamelAgent:
         keys = [x for x in keys if x]
         if not keys:
             return default
-        if len(keys) == 1:
-            return str(keys[0])
-        return str(self.random.choice(keys))
+        return str(keys[0])
 
     def _persist_memory(self, memory: AgentMemory) -> None:
         self.memory_file.write_text(
@@ -693,7 +701,7 @@ class WebSimCamelAgent:
             memory.selected_model_key = final_model_key
             self._persist_memory(memory)
 
-            first_click_done = False
+            decision_step = 0
             while len(memory.click_sequence) < task.track:
                 await self._ensure_snapshot(toolkit)
                 state = await self._get_state(toolkit)
@@ -735,13 +743,27 @@ class WebSimCamelAgent:
                     raise RuntimeError("No cards and no next/reset action available")
 
                 screenshot_path = await self._capture_som_screenshot_path(toolkit)
-                action, selected_item_id = self._decide_action_with_agent(
+                decision_step += 1
+                decision_start = time.perf_counter()
+                action, selected_item_id, _reply_text = self._decide_action_with_agent(
                     screenshot_path=screenshot_path,
                     cards=cards,
                     next_enabled=next_enabled,
-                    first_click_done=first_click_done,
                     status_text=status_text,
                     memory=memory,
+                )
+                decision_seconds = time.perf_counter() - decision_start
+                page_pos: str | int = "-"
+                if action == "click":
+                    for idx, card in enumerate(cards, start=1):
+                        if str(card.get("item_id") or "") == selected_item_id:
+                            page_pos = idx
+                            break
+                decision_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print(
+                    f"[QWEN决策] time={decision_time} step={decision_step} "
+                    f"action={action} item_id={selected_item_id or '-'} "
+                    f"page_pos={page_pos} decision_seconds={decision_seconds:.3f}"
                 )
 
                 if action == "next" and next_enabled:
@@ -760,7 +782,7 @@ class WebSimCamelAgent:
                 match = [
                     x for x in cards if str(x.get("item_id") or "") == selected_item_id
                 ]
-                choice = match[0] if match else self.random.choice(cards)
+                choice = match[0] if match else cards[0]
                 item_id = str(choice.get("item_id") or "")
                 title = str(choice.get("title") or "")
                 click_ok = False
@@ -797,7 +819,7 @@ class WebSimCamelAgent:
                     ]
                     if not retry_cards:
                         continue
-                    new_choice = self.random.choice(retry_cards)
+                    new_choice = retry_cards[0]
                     item_id = str(new_choice.get("item_id") or item_id)
                     title = str(new_choice.get("title") or title)
 
@@ -815,7 +837,6 @@ class WebSimCamelAgent:
                         timestamp_utc=self._utc_now(),
                     )
                 )
-                first_click_done = True
                 self._persist_memory(memory)
                 await asyncio.sleep(0.8)
 
@@ -875,13 +896,25 @@ def main() -> None:
         "--skip-probability",
         type=float,
         default=0.2,
-        help="Probability to choose next page after first click",
+        help="[Deprecated] kept for compatibility, ignored",
     )
     parser.add_argument(
         "--seed",
         type=int,
         default=42,
-        help="Random seed for deterministic simulation",
+        help="[Deprecated] kept for compatibility, ignored",
+    )
+    parser.add_argument(
+        "--decision-model",
+        type=str,
+        default=None,
+        help="Qwen model name, e.g. qwen-plus / qwen-max",
+    )
+    parser.add_argument(
+        "--qwen-base-url",
+        type=str,
+        default=None,
+        help="Qwen OpenAI-compatible endpoint. Default: dashscope compatible-mode",
     )
     parser.add_argument(
         "--close-service-when-done",
@@ -903,6 +936,8 @@ def main() -> None:
         seed=args.seed,
         close_service_when_done=args.close_service_when_done,
         track_override=args.track_override,
+        decision_model=args.decision_model,
+        qwen_base_url=args.qwen_base_url,
     )
     agent.run()
 
