@@ -5,5 +5,5 @@ model:
   - SASRec
   # - LightGCN
   # - Multi-VAE
-track: 200
+track: 100
 agent_num: 100

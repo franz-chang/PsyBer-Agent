@@ -23,7 +23,7 @@ class PsyBerEngine:
     ):
         self.rng = np.random.default_rng(seed)
         # 1. 初始内部状态
-        self.P, self.C, self.E, self.S = 0.5, 0.8, 0.5, 0.5
+        self.P, self.C, self.E, self.S = 3.0, 3.0, 3.0, 3.0
         self.Surf = 1 
         
         # 2. 画像与记忆
@@ -53,7 +53,7 @@ class PsyBerEngine:
         self.mu_1, self.mu_2, self.mu_3, self.mu_4 = 0.2, 0.3, 0.4, 0.2
         self.theta = 0.2  
         # When Surf=0, next round auto-recovery for depleted dimensions.
-        self.recovery_boost = 0.2
+        self.recovery_boost = 0.3
         
         # 帕累托决策权重 (P, C, E, S 的偏好权重，可调整)
         if decision_weights is None:

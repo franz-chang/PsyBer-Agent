@@ -346,7 +346,7 @@ class WebSimCamelAgent:
         while time.time() < deadline:
             if self._service_is_alive():
                 return
-            time.sleep(1)
+            time.sleep(0.5)
 
         raise RuntimeError(
             "Web_sim service did not become ready in time. "
@@ -764,7 +764,7 @@ class WebSimCamelAgent:
         await self._select_by_ref(
             toolkit, state["dataset_ref"], dataset_key, "select dataset"
         )
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.3)
 
         await self._ensure_snapshot(toolkit)
         state = await self._get_state(toolkit)
@@ -779,7 +779,7 @@ class WebSimCamelAgent:
         await self._select_by_ref(
             toolkit, state["model_ref"], final_model_key, "select model"
         )
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.3)
 
         await self._ensure_snapshot(toolkit)
         state = await self._get_state(toolkit)
@@ -787,7 +787,7 @@ class WebSimCamelAgent:
         if not state.get("reset_ref"):
             raise RuntimeError("Cannot find reset button")
         await self._click_by_ref(toolkit, state["reset_ref"], "click reset")
-        await asyncio.sleep(0.8)
+        await asyncio.sleep(0.5)
 
         await self._ensure_snapshot(toolkit)
         state = await self._get_state(toolkit)
@@ -897,7 +897,7 @@ class WebSimCamelAgent:
                             )
                         )
                         self._persist_memory(memory)
-                        await asyncio.sleep(0.6)
+                        await asyncio.sleep(0.5)
                         continue
 
                     reset_ref = str(state.get("reset_ref") or "")
@@ -911,7 +911,7 @@ class WebSimCamelAgent:
                             )
                         )
                         self._persist_memory(memory)
-                        await asyncio.sleep(0.8)
+                        await asyncio.sleep(0.5)
                         continue
 
                     raise RuntimeError("No cards and no next/reset action available")
@@ -1020,7 +1020,7 @@ class WebSimCamelAgent:
                             )
                         )
                         self._persist_memory(memory)
-                        await asyncio.sleep(0.6)
+                        await asyncio.sleep(0.5)
                         continue
 
                     reset_ref = str(state.get("reset_ref") or "")
@@ -1034,7 +1034,7 @@ class WebSimCamelAgent:
                             )
                         )
                         self._persist_memory(memory)
-                        await asyncio.sleep(0.5)
+                        await asyncio.sleep(0.3)
                         continue
 
                     raise RuntimeError("Action next selected but no next/reset available")
@@ -1098,7 +1098,7 @@ class WebSimCamelAgent:
                     )
                 )
                 self._persist_memory(memory)
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.3)
 
             return memory
         finally:
