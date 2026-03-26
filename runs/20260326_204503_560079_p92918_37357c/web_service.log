@@ -1,0 +1,19 @@
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:19002
+Press CTRL+C to quit
+127.0.0.1 - - [26/Mar/2026 20:45:15] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:28] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:28] "GET /static/app.js HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:28] "GET /static/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:28] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [26/Mar/2026 20:45:31] "GET /api/init?dataset_key=ml1m&model_name=sasrec HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:43] "GET /static/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/Mar/2026 20:45:43] "GET /static/app.js HTTP/1.1" 304 -
+127.0.0.1 - - [26/Mar/2026 20:45:43] "GET /api/init?dataset_key=ml1m&model_name=sasrec HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:43] "GET /poster/ml1m/3373 HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:43] "GET /poster/ml1m/530 HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:43] "GET /poster/ml1m/3416 HTTP/1.1" 200 -
+127.0.0.1 - - [26/Mar/2026 20:45:43] "GET /poster/ml1m/3951 HTTP/1.1" 200 -
