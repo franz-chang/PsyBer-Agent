@@ -1,3 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py", line 1244, in <module>
-    main()

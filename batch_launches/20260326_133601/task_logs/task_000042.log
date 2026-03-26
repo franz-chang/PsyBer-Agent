@@ -1,6 +1,0 @@
-2026-03-26 13:38:24,409 - camel.camel.toolkits.hybrid_browser_toolkit_py.browser_session - WARNING - Failed to navigate new tab to http://127.0.0.1:19002/: Page.goto: Timeout 10000ms exceeded.
-Call log:
-  - navigating to "http://127.0.0.1:19002/", waiting until "load"
-
-2026-03-26 13:38:35,802 - camel.camel.toolkits.hybrid_browser_toolkit_py.snapshot - ERROR - Snapshot capture failed: Timeout 5000ms exceeded.
-python(7293) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.

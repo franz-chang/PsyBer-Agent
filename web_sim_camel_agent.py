@@ -877,6 +877,39 @@ class WebSimCamelAgent:
             encoding="utf-8",
         )
 
+    def _cleanup_browser_cache_images(self) -> int:
+        """Delete image files in this run's browser cache to save disk space."""
+        cache_dir = self.run_dir / "browser_cache"
+        if not cache_dir.exists():
+            return 0
+
+        removed = 0
+        image_exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"}
+        for path in cache_dir.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.suffix.lower() not in image_exts:
+                continue
+            try:
+                path.unlink()
+                removed += 1
+            except Exception:
+                continue
+
+        # Best-effort cleanup of empty directories (including browser_cache itself).
+        for path in sorted(cache_dir.rglob("*"), reverse=True):
+            if path.is_dir():
+                try:
+                    path.rmdir()
+                except Exception:
+                    pass
+        try:
+            cache_dir.rmdir()
+        except Exception:
+            pass
+
+        return removed
+
     async def run_click_simulation(self, task: TaskConfig) -> AgentMemory:
         dataset_key = self._choose_from_candidates(
             task.dataset_candidates, self._dataset_to_key, "ml1m"
@@ -1170,6 +1203,15 @@ class WebSimCamelAgent:
                 await toolkit.browser_close()
             except Exception:
                 pass
+            try:
+                removed_images = self._cleanup_browser_cache_images()
+                if removed_images > 0:
+                    print(
+                        f"[Cleanup] removed {removed_images} image(s) from "
+                        f"{self.run_dir / 'browser_cache'}"
+                    )
+            except Exception as err:
+                print(f"[Cleanup] failed to clear browser cache images: {err}")
 
     def write_summary(self, memory: AgentMemory) -> None:
         lines = [
