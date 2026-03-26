@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py", line 1244, in <module>
+    main()
+  File "/Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py", line 1240, in main
+    agent.run()
+  File "/Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py", line 1167, in run
+    self.ensure_service()
+  File "/Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py", line 368, in ensure_service
+    raise RuntimeError(
+RuntimeError: Web_sim service did not become ready in time. Check log: /Users/chongzhang/PsyBer-Agent/runs/20260326_134328_352416_p5945_881dbc/web_service.log

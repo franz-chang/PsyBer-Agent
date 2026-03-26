@@ -14,10 +14,12 @@ import asyncio
 import base64
 import json
 import os
+import secrets
 import re
 import shutil
 import hashlib
 import importlib.util
+import socket
 import signal
 import subprocess
 import sys
@@ -27,6 +29,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
+from urllib.parse import urlparse
 from urllib.request import urlopen
 
 from openai import OpenAI
@@ -65,6 +68,7 @@ AMAZON_MI_PROFILES_FILE = Path(
     "/Users/chongzhang/WebSim_Dataset/amazon_v2/Musical_Instruments/Embeddings/agent_profiles.json"
 )
 PSY_ENGINE_FILE = PROJECT_DIR / "Psy-engine.py"
+PROJECT_AGENT_PROFILES_FILE = PROJECT_DIR / "agent_profiles.json"
 # Default to Qwen official OpenAI-compatible endpoint.
 # You can override by env:
 # - QWEN_API_KEY / DASHSCOPE_API_KEY
@@ -183,6 +187,18 @@ class WebSimCamelAgent:
         # Deprecated legacy args are accepted for compatibility only.
         _ = skip_probability
         _ = seed
+        self.profile_selection_mode = (
+            os.getenv("PROFILE_SELECTION_MODE", "random").strip().lower() or "random"
+        )
+        profile_seed_text = os.getenv("PROFILE_SELECTION_SEED", "").strip()
+        if profile_seed_text:
+            try:
+                profile_seed = int(profile_seed_text)
+            except Exception:
+                profile_seed = None
+        else:
+            profile_seed = None
+        self.profile_rng = np.random.default_rng(profile_seed)
         self.close_service_when_done = close_service_when_done
         self.track_override = track_override if (track_override or 0) > 0 else None
         self.decision_model = (
@@ -199,7 +215,10 @@ class WebSimCamelAgent:
         self.service_proc: subprocess.Popen[str] | None = None
         self.service_started_by_agent = False
 
-        run_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_tag = (
+            datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            + f"_p{os.getpid()}_{secrets.token_hex(3)}"
+        )
         self.run_dir = self.output_root / "runs" / run_tag
         self.run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -319,11 +338,22 @@ class WebSimCamelAgent:
         )
 
     def _service_is_alive(self) -> bool:
+        parsed = urlparse(SERVICE_URL)
+        host = parsed.hostname or "127.0.0.1"
+        port = int(parsed.port or 80)
+        # Fast TCP probe first: do not depend on heavy /health endpoint.
         try:
-            with urlopen(f"{SERVICE_URL}/health", timeout=2) as resp:
-                return int(resp.status) == 200
+            with socket.create_connection((host, port), timeout=1.5):
+                pass
         except Exception:
             return False
+
+        try:
+            with urlopen(f"{SERVICE_URL}/", timeout=2) as resp:
+                return int(resp.status) == 200
+        except Exception:
+            # TCP already alive, treat service as up.
+            return True
 
     def ensure_service(self, timeout_sec: int = 40) -> None:
         if self._service_is_alive():
@@ -332,14 +362,17 @@ class WebSimCamelAgent:
             raise FileNotFoundError(f"Missing script: {RUN_SERVICE_SCRIPT}")
 
         log_fp = self.service_log_file.open("w", encoding="utf-8")
-        self.service_proc = subprocess.Popen(
-            ["bash", str(RUN_SERVICE_SCRIPT)],
-            cwd=str(WEB_SIM_DIR),
-            stdout=log_fp,
-            stderr=subprocess.STDOUT,
-            text=True,
-            start_new_session=True,
-        )
+        try:
+            self.service_proc = subprocess.Popen(
+                ["bash", str(RUN_SERVICE_SCRIPT)],
+                cwd=str(WEB_SIM_DIR),
+                stdout=log_fp,
+                stderr=subprocess.STDOUT,
+                text=True,
+                start_new_session=True,
+            )
+        finally:
+            log_fp.close()
         self.service_started_by_agent = True
 
         deadline = time.time() + timeout_sec
@@ -348,6 +381,16 @@ class WebSimCamelAgent:
                 return
             time.sleep(0.5)
 
+        # Startup timed out: clean up spawned process to avoid leak.
+        try:
+            if self.service_proc is not None and self.service_proc.pid:
+                os.killpg(self.service_proc.pid, signal.SIGKILL)
+        except Exception:
+            try:
+                if self.service_proc is not None:
+                    self.service_proc.kill()
+            except Exception:
+                pass
         raise RuntimeError(
             "Web_sim service did not become ready in time. "
             f"Check log: {self.service_log_file}"
@@ -510,10 +553,28 @@ class WebSimCamelAgent:
                             "item_pop": self._stable_float_01(str(item_id)),
                         }
 
-        if profile_file.exists():
-            raw_profiles = json.loads(profile_file.read_text(encoding="utf-8"))
+        profile_candidates: list[Path] = [profile_file, PROJECT_AGENT_PROFILES_FILE]
+        # Fallback to ml1m profile pool for datasets that don't have their own profiles yet.
+        if profile_file != ML1M_PROFILES_FILE:
+            profile_candidates.append(ML1M_PROFILES_FILE)
+
+        seen_profile_paths: set[str] = set()
+        for cand in profile_candidates:
+            key = str(cand.resolve()) if cand.exists() else str(cand)
+            if key in seen_profile_paths:
+                continue
+            seen_profile_paths.add(key)
+            if not cand.exists():
+                continue
+            try:
+                raw_profiles = json.loads(cand.read_text(encoding="utf-8"))
+            except Exception:
+                continue
             if isinstance(raw_profiles, list):
-                self.agent_profiles = [x for x in raw_profiles if isinstance(x, dict)]
+                parsed = [x for x in raw_profiles if isinstance(x, dict)]
+                if parsed:
+                    self.agent_profiles = parsed
+                    break
 
     def _load_psyber_engine_class(self) -> type:
         if not PSY_ENGINE_FILE.exists():
@@ -539,7 +600,10 @@ class WebSimCamelAgent:
     def _select_agent_profile(self, agent_num: int) -> dict[str, Any]:
         if not self.agent_profiles:
             return {}
-        idx = max(0, agent_num - 1) % len(self.agent_profiles)
+        if self.profile_selection_mode in {"agent_num", "deterministic", "round_robin"}:
+            idx = max(0, agent_num - 1) % len(self.agent_profiles)
+        else:
+            idx = int(self.profile_rng.integers(0, len(self.agent_profiles)))
         return dict(self.agent_profiles[idx])
 
     def _build_psy_candidates(

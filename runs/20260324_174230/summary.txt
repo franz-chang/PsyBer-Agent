@@ -1,8 +1,0 @@
-run_dir=/Users/chongzhang/PsyBer-Agent/runs/20260324_174230
-task_file=/Users/chongzhang/PsyBer-Agent/task.yaml
-dataset=ml1m
-model=sasrec
-track_target=100
-click_count=100
-skip_count=183
-memory_file=/Users/chongzhang/PsyBer-Agent/runs/20260324_174230/memory.json

@@ -1,0 +1,39 @@
+{
+  "launch_tag": "20260326_140642",
+  "start_utc": "2026-03-26T06:06:42.182373+00:00",
+  "end_utc": "2026-03-26T06:06:54.213033+00:00",
+  "elapsed_sec": 12.009714583999994,
+  "config": {
+    "total_tasks": 1,
+    "start_index": 1,
+    "max_concurrency": 1,
+    "launch_rate": 1.0,
+    "task_timeout_sec": 180.0,
+    "headless": true,
+    "track_override": 1,
+    "decision_model": null,
+    "profile_selection_mode": "random",
+    "profile_seed_base": null,
+    "print_task_pid": true,
+    "ensure_service": true,
+    "service_port": 19002,
+    "stop_service_when_done": false,
+    "dry_run": false,
+    "agent_script": "/Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py",
+    "python_bin": "/opt/anaconda3/envs/psyber/bin/python",
+    "output_root": "/Users/chongzhang/PsyBer-Agent"
+  },
+  "stats": {
+    "submitted": 1,
+    "started": 1,
+    "finished": 1,
+    "success": 1,
+    "failed": 0,
+    "timeout": 0,
+    "spawn_error": 0,
+    "throughput_tasks_per_sec": 0.08326592551435447
+  },
+  "batch_dir": "/Users/chongzhang/PsyBer-Agent/batch_launches/20260326_140642",
+  "failed_task_count": 0,
+  "failed_tasks": []
+}

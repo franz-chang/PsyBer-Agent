@@ -6,4 +6,4 @@ model:
   # - LightGCN
   # - Multi-VAE
 track: 100
-agent_num: 100
+agent_num: 10000

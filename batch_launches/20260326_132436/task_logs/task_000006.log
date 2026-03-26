@@ -1,0 +1,7 @@
+2026-03-26 13:26:17,033 - camel.camel.toolkits.hybrid_browser_toolkit_py.browser_session - WARNING - Failed to navigate new tab to http://127.0.0.1:19002/: Page.goto: Timeout 10000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:19002/", waiting until "load"
+
+2026-03-26 13:26:50,430 - camel.camel.toolkits.hybrid_browser_toolkit_py.snapshot - ERROR - Snapshot capture failed: Timeout 5000ms exceeded.
+2026-03-26 13:27:07,513 - camel.camel.toolkits.hybrid_browser_toolkit_py.snapshot - ERROR - Snapshot capture failed: Timeout 5000ms exceeded.
+2026-03-26 13:27:35,800 - camel.camel.toolkits.hybrid_browser_toolkit_py.snapshot - ERROR - Snapshot capture failed: Timeout 5000ms exceeded.
