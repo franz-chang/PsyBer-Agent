@@ -66,6 +66,39 @@ cd /Users/chongzhang/PsyBer-Agent
 - `--track-override 10`: 本次运行临时覆盖 track，便于快速测试
 - `--close-service-when-done`: 若本次由 Agent 启动服务，结束时自动关闭服务
 
+## API 池（高并发推荐）
+
+为避免高并发时所有 Agent 挤占同一个 API，项目已支持 **API 池**：
+
+- 配置文件路径：`/Users/chongzhang/PsyBer-Agent/api_pool.yaml`
+- 每个任务启动前从池中获取一个 API 槽位（`api_id`）
+- 任务结束后自动释放该 API 槽位
+- 当池中无可用 API 时，任务会等待，不会抢同一个 API
+
+`api_pool.yaml` 格式示例：
+
+```yaml
+defaults:
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  qwen_model: "qwen3-vl-flash"
+
+apis:
+  - id: "api-001"
+    api_key: "sk-xxxx"
+    enabled: true
+  - id: "api-002"
+    api_key: "sk-yyyy"
+    enabled: true
+    capacity: 1
+```
+
+说明：
+
+- `run_10k_sim.sh` 默认强制读取 `api_pool.yaml`，且要求至少有 1 条 `enabled: true` 的 API
+- 若池文件缺失或没有可用 API，脚本会直接失败（避免退回单 API 造成拒绝服务）
+- `capacity` 默认为 `1`，表示同一个 API 同时最多被 1 个任务占用
+- 你可以准备约 200 个 `apis` 条目来支撑大规模并发
+
 ## 结果输出
 
 每次运行会生成：
@@ -73,6 +106,8 @@ cd /Users/chongzhang/PsyBer-Agent
 - `/Users/chongzhang/PsyBer-Agent/runs/<timestamp>/memory.json`
 - `/Users/chongzhang/PsyBer-Agent/runs/<timestamp>/summary.txt`
 - `/Users/chongzhang/PsyBer-Agent/runs/<timestamp>/web_service.log`（仅当由 Agent 启动服务）
+
+`summary.txt` 中会额外记录 `api_id`（当任务来自 API 池分配时）。
 
 ## task.yaml 说明
 

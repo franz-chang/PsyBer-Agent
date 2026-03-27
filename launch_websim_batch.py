@@ -21,11 +21,13 @@ import socket
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.request import urlopen
+
+import yaml
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -106,6 +108,15 @@ class SharedStats:
     spawn_error: int = 0
 
 
+@dataclass(frozen=True)
+class ApiSlot:
+    slot_id: str
+    api_key: str
+    base_url: str | None = None
+    decision_model: str | None = None
+    extra_env: dict[str, str] = field(default_factory=dict)
+
+
 class StartRateLimiter:
     def __init__(self, starts_per_sec: float):
         self.starts_per_sec = float(max(0.0, starts_per_sec))
@@ -125,6 +136,113 @@ class StartRateLimiter:
                 await asyncio.sleep(wait_for)
                 now = time.monotonic()
             self.next_ready = max(self.next_ready, now) + self.interval
+
+
+def _str_or_empty(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
+def _parse_positive_int(value: Any, default: int) -> int:
+    try:
+        parsed = int(value)
+    except Exception:
+        return default
+    if parsed <= 0:
+        return default
+    return parsed
+
+
+def load_api_pool(api_pool_file: Path) -> list[ApiSlot]:
+    raw = yaml.safe_load(api_pool_file.read_text(encoding="utf-8"))
+    defaults: dict[str, Any] = {}
+    entries: list[Any] = []
+
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        entries = raw
+    elif isinstance(raw, dict):
+        defaults_raw = raw.get("defaults", {})
+        if isinstance(defaults_raw, dict):
+            defaults = defaults_raw
+        candidates = raw.get("apis")
+        if candidates is None:
+            candidates = raw.get("api_pool")
+        if candidates is None:
+            candidates = []
+        if not isinstance(candidates, list):
+            raise ValueError(f"Invalid api pool format in {api_pool_file}: `apis` must be a list")
+        entries = candidates
+    else:
+        raise ValueError(
+            f"Invalid api pool format in {api_pool_file}: expected list or dict, got {type(raw).__name__}"
+        )
+
+    default_base_url = _str_or_empty(
+        defaults.get("base_url") or defaults.get("qwen_base_url")
+    )
+    default_decision_model = _str_or_empty(
+        defaults.get("qwen_model") or defaults.get("decision_model")
+    )
+
+    slots: list[ApiSlot] = []
+    for idx, item in enumerate(entries, start=1):
+        if not isinstance(item, dict):
+            raise ValueError(
+                f"Invalid api pool entry #{idx} in {api_pool_file}: expected dict, got {type(item).__name__}"
+            )
+
+        enabled = item.get("enabled", True)
+        if isinstance(enabled, str):
+            enabled = enabled.strip().lower() not in {"0", "false", "no", "off"}
+        if not bool(enabled):
+            continue
+
+        api_key = _str_or_empty(
+            item.get("api_key") or item.get("qwen_api_key") or item.get("key")
+        )
+        if not api_key:
+            raise ValueError(
+                f"Invalid api pool entry #{idx} in {api_pool_file}: `api_key` is required"
+            )
+
+        slot_id = _str_or_empty(item.get("id") or item.get("api_id") or f"api-{idx:03d}")
+        base_url = _str_or_empty(
+            item.get("base_url") or item.get("qwen_base_url") or default_base_url
+        )
+        decision_model = _str_or_empty(
+            item.get("qwen_model") or item.get("decision_model") or default_decision_model
+        )
+        capacity = _parse_positive_int(item.get("capacity", 1), 1)
+
+        extra_env_raw = item.get("extra_env", item.get("env", {}))
+        if extra_env_raw is None:
+            extra_env_raw = {}
+        if not isinstance(extra_env_raw, dict):
+            raise ValueError(
+                f"Invalid api pool entry #{idx} in {api_pool_file}: `extra_env` must be a dict"
+            )
+        extra_env = {
+            str(k).strip(): str(v)
+            for k, v in extra_env_raw.items()
+            if str(k).strip()
+        }
+
+        for cap_idx in range(capacity):
+            expanded_slot_id = slot_id if capacity == 1 else f"{slot_id}#{cap_idx + 1}"
+            slots.append(
+                ApiSlot(
+                    slot_id=expanded_slot_id,
+                    api_key=api_key,
+                    base_url=base_url or None,
+                    decision_model=decision_model or None,
+                    extra_env=extra_env,
+                )
+            )
+
+    return slots
 
 
 def build_cmd(
@@ -232,10 +350,8 @@ async def run_one_task(
     env: dict[str, str],
     log_file: Path,
     timeout_sec: float,
-    limiter: StartRateLimiter,
     print_task_pid: bool,
 ) -> LaunchResult:
-    await limiter.wait_slot()
     start_ts = time.perf_counter()
     start_utc = utc_now()
     log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -358,6 +474,36 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
     logs_dir = batch_dir / "task_logs"
     batch_dir.mkdir(parents=True, exist_ok=True)
 
+    api_pool_file = Path(args.api_pool_file).resolve()
+    api_slots: list[ApiSlot] = []
+    api_slot_queue: asyncio.Queue[ApiSlot] | None = None
+    api_pool_enabled = False
+    if not args.disable_api_pool:
+        if api_pool_file.exists():
+            api_slots = load_api_pool(api_pool_file)
+            if api_slots:
+                api_slot_queue = asyncio.Queue()
+                for slot in api_slots:
+                    api_slot_queue.put_nowait(slot)
+                api_pool_enabled = True
+                print(
+                    f"[ApiPool] Enabled with {len(api_slots)} slot(s), file={api_pool_file}"
+                )
+            elif args.api_pool_required:
+                raise ValueError(
+                    f"API pool required but no enabled API entries found: {api_pool_file}"
+                )
+            else:
+                print(
+                    f"[ApiPool] No enabled entries found, fallback to shared env API. file={api_pool_file}"
+                )
+        elif args.api_pool_required:
+            raise FileNotFoundError(f"API pool required but file not found: {api_pool_file}")
+        else:
+            print(
+                f"[ApiPool] File not found, fallback to shared env API. file={api_pool_file}"
+            )
+
     service_proc: subprocess.Popen[str] | None = None
     service_started_by_launcher = False
     ensure_service_enabled = bool(args.ensure_service and (not args.dry_run))
@@ -389,47 +535,88 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
                 queue.task_done()
                 return
 
-            cmd = build_cmd(
-                python_bin=python_bin,
-                agent_script=agent_script,
-                output_root=output_root,
-                headless=args.headless,
-                track_override=args.track_override,
-                decision_model=args.decision_model,
-                qwen_base_url=args.qwen_base_url,
-            )
+            task_start_utc = utc_now()
+            task_start_ts = time.perf_counter()
+            api_slot: ApiSlot | None = None
+            cmd: list[str] = []
+            try:
+                await limiter.wait_slot()
+                if api_slot_queue is not None:
+                    # Block here when no API is available, and resume once another task releases one.
+                    api_slot = await api_slot_queue.get()
 
-            env = os.environ.copy()
-            env["PROFILE_SELECTION_MODE"] = args.profile_selection_mode
-            if args.profile_seed_base is not None:
-                env["PROFILE_SELECTION_SEED"] = str(args.profile_seed_base + int(tid))
-            env["PYTHONUNBUFFERED"] = "1"
+                cmd = build_cmd(
+                    python_bin=python_bin,
+                    agent_script=agent_script,
+                    output_root=output_root,
+                    headless=args.headless,
+                    track_override=args.track_override,
+                    decision_model=args.decision_model,
+                    qwen_base_url=args.qwen_base_url,
+                )
 
-            async with lock:
-                stats.started += 1
+                env = os.environ.copy()
+                env["PROFILE_SELECTION_MODE"] = args.profile_selection_mode
+                if args.profile_seed_base is not None:
+                    env["PROFILE_SELECTION_SEED"] = str(args.profile_seed_base + int(tid))
+                env["PYTHONUNBUFFERED"] = "1"
 
-            if args.dry_run:
+                if api_slot is not None:
+                    env["QWEN_API_KEY"] = api_slot.api_key
+                    env["DASHSCOPE_API_KEY"] = api_slot.api_key
+                    env["QWEN_API_ID"] = api_slot.slot_id
+                    if api_slot.base_url and not args.qwen_base_url:
+                        env["QWEN_BASE_URL"] = api_slot.base_url
+                    if api_slot.decision_model and not args.decision_model:
+                        env["QWEN_MODEL"] = api_slot.decision_model
+                    for k, v in api_slot.extra_env.items():
+                        env[k] = v
+                    if args.print_api_assignment:
+                        print(
+                            f"[ApiPool] worker={worker_idx} task_id={tid} api_id={api_slot.slot_id}",
+                            flush=True,
+                        )
+
+                async with lock:
+                    stats.started += 1
+
+                if args.dry_run:
+                    result = LaunchResult(
+                        task_id=int(tid),
+                        status="success",
+                        return_code=0,
+                        elapsed_sec=0.0,
+                        start_utc=utc_now(),
+                        end_utc=utc_now(),
+                        log_file=str(logs_dir / f"task_{tid:06d}.log"),
+                        command=cmd,
+                    )
+                else:
+                    result = await run_one_task(
+                        task_id=int(tid),
+                        worker_idx=worker_idx,
+                        cmd=cmd,
+                        env=env,
+                        log_file=logs_dir / f"task_{tid:06d}.log",
+                        timeout_sec=args.task_timeout_sec,
+                        print_task_pid=args.print_task_pid,
+                    )
+            except Exception as err:
                 result = LaunchResult(
                     task_id=int(tid),
-                    status="success",
-                    return_code=0,
-                    elapsed_sec=0.0,
-                    start_utc=utc_now(),
+                    status="spawn_error",
+                    return_code=None,
+                    elapsed_sec=time.perf_counter() - task_start_ts,
+                    start_utc=task_start_utc,
                     end_utc=utc_now(),
                     log_file=str(logs_dir / f"task_{tid:06d}.log"),
                     command=cmd,
+                    error=str(err),
                 )
-            else:
-                result = await run_one_task(
-                    task_id=int(tid),
-                    worker_idx=worker_idx,
-                    cmd=cmd,
-                    env=env,
-                    log_file=logs_dir / f"task_{tid:06d}.log",
-                    timeout_sec=args.task_timeout_sec,
-                    limiter=limiter,
-                    print_task_pid=args.print_task_pid,
-                )
+            finally:
+                if api_slot is not None and api_slot_queue is not None:
+                    api_slot_queue.put_nowait(api_slot)
+                queue.task_done()
 
             async with lock:
                 results.append(result)
@@ -442,8 +629,6 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
                     stats.spawn_error += 1
                 else:
                     stats.failed += 1
-
-            queue.task_done()
 
     start_t = time.perf_counter()
     workers = [
@@ -488,10 +673,16 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
             "profile_selection_mode": args.profile_selection_mode,
             "profile_seed_base": args.profile_seed_base,
             "print_task_pid": args.print_task_pid,
+            "print_api_assignment": args.print_api_assignment,
             "ensure_service": args.ensure_service,
             "service_port": args.service_port,
             "stop_service_when_done": args.stop_service_when_done,
             "dry_run": args.dry_run,
+            "api_pool_file": str(api_pool_file),
+            "api_pool_enabled": api_pool_enabled,
+            "api_pool_slots": len(api_slots),
+            "api_pool_required": args.api_pool_required,
+            "disable_api_pool": args.disable_api_pool,
             "agent_script": str(agent_script),
             "python_bin": python_bin,
             "output_root": str(output_root),
@@ -556,6 +747,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--track-override", type=int, default=None)
     parser.add_argument("--decision-model", type=str, default=None)
     parser.add_argument("--qwen-base-url", type=str, default=None)
+    parser.add_argument(
+        "--api-pool-file",
+        type=Path,
+        default=PROJECT_DIR / "api_pool.yaml",
+        help="YAML file for API pool. Each task acquires one API slot and releases it when done.",
+    )
+    parser.add_argument(
+        "--api-pool-required",
+        action="store_true",
+        help="Fail fast if api pool file is missing or has no enabled entries.",
+    )
+    parser.add_argument(
+        "--disable-api-pool",
+        action="store_true",
+        help="Disable API pool and fallback to shared env API credentials.",
+    )
+    parser.add_argument(
+        "--print-api-assignment",
+        action="store_true",
+        help="Print api_id assignment for each task when API pool is enabled.",
+    )
 
     parser.add_argument(
         "--profile-selection-mode",
@@ -595,6 +807,8 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--launch-rate must be >= 0")
     if args.task_timeout_sec <= 0:
         raise ValueError("--task-timeout-sec must be > 0")
+    if args.api_pool_required and args.disable_api_pool:
+        raise ValueError("--api-pool-required cannot be used with --disable-api-pool")
 
 
 def main() -> None:

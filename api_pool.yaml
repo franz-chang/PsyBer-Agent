@@ -1,0 +1,293 @@
+# API pool config for launch_websim_batch.py
+# Generated from api_set.txt
+
+defaults:
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  qwen_model: "qwen3.5-flash-2026-02-23"
+
+apis:
+  - id: "api-001"
+    api_key: "sk-e59c2b935e71485a923a5361ceb4ac2f"
+    enabled: true
+  - id: "api-002"
+    api_key: "sk-1b56dc0503e64dc2af5ca916a6c61daf"
+    enabled: true
+  - id: "api-003"
+    api_key: "sk-c3c9cadb5177414289c3e3a882b116e2"
+    enabled: true
+  - id: "api-004"
+    api_key: "sk-47ed9f391b0f4b629ff0dfea402b326f"
+    enabled: true
+  - id: "api-005"
+    api_key: "sk-4300f80fc37b4ae5a094447c81a9c983"
+    enabled: true
+  - id: "api-006"
+    api_key: "sk-cf5d0066dad3411c9780b745446e374b"
+    enabled: true
+  - id: "api-007"
+    api_key: "sk-0555d80ab97d4b61be887cfdcd88e676"
+    enabled: true
+  - id: "api-008"
+    api_key: "sk-7adb19cbb5614f02843dd31df6977768"
+    enabled: true
+  - id: "api-009"
+    api_key: "sk-5dcfd7f7a6744a07805474c59e60aff6"
+    enabled: true
+  - id: "api-010"
+    api_key: "sk-e41277a3fad94d98b0fd038cc8502492"
+    enabled: true
+  - id: "api-011"
+    api_key: "sk-e6e2242db455441682c9207e873b990e"
+    enabled: true
+  - id: "api-012"
+    api_key: "sk-51a8bcbcbacf4041bfe919ad4ac2144b"
+    enabled: true
+  - id: "api-013"
+    api_key: "sk-0c98f8466d244c0ab3325713e5a9f4ea"
+    enabled: true
+  - id: "api-014"
+    api_key: "sk-102bbdd9b2a540d5984ce980573da248"
+    enabled: true
+  - id: "api-015"
+    api_key: "sk-57210f36471f41d9b24c649c39517dde"
+    enabled: true
+  - id: "api-016"
+    api_key: "sk-e8813dc9887342219796ad8d97f29f1b"
+    enabled: true
+  - id: "api-017"
+    api_key: "sk-60a5de614e1b4964961c66167d023f90"
+    enabled: true
+  - id: "api-018"
+    api_key: "sk-8fedb114b490456081d23235711baa7d"
+    enabled: true
+  - id: "api-019"
+    api_key: "sk-ae88466c58e3494689b58123106dc7b5"
+    enabled: true
+  - id: "api-020"
+    api_key: "sk-b07c728a72a64595b12bd22ef24b7af2"
+    enabled: true
+  - id: "api-021"
+    api_key: "sk-f94a9e7e83dd417fa33b1074485e01c7"
+    enabled: true
+  - id: "api-022"
+    api_key: "sk-81ef52cc5e8349cd94a888928aa270e1"
+    enabled: true
+  - id: "api-023"
+    api_key: "sk-31f72b9a05fb4e66b3be8bc91dea5707"
+    enabled: true
+  - id: "api-024"
+    api_key: "sk-19b7ab1cd9964dd7a7f55cd399f5263f"
+    enabled: true
+  - id: "api-025"
+    api_key: "sk-8d3622c07b2640f098d52fdb77f863fb"
+    enabled: true
+  - id: "api-026"
+    api_key: "sk-e9e18a8dee5e413ab10179898c73598d"
+    enabled: true
+  - id: "api-027"
+    api_key: "sk-7281b849bbdd4facbddba7b85dcbbb2c"
+    enabled: true
+  - id: "api-028"
+    api_key: "sk-f8ef23fe6d534adb84a1fd52cb7178b9"
+    enabled: true
+  - id: "api-029"
+    api_key: "sk-5ba2370f82014bf98de4634eef194ecc"
+    enabled: true
+  - id: "api-030"
+    api_key: "sk-21c758ea288c48379089d6a1f72fe160"
+    enabled: true
+  - id: "api-031"
+    api_key: "sk-f5997f35c12147c58a473acd4e324223"
+    enabled: true
+  - id: "api-032"
+    api_key: "sk-de13e9b1187a43b8a0d86042a0227fb9"
+    enabled: true
+  - id: "api-033"
+    api_key: "sk-a4d1c4a5bc95483c883ed98f9fcbca1d"
+    enabled: true
+  - id: "api-034"
+    api_key: "sk-b12d1273249c4ed18fa84347fb9173da"
+    enabled: true
+  - id: "api-035"
+    api_key: "sk-7c0e1ef4d7bc4eddaef1a4c9df1befea"
+    enabled: true
+  - id: "api-036"
+    api_key: "sk-649b6edb9d6a40b0872bbf9e76d311ce"
+    enabled: true
+  - id: "api-037"
+    api_key: "sk-992c2a6fa8f44f1fbf35f5ce78bd3de2"
+    enabled: true
+  - id: "api-038"
+    api_key: "sk-590d77d1463e41d9884f98acb43fc95e"
+    enabled: true
+  - id: "api-039"
+    api_key: "sk-c60d90cb81f745588bf79ca774ea39be"
+    enabled: true
+  - id: "api-040"
+    api_key: "sk-82d29986f41449c6b165051b7ddff10e"
+    enabled: true
+  - id: "api-041"
+    api_key: "sk-cb777bae1f7b4e018e6bbdc83cb12d0b"
+    enabled: true
+  - id: "api-042"
+    api_key: "sk-185897d962854a389c03cf83345bd286"
+    enabled: true
+  - id: "api-043"
+    api_key: "sk-cea5f2d8844948248092d942582a74c9"
+    enabled: true
+  - id: "api-044"
+    api_key: "sk-46cf7bb330fb4788ba914fdc773db030"
+    enabled: true
+  - id: "api-045"
+    api_key: "sk-2b0b876b309c40258a1d9d6d8061971b"
+    enabled: true
+  - id: "api-046"
+    api_key: "sk-dde8cce112944feca73aa2dd56e17a3b"
+    enabled: true
+  - id: "api-047"
+    api_key: "sk-a7959a3cf87042dcaa3b07fa2d6e3fc2"
+    enabled: true
+  - id: "api-048"
+    api_key: "sk-30f1db2cb02b473480a7b7adea4acdc2"
+    enabled: true
+  - id: "api-049"
+    api_key: "sk-29137c6227674244acf6dac8fe43f2c5"
+    enabled: true
+  - id: "api-050"
+    api_key: "sk-eeec9bdb55124524943c8ad1c6907a04"
+    enabled: true
+  - id: "api-051"
+    api_key: "sk-cdd6bdb1144e43f1bda86e94b373bf3d"
+    enabled: true
+  - id: "api-052"
+    api_key: "sk-cf5271d513e64648946768e0c553e637"
+    enabled: true
+  - id: "api-053"
+    api_key: "sk-086a5beace4f40e788a3691907b89348"
+    enabled: true
+  - id: "api-054"
+    api_key: "sk-e9053975b7f94ff08914cc44330ea792"
+    enabled: true
+  - id: "api-055"
+    api_key: "sk-1d3206ae8d344f6fa8806e180bbb5344"
+    enabled: true
+  - id: "api-056"
+    api_key: "sk-d89b93e790314d76ac57f04fc29b27a2"
+    enabled: true
+  - id: "api-057"
+    api_key: "sk-c17f9c42af9d4cbebdeb227c13a3ca91"
+    enabled: true
+  - id: "api-058"
+    api_key: "sk-baf340d19a1141d3b2b6494099dc961f"
+    enabled: true
+  - id: "api-059"
+    api_key: "sk-c5542956ff4f4e8ea15b43e2138b639d"
+    enabled: true
+  - id: "api-060"
+    api_key: "sk-e2ff3de55014432dab524b78c82fcc72"
+    enabled: true
+  - id: "api-061"
+    api_key: "sk-54b3030bf0c644f09bf43978b3e4d436"
+    enabled: true
+  - id: "api-062"
+    api_key: "sk-5a511d3838264b8ca9d2bb8d7f5217c8"
+    enabled: true
+  - id: "api-063"
+    api_key: "sk-f7c5fea3f1a149149ae25f8caa08bad3"
+    enabled: true
+  - id: "api-064"
+    api_key: "sk-722102b8f61141c099b2e8e251e8d148"
+    enabled: true
+  - id: "api-065"
+    api_key: "sk-0c3a490c8a83491dad68f07f24bdc13a"
+    enabled: true
+  - id: "api-066"
+    api_key: "sk-ed55d7a95eaf477b81cb7169fba7713b"
+    enabled: true
+  - id: "api-067"
+    api_key: "sk-371af7587d324306b321b02abf3f1e42"
+    enabled: true
+  - id: "api-068"
+    api_key: "sk-1f015275ae9849e48069eeafc23f61d9"
+    enabled: true
+  - id: "api-069"
+    api_key: "sk-83f9c124d9244c44b7c2e1567901e94e"
+    enabled: true
+  - id: "api-070"
+    api_key: "sk-f49cfd6fcf014cbfa08caa372c3f467b"
+    enabled: true
+  - id: "api-071"
+    api_key: "sk-4bfe1dbfb3804ed99ccf107e7df6d421"
+    enabled: true
+  - id: "api-072"
+    api_key: "sk-c384cf64f01b4d56938124aca7eae4b8"
+    enabled: true
+  - id: "api-073"
+    api_key: "sk-8ec45faed86c4bcebdddad9021eddfd7"
+    enabled: true
+  - id: "api-074"
+    api_key: "sk-2da9751234c64d15a14c71cd7160aecc"
+    enabled: true
+  - id: "api-075"
+    api_key: "sk-1c66cd339ee943ab8fbb46199e24e140"
+    enabled: true
+  - id: "api-076"
+    api_key: "sk-65f19b598a594016a4c740d8f352d95c"
+    enabled: true
+  - id: "api-077"
+    api_key: "sk-8f8f91cc9d0f49ac9b749ffbd80af76b"
+    enabled: true
+  - id: "api-078"
+    api_key: "sk-53886db43ffe4f5682b47a52451d2240"
+    enabled: true
+  - id: "api-079"
+    api_key: "sk-6df6839be4734d699d164971ddb0ebe2"
+    enabled: true
+  - id: "api-080"
+    api_key: "sk-834b86ade8e1489f8981e0301b0ca125"
+    enabled: true
+  - id: "api-081"
+    api_key: "sk-6c553fea0bdf48a69338241b7fd84102"
+    enabled: true
+  - id: "api-082"
+    api_key: "sk-99660af9237c4db69e85493198bf968a"
+    enabled: true
+  - id: "api-083"
+    api_key: "sk-62ca969dab58473b9bee81a33033a2b5"
+    enabled: true
+  - id: "api-084"
+    api_key: "sk-2619223338914433860490935252b307"
+    enabled: true
+  - id: "api-085"
+    api_key: "sk-c017a9cc7a884651a3021055bd9cff26"
+    enabled: true
+  - id: "api-086"
+    api_key: "sk-eb99c49f01a845a2bed6fdd4de7c0879"
+    enabled: true
+  - id: "api-087"
+    api_key: "sk-f98def3582a6473f9427da313cd15051"
+    enabled: true
+  - id: "api-088"
+    api_key: "sk-6102bbbcd0b3491fbffc68fb823267c8"
+    enabled: true
+  - id: "api-089"
+    api_key: "sk-7b63dec3068049d585271f24fdc49474"
+    enabled: true
+  - id: "api-090"
+    api_key: "sk-ba956b69542245519c253b9813d84212"
+    enabled: true
+  - id: "api-091"
+    api_key: "sk-4caa054ff11f4476acbc6075c12c71b4"
+    enabled: true
+  - id: "api-092"
+    api_key: "sk-cb9923cf0eb94755a4b016537fee8211"
+    enabled: true
+  - id: "api-093"
+    api_key: "sk-95272374a45d40eaae003b685de3324d"
+    enabled: true
+  - id: "api-094"
+    api_key: "sk-7dc45333eb014b9da1ed730074987f52"
+    enabled: true
+  - id: "api-095"
+    api_key: "sk-b31f8bf52c6848568f92f0b12862328d"
+    enabled: true

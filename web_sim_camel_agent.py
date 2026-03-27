@@ -211,6 +211,7 @@ class WebSimCamelAgent:
             or os.getenv("QWEN_BASE_URL", "").strip()
             or QWEN_BASE_URL_DEFAULT
         )
+        self.assigned_api_id = os.getenv("QWEN_API_ID", "").strip()
 
         self.service_proc: subprocess.Popen[str] | None = None
         self.service_started_by_agent = False
@@ -1224,6 +1225,8 @@ class WebSimCamelAgent:
             f"skip_count={len(memory.skip_sequence)}",
             f"memory_file={self.memory_file}",
         ]
+        if self.assigned_api_id:
+            lines.append(f"api_id={self.assigned_api_id}")
         self.summary_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     def run(self) -> None:
