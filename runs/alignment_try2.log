@@ -9,3 +9,9 @@
 [Epoch] 2/20 loss=0.2470 policy_loss=-0.0262 imitation_loss=1.4107 entropy=0.8922 imitation_coef=0.2000 reward=0.8259 align_cost=0.1589 objective=0.6669 click_rate=0.9661
 [Epoch] 3/20 loss=0.2365 policy_loss=-0.0352 imitation_loss=1.3997 entropy=0.8292 imitation_coef=0.2000 reward=0.8145 align_cost=0.1473 objective=0.6672 click_rate=0.9857
 [Epoch] 4/20 loss=0.2403 policy_loss=-0.0302 imitation_loss=1.3940 entropy=0.8316 imitation_coef=0.2000 reward=0.8228 align_cost=0.1465 objective=0.6763 click_rate=0.9867
+[Epoch] 5/20 loss=0.2417 policy_loss=-0.0282 imitation_loss=1.3897 entropy=0.8069 imitation_coef=0.2000 reward=0.8063 align_cost=0.1415 objective=0.6648 click_rate=0.9943
+[Epoch] 6/20 loss=0.2440 policy_loss=-0.0258 imitation_loss=1.3894 entropy=0.8062 imitation_coef=0.2000 reward=0.8063 align_cost=0.1415 objective=0.6648 click_rate=0.9945
+[Epoch] 7/20 loss=0.2367 policy_loss=-0.0330 imitation_loss=1.3876 entropy=0.7917 imitation_coef=0.2000 reward=0.7903 align_cost=0.1396 objective=0.6506 click_rate=0.9974
+[Epoch] 8/20 loss=0.2458 policy_loss=-0.0234 imitation_loss=1.3857 entropy=0.7939 imitation_coef=0.2000 reward=0.8029 align_cost=0.1408 objective=0.6621 click_rate=0.9945
+[Epoch] 9/20 loss=0.2399 policy_loss=-0.0290 imitation_loss=1.3840 entropy=0.7900 imitation_coef=0.2000 reward=0.7976 align_cost=0.1406 objective=0.6570 click_rate=0.9959
+[Epoch] 10/20 loss=0.2371 policy_loss=-0.0319 imitation_loss=1.3843 entropy=0.7924 imitation_coef=0.2000 reward=0.7980 align_cost=0.1399 objective=0.6581 click_rate=0.9963
