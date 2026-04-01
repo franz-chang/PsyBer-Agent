@@ -8,3 +8,4 @@
 [Epoch] 1/20 loss=0.2496 policy_loss=-0.0381 imitation_loss=1.4951 entropy=1.1406 imitation_coef=0.2000 reward=0.7232 align_cost=0.2204 objective=0.5029 click_rate=0.8405
 [Epoch] 2/20 loss=0.2470 policy_loss=-0.0262 imitation_loss=1.4107 entropy=0.8922 imitation_coef=0.2000 reward=0.8259 align_cost=0.1589 objective=0.6669 click_rate=0.9661
 [Epoch] 3/20 loss=0.2365 policy_loss=-0.0352 imitation_loss=1.3997 entropy=0.8292 imitation_coef=0.2000 reward=0.8145 align_cost=0.1473 objective=0.6672 click_rate=0.9857
+[Epoch] 4/20 loss=0.2403 policy_loss=-0.0302 imitation_loss=1.3940 entropy=0.8316 imitation_coef=0.2000 reward=0.8228 align_cost=0.1465 objective=0.6763 click_rate=0.9867
