@@ -325,7 +325,13 @@ def load_fast_policy_bundle(path: Path, *, device: str = "cpu") -> dict[str, Any
 
     feature_dim = int(metadata.get("feature_dim", FEATURE_DIM))
     hidden_dim = int(metadata.get("hidden_dim", DEFAULT_HIDDEN_DIM))
-    model = FastPolicyNet(feature_dim=feature_dim, hidden_dim=hidden_dim)
+    feature_version = int(metadata.get("feature_version", 1))
+
+    if feature_version <= 1:
+        model = FastPolicyNetV1(feature_dim=feature_dim, hidden_dim=hidden_dim)
+    else:
+        mid_dim = int(metadata.get("mid_dim", hidden_dim))
+        model = FastPolicyNet(feature_dim=feature_dim, hidden_dim=hidden_dim, mid_dim=mid_dim)
 
     state_dict = bundle.get("state_dict")
     if not isinstance(state_dict, dict):

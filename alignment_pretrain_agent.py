@@ -821,6 +821,7 @@ class AlignmentPretrainAgent:
             "epochs": self.epochs,
             "feature_dim": FEATURE_DIM,
             "hidden_dim": self.hidden_dim,
+            "mid_dim": self.hidden_dim,
             "stochastic": bool(self.stochastic),
             "lookahead_lambda": self.lookahead_lambda,
             "sinkhorn_eps": self.sinkhorn_eps,
@@ -898,11 +899,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--slate-size", type=int, default=4)
 
     parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--lr", type=float, default=5e-3)
-    parser.add_argument("--weight-decay", type=float, default=1e-5)
+    parser.add_argument("--lr", type=float, default=1.5e-3)
+    parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--gamma", type=float, default=0.98)
-    parser.add_argument("--entropy-coef", type=float, default=0.01)
-    parser.add_argument("--imitation-coef", type=float, default=0.2)
+    parser.add_argument("--entropy-coef", type=float, default=0.005)
+    parser.add_argument("--imitation-coef", type=float, default=0.1)
     parser.add_argument(
         "--imitation-decay",
         type=float,
@@ -910,12 +911,12 @@ def parse_args() -> argparse.Namespace:
         help="Per-epoch multiplicative decay for imitation coefficient (1.0 = no decay).",
     )
 
-    parser.add_argument("--sinkhorn-eps", type=float, default=0.12)
+    parser.add_argument("--sinkhorn-eps", type=float, default=0.10)
     parser.add_argument("--sinkhorn-iters", type=int, default=80)
-    parser.add_argument("--lookahead-lambda", type=float, default=0.15)
+    parser.add_argument("--lookahead-lambda", type=float, default=0.10)
     parser.add_argument("--skip-recovery-boost", type=float, default=0.3)
 
-    parser.add_argument("--hidden-dim", type=int, default=32)
+    parser.add_argument("--hidden-dim", type=int, default=64)
     parser.add_argument(
         "--deterministic-action",
         action="store_true",
