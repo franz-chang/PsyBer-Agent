@@ -14,15 +14,16 @@ from torch import nn
 STATE_KEYS = ("P", "C", "E", "S")
 STATE_DIM = 4
 ACTION_COUNT = 5  # click1..click4 + skip
-FEATURE_VERSION = 1
+# Bump when network architecture changes to keep backward compatibility.
+FEATURE_VERSION = 2
 FEATURE_DIM = 13
-DEFAULT_HIDDEN_DIM = 32
+DEFAULT_HIDDEN_DIM = 64
 
 
-class FastPolicyNet(nn.Module):
-    """A small action-scoring network used by online fast inference."""
+class FastPolicyNetV1(nn.Module):
+    """Original 1-layer scorer kept for loading old checkpoints (feature_version=1)."""
 
-    def __init__(self, feature_dim: int = FEATURE_DIM, hidden_dim: int = DEFAULT_HIDDEN_DIM):
+    def __init__(self, feature_dim: int = FEATURE_DIM, hidden_dim: int = 32):
         super().__init__()
         self.feature_dim = int(feature_dim)
         self.hidden_dim = int(hidden_dim)
@@ -30,6 +31,34 @@ class FastPolicyNet(nn.Module):
             nn.Linear(self.feature_dim, self.hidden_dim),
             nn.Tanh(),
             nn.Linear(self.hidden_dim, 1),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)
+
+
+class FastPolicyNet(nn.Module):
+    """Two-layer scorer with LayerNorm+GELU for stabler training/inference."""
+
+    def __init__(
+        self,
+        feature_dim: int = FEATURE_DIM,
+        hidden_dim: int = DEFAULT_HIDDEN_DIM,
+        mid_dim: int | None = None,
+        dropout: float = 0.1,
+    ):
+        super().__init__()
+        self.feature_dim = int(feature_dim)
+        self.hidden_dim = int(hidden_dim)
+        self.mid_dim = int(mid_dim or hidden_dim)
+        self.net = nn.Sequential(
+            nn.LayerNorm(self.feature_dim),
+            nn.Linear(self.feature_dim, self.hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(self.hidden_dim, self.mid_dim),
+            nn.GELU(),
+            nn.Linear(self.mid_dim, 1),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
