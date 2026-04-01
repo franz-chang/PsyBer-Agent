@@ -633,10 +633,12 @@ class AlignmentPretrainAgent:
                     continue
 
                 returns = discounted_returns(rewards, self.gamma)
-                # Keep raw returns as advantage signal; previous per-trajectory
-                # normalization collapsed to ~0 when rewards were nearly constant,
-                # making policy gradients vanish and letting imitation dominate.
                 returns_t = torch.tensor(returns, dtype=torch.float32, device=device)
+                # 标准化优势以稳定梯度；仅在方差足够大时归一化，避免全零。
+                if returns_t.numel() > 1:
+                    std = returns_t.std(unbiased=False)
+                    if float(std) > 1e-3:
+                        returns_t = (returns_t - returns_t.mean()) / (std + 1e-6)
 
                 policy_terms: list[torch.Tensor] = []
                 imitation_terms: list[torch.Tensor] = []

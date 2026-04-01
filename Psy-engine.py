@@ -22,8 +22,8 @@ class PsyBerEngine:
         seed: int = 42,
     ):
         self.rng = np.random.default_rng(seed)
-        # 1. 初始内部状态
-        self.P, self.C, self.E, self.S = 3.0, 3.0, 3.0, 3.0
+        # 1. 初始内部状态：保持在 [0,1] 量级，避免第一步被剪裁产生巨大负梯度
+        self.P, self.C, self.E, self.S = 0.5, 0.5, 0.5, 0.5
         self.Surf = 1 
         
         # 2. 画像与记忆
