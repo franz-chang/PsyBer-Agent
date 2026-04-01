@@ -476,6 +476,7 @@ class AlignmentPretrainAgent:
 
         for item_id in item_seq:
             slate_ids = self._build_slate(item_id, rng)
+            target_idx = slate_ids.index(str(item_id))
             candidates: list[dict[str, Any]] = []
             for sid in slate_ids:
                 feat = self._get_item_feature(sid)
@@ -509,6 +510,11 @@ class AlignmentPretrainAgent:
             for idx in pareto:
                 if 0 <= int(idx) < logits.shape[0]:
                     mask[int(idx)] = 0.0
+            # Always allow the ground-truth target item during training so
+            # imitation loss and policy action space stay consistent even
+            # when the target click is Pareto-dominated by other actions.
+            if 0 <= target_idx < mask.shape[0]:
+                mask[target_idx] = 0.0
             logits_masked = logits + mask
             probs = torch.softmax(logits_masked, dim=0)
 
@@ -530,7 +536,6 @@ class AlignmentPretrainAgent:
             agent_states.append(state_after)
 
             if train_mode:
-                target_idx = slate_ids.index(str(item_id))
                 log_prob = torch.log(probs[action_idx] + 1e-12)
                 entropy = -(probs * torch.log(probs + 1e-12)).sum()
                 step_entries.append(
@@ -628,9 +633,10 @@ class AlignmentPretrainAgent:
                     continue
 
                 returns = discounted_returns(rewards, self.gamma)
+                # Keep raw returns as advantage signal; previous per-trajectory
+                # normalization collapsed to ~0 when rewards were nearly constant,
+                # making policy gradients vanish and letting imitation dominate.
                 returns_t = torch.tensor(returns, dtype=torch.float32, device=device)
-                if returns_t.numel() > 1:
-                    returns_t = (returns_t - returns_t.mean()) / (returns_t.std(unbiased=False) + 1e-6)
 
                 policy_terms: list[torch.Tensor] = []
                 imitation_terms: list[torch.Tensor] = []
@@ -890,7 +896,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--slate-size", type=int, default=4)
 
     parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=5e-3)
     parser.add_argument("--weight-decay", type=float, default=1e-5)
     parser.add_argument("--gamma", type=float, default=0.98)
     parser.add_argument("--entropy-coef", type=float, default=0.01)
