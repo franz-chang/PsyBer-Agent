@@ -15,3 +15,16 @@
 [Epoch] 8/20 loss=0.2458 policy_loss=-0.0234 imitation_loss=1.3857 entropy=0.7939 imitation_coef=0.2000 reward=0.8029 align_cost=0.1408 objective=0.6621 click_rate=0.9945
 [Epoch] 9/20 loss=0.2399 policy_loss=-0.0290 imitation_loss=1.3840 entropy=0.7900 imitation_coef=0.2000 reward=0.7976 align_cost=0.1406 objective=0.6570 click_rate=0.9959
 [Epoch] 10/20 loss=0.2371 policy_loss=-0.0319 imitation_loss=1.3843 entropy=0.7924 imitation_coef=0.2000 reward=0.7980 align_cost=0.1399 objective=0.6581 click_rate=0.9963
+[Epoch] 11/20 loss=0.2479 policy_loss=-0.0211 imitation_loss=1.3843 entropy=0.7936 imitation_coef=0.2000 reward=0.8023 align_cost=0.1390 objective=0.6633 click_rate=0.9969
+[Epoch] 12/20 loss=0.2389 policy_loss=-0.0296 imitation_loss=1.3819 entropy=0.7931 imitation_coef=0.2000 reward=0.8020 align_cost=0.1397 objective=0.6623 click_rate=0.9959
+[Epoch] 13/20 loss=0.2403 policy_loss=-0.0281 imitation_loss=1.3812 entropy=0.7880 imitation_coef=0.2000 reward=0.7902 align_cost=0.1389 objective=0.6513 click_rate=0.9974
+[Epoch] 14/20 loss=0.2429 policy_loss=-0.0254 imitation_loss=1.3801 entropy=0.7795 imitation_coef=0.2000 reward=0.7905 align_cost=0.1385 objective=0.6521 click_rate=0.9985
+[Epoch] 15/20 loss=0.2325 policy_loss=-0.0360 imitation_loss=1.3811 entropy=0.7765 imitation_coef=0.2000 reward=0.7864 align_cost=0.1376 objective=0.6488 click_rate=0.9992
+[Epoch] 16/20 loss=0.2356 policy_loss=-0.0325 imitation_loss=1.3792 entropy=0.7789 imitation_coef=0.2000 reward=0.7854 align_cost=0.1372 objective=0.6482 click_rate=0.9994
+[Epoch] 17/20 loss=0.2451 policy_loss=-0.0230 imitation_loss=1.3797 entropy=0.7834 imitation_coef=0.2000 reward=0.7929 align_cost=0.1381 objective=0.6548 click_rate=0.9986
+[Epoch] 18/20 loss=0.2377 policy_loss=-0.0304 imitation_loss=1.3802 entropy=0.7868 imitation_coef=0.2000 reward=0.7935 align_cost=0.1376 objective=0.6559 click_rate=0.9986
+[Epoch] 19/20 loss=0.2385 policy_loss=-0.0290 imitation_loss=1.3763 entropy=0.7814 imitation_coef=0.2000 reward=0.7873 align_cost=0.1375 objective=0.6498 click_rate=0.9993
+[Epoch] 20/20 loss=0.2324 policy_loss=-0.0347 imitation_loss=1.3741 entropy=0.7738 imitation_coef=0.2000 reward=0.7856 align_cost=0.1375 objective=0.6482 click_rate=0.9991
+[Save] policy=/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/fast_inference_policy.pt
+[Save] report=/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/alignment_pretrain_report.json
+[Save] trajectory_preview=/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/expert_intent_preview.json
