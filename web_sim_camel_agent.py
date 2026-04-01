@@ -35,6 +35,7 @@ from urllib.request import urlopen
 from openai import OpenAI
 import yaml
 import numpy as np
+import torch
 
 CAMEL_ROOT = Path("/Users/chongzhang/camel")
 if str(CAMEL_ROOT) not in sys.path:
@@ -47,6 +48,15 @@ warnings.filterwarnings(
 )
 
 from camel.toolkits import HybridBrowserToolkit  # noqa: E402
+from psy_fast_inference import (  # noqa: E402
+    apply_skip_to_engine,
+    build_action_features,
+    load_fast_policy_bundle,
+    pareto_front_indices,
+    select_action_from_logits,
+    simulate_action_matrix,
+    state_dict_to_vec,
+)
 
 
 WEB_SIM_DIR = Path("/Users/chongzhang/Web_sim")
@@ -66,6 +76,12 @@ AMAZON_MI_EMBEDDINGS_FILE = Path(
 )
 AMAZON_MI_PROFILES_FILE = Path(
     "/Users/chongzhang/WebSim_Dataset/amazon_v2/Musical_Instruments/Embeddings/agent_profiles.json"
+)
+ML1M_FAST_POLICY_FILE = Path(
+    "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/fast_inference_policy.pt"
+)
+AMAZON_MI_FAST_POLICY_FILE = Path(
+    "/Users/chongzhang/WebSim_Dataset/amazon_v2/Musical_Instruments/Embeddings/fast_inference_policy.pt"
 )
 PSY_ENGINE_FILE = PROJECT_DIR / "Psy-engine.py"
 PROJECT_AGENT_PROFILES_FILE = PROJECT_DIR / "agent_profiles.json"
@@ -138,6 +154,8 @@ class AgentMemory:
     selected_model_key: str
     track_target: int
     agent_num: int
+    decision_mode: str = "qwen"
+    fast_policy_path: str = ""
     agent_profile: dict[str, Any] = field(default_factory=dict)
     psy_state_history: list[dict[str, Any]] = field(default_factory=list)
     click_sequence: list[ClickRecord] = field(default_factory=list)
@@ -159,6 +177,8 @@ class AgentMemory:
             "selected_model_key": self.selected_model_key,
             "track_target": self.track_target,
             "agent_num": self.agent_num,
+            "decision_mode": self.decision_mode,
+            "fast_policy_path": self.fast_policy_path,
             "agent_profile": self.agent_profile,
             "click_count": len(self.click_sequence),
             "skip_count": len(self.skip_sequence),
@@ -181,6 +201,9 @@ class WebSimCamelAgent:
         track_override: int | None,
         decision_model: str | None,
         qwen_base_url: str | None,
+        disable_fast_inference: bool,
+        fast_policy_path: Path | None,
+        fast_policy_stochastic: bool,
     ):
         self.output_root = output_root
         self.headless = headless
@@ -212,6 +235,14 @@ class WebSimCamelAgent:
             or QWEN_BASE_URL_DEFAULT
         )
         self.assigned_api_id = os.getenv("QWEN_API_ID", "").strip()
+        self.fast_inference_enabled = (
+            (not disable_fast_inference)
+            and (os.getenv("PSY_FAST_INFERENCE", "1").strip().lower() not in {"0", "false", "no"})
+        )
+        self.fast_policy_path_override = (
+            Path(fast_policy_path).expanduser() if fast_policy_path is not None else None
+        )
+        self.fast_policy_stochastic = bool(fast_policy_stochastic)
 
         self.service_proc: subprocess.Popen[str] | None = None
         self.service_started_by_agent = False
@@ -230,6 +261,8 @@ class WebSimCamelAgent:
         self.item_feature_map: dict[str, dict[str, Any]] = {}
         self.agent_profiles: list[dict[str, Any]] = []
         self.psy_engine: Any = None
+        self.fast_policy_bundle: dict[str, Any] | None = None
+        self.fast_policy_dataset_key: str = ""
 
     @staticmethod
     def _utc_now() -> str:
@@ -519,6 +552,117 @@ class WebSimCamelAgent:
         if dataset_key == "amazon_mi":
             return AMAZON_MI_EMBEDDINGS_FILE, AMAZON_MI_PROFILES_FILE
         return ML1M_EMBEDDINGS_FILE, ML1M_PROFILES_FILE
+
+    def _get_fast_policy_candidates(self, dataset_key: str) -> list[Path]:
+        if self.fast_policy_path_override is not None:
+            return [self.fast_policy_path_override]
+        if dataset_key == "amazon_mi":
+            return [AMAZON_MI_FAST_POLICY_FILE, ML1M_FAST_POLICY_FILE]
+        return [ML1M_FAST_POLICY_FILE]
+
+    def _load_fast_policy(self, dataset_key: str) -> None:
+        self.fast_policy_bundle = None
+        self.fast_policy_dataset_key = dataset_key
+        if not self.fast_inference_enabled:
+            return
+
+        candidates = self._get_fast_policy_candidates(dataset_key)
+        for policy_path in candidates:
+            if not policy_path.exists():
+                continue
+            try:
+                self.fast_policy_bundle = load_fast_policy_bundle(policy_path, device="cpu")
+                print(f"[FastPolicy] loaded: {policy_path}")
+                return
+            except Exception as err:
+                print(f"[FastPolicy] failed to load {policy_path}: {err}")
+
+        print("[FastPolicy] no usable policy file found, fallback to Qwen decision path")
+
+    def _decide_action_with_fast_policy(
+        self,
+        *,
+        cards: list[dict[str, Any]],
+        next_enabled: bool,
+    ) -> dict[str, Any] | None:
+        if self.fast_policy_bundle is None or self.psy_engine is None:
+            return None
+
+        candidates = self._build_psy_candidates(cards)
+        if not candidates:
+            return None
+
+        state_before_dict = self.psy_engine.export_state()
+        state_before = state_dict_to_vec(state_before_dict)
+
+        action_mat = simulate_action_matrix(
+            self.psy_engine,
+            candidates,
+            include_skip=True,
+        )
+        actions = action_mat.get("actions", [])
+        deltas = np.array(action_mat.get("deltas", []), dtype=np.float32)
+        if len(actions) == 0 or deltas.size == 0:
+            return None
+
+        pareto_front = pareto_front_indices(deltas)
+        if not next_enabled:
+            pareto_front = [
+                idx for idx in pareto_front if str(actions[idx].get("action")) == "click"
+            ]
+        if not pareto_front:
+            pareto_front = [
+                idx for idx, action in enumerate(actions) if str(action.get("action")) == "click"
+            ] or [0]
+
+        features = build_action_features(state_before, actions, deltas)
+        model = self.fast_policy_bundle["model"]
+        with torch.no_grad():
+            logits = model(torch.tensor(features, dtype=torch.float32)).squeeze(-1).cpu().numpy()
+
+        chosen_idx, probs = select_action_from_logits(
+            logits,
+            pareto_front,
+            rng=self.profile_rng,
+            stochastic=self.fast_policy_stochastic,
+        )
+        chosen = actions[int(chosen_idx)]
+        raw_action = str(chosen.get("action") or "click")
+
+        if raw_action == "click":
+            psy_deltas, psy_recovered, psy_metrics = self.psy_engine.consume_item(
+                chosen["v"],
+                float(chosen.get("n", 0.0)),
+                float(chosen.get("c", 0.0)),
+                float(chosen.get("pop", 0.0)),
+            )
+            action = "click"
+            selected_item_id = str(chosen.get("item_id") or "")
+            selected_title = str(chosen.get("title") or "")
+        else:
+            psy_deltas, psy_recovered, psy_metrics = apply_skip_to_engine(self.psy_engine)
+            action = "next"
+            selected_item_id = ""
+            selected_title = "[SKIP]"
+
+        state_after = self.psy_engine.export_state()
+        return {
+            "action": action,
+            "selected_item_id": selected_item_id,
+            "selected_title": selected_title,
+            "pareto_front": [int(x) for x in pareto_front],
+            "choice_index": int(chosen_idx),
+            "deltas": [float(x) for x in np.array(psy_deltas, dtype=np.float32).tolist()],
+            "recovered": list(psy_recovered),
+            "metrics": {
+                **{k: float(v) for k, v in dict(psy_metrics).items()},
+                "policy_prob": float(probs[int(chosen_idx)]),
+                "policy_logit": float(logits[int(chosen_idx)]),
+                "mode_fast_policy": 1.0,
+            },
+            "state_before": state_before_dict,
+            "state": state_after,
+        }
 
     def _load_psy_resources(self, dataset_key: str) -> None:
         emb_file, profile_file = self._get_embedding_paths(dataset_key)
@@ -956,8 +1100,14 @@ class WebSimCamelAgent:
             memory.selected_model_key = final_model_key
 
             self._load_psy_resources(final_dataset_key)
+            self._load_fast_policy(final_dataset_key)
             profile = self._select_agent_profile(memory.agent_num)
             memory.agent_profile = profile
+            if self.fast_policy_bundle is not None:
+                memory.decision_mode = "fast_policy"
+                memory.fast_policy_path = str(self.fast_policy_bundle.get("path", ""))
+            else:
+                memory.decision_mode = "qwen"
             PsyBerEngineCls = self._load_psyber_engine_class()
             init_memory = self._build_initial_engine_memory(memory)
             emb_dim = 512
@@ -1019,21 +1169,104 @@ class WebSimCamelAgent:
                 decision_start = time.perf_counter()
                 psy_recovered_pre = list(self.psy_engine.apply_recovery_if_needed())
                 psy_state_before = self.psy_engine.export_state()
-                psy_candidates = self._build_psy_candidates(cards)
-                psy_choice_idx, pareto_front = self.psy_engine.select_best_item(psy_candidates)
-                psy_choice = psy_candidates[psy_choice_idx]
-                psy_deltas, psy_recovered, psy_metrics = self.psy_engine.consume_item(
-                    psy_choice["v"],
-                    psy_choice["n"],
-                    psy_choice["c"],
-                    psy_choice["pop"],
-                )
-                psy_state = self.psy_engine.export_state()
+                fast_decision: dict[str, Any] | None = None
+                if self.fast_policy_bundle is not None:
+                    try:
+                        fast_decision = self._decide_action_with_fast_policy(
+                            cards=cards,
+                            next_enabled=next_enabled,
+                        )
+                    except Exception as err:
+                        print(f"[FastPolicy] runtime failed, fallback to Qwen: {err}")
+                        fast_decision = None
+
+                force_next_by_psy = False
+                if fast_decision is not None:
+                    action = str(fast_decision.get("action") or "click")
+                    selected_item_id = str(fast_decision.get("selected_item_id") or "")
+                    selected_title = str(fast_decision.get("selected_title") or "")
+                    pareto_front = [
+                        int(x) for x in (fast_decision.get("pareto_front") or [])
+                    ]
+                    psy_deltas = np.array(
+                        fast_decision.get("deltas") or [0.0, 0.0, 0.0, 0.0],
+                        dtype=np.float32,
+                    )
+                    psy_recovered = list(fast_decision.get("recovered") or [])
+                    raw_metrics = fast_decision.get("metrics") or {}
+                    if isinstance(raw_metrics, dict):
+                        psy_metrics = {k: float(v) for k, v in raw_metrics.items()}
+                    else:
+                        psy_metrics = {}
+                    psy_state = fast_decision.get("state") or self.psy_engine.export_state()
+                    _reply_text = "[FAST_POLICY]"
+                    decision_tag = "FAST"
+                else:
+                    psy_candidates = self._build_psy_candidates(cards)
+                    psy_choice_idx, pareto_front = self.psy_engine.select_best_item(
+                        psy_candidates
+                    )
+                    psy_choice = psy_candidates[psy_choice_idx]
+                    selected_title = str(psy_choice.get("title", ""))
+                    psy_state = self.psy_engine.export_state()
+                    force_next_by_psy = (
+                        int(psy_state.get("Surf", 1)) == 0
+                        or any(
+                            float(psy_state.get(k, 1.0)) <= 0.0
+                            for k in ("P", "C", "E", "S")
+                        )
+                    )
+                    if force_next_by_psy:
+                        action, selected_item_id, _reply_text = (
+                            "next",
+                            "",
+                            "[FORCED_NEXT_BY_PSYBER_SURF_0]",
+                        )
+                    else:
+                        action, selected_item_id, _reply_text = self._decide_action_with_agent(
+                            screenshot_path=screenshot_path,
+                            cards=cards,
+                            next_enabled=next_enabled,
+                            status_text=status_text,
+                            memory=memory,
+                            psy_state=psy_state,
+                            psy_engine_choice={
+                                "item_id": psy_choice.get("item_id", ""),
+                                "title": psy_choice.get("title", ""),
+                                "item_n": float(psy_choice.get("n", 0.0)),
+                                "item_c": float(psy_choice.get("c", 0.0)),
+                                "item_pop": float(psy_choice.get("pop", 0.0)),
+                            },
+                        )
+                    if action == "click":
+                        selected_candidate = None
+                        for cand in psy_candidates:
+                            if str(cand.get("item_id") or "") == selected_item_id:
+                                selected_candidate = cand
+                                break
+                        if selected_candidate is None:
+                            selected_candidate = psy_choice
+                            selected_item_id = str(selected_candidate.get("item_id") or "")
+                        selected_title = str(selected_candidate.get("title") or "")
+                        psy_deltas, psy_recovered, psy_metrics = self.psy_engine.consume_item(
+                            selected_candidate["v"],
+                            selected_candidate["n"],
+                            selected_candidate["c"],
+                            selected_candidate["pop"],
+                        )
+                    else:
+                        selected_title = "[SKIP]"
+                        psy_deltas, psy_recovered, psy_metrics = apply_skip_to_engine(
+                            self.psy_engine
+                        )
+                    psy_state = self.psy_engine.export_state()
+                    decision_tag = "QWEN"
+
                 psy_record = {
                     "step": decision_step,
                     "timestamp_utc": self._utc_now(),
-                    "selected_item_id": psy_choice.get("item_id", ""),
-                    "selected_title": psy_choice.get("title", ""),
+                    "selected_item_id": selected_item_id,
+                    "selected_title": selected_title,
                     "pareto_front": [int(x) for x in pareto_front],
                     "deltas": [float(x) for x in np.array(psy_deltas, dtype=np.float32).tolist()],
                     "recovered_before_round": list(psy_recovered_pre),
@@ -1043,33 +1276,6 @@ class WebSimCamelAgent:
                     "state": psy_state,
                 }
                 memory.append_psy_state(psy_record)
-
-                force_next_by_psy = (
-                    int(psy_state.get("Surf", 1)) == 0
-                    or any(float(psy_state.get(k, 1.0)) <= 0.0 for k in ("P", "C", "E", "S"))
-                )
-                if force_next_by_psy:
-                    action, selected_item_id, _reply_text = (
-                        "next",
-                        "",
-                        "[FORCED_NEXT_BY_PSYBER_SURF_0]",
-                    )
-                else:
-                    action, selected_item_id, _reply_text = self._decide_action_with_agent(
-                        screenshot_path=screenshot_path,
-                        cards=cards,
-                        next_enabled=next_enabled,
-                        status_text=status_text,
-                        memory=memory,
-                        psy_state=psy_state,
-                        psy_engine_choice={
-                            "item_id": psy_choice.get("item_id", ""),
-                            "title": psy_choice.get("title", ""),
-                            "item_n": float(psy_choice.get("n", 0.0)),
-                            "item_c": float(psy_choice.get("c", 0.0)),
-                            "item_pop": float(psy_choice.get("pop", 0.0)),
-                        },
-                    )
                 decision_seconds = time.perf_counter() - decision_start
                 psy_delta_vals = np.array(psy_deltas, dtype=np.float32).tolist()
                 psy_state_log = (
@@ -1094,7 +1300,7 @@ class WebSimCamelAgent:
                             break
                 decision_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(
-                    f"[QWEN] {decision_time} step={decision_step} "
+                    f"[{decision_tag}] {decision_time} step={decision_step} "
                     f"action={action} item_id={selected_item_id or '-'} "
                     f"page_pos={page_pos} DT={decision_seconds:.3f} "
                     f"forced_next={str(force_next_by_psy).lower()} "
@@ -1111,7 +1317,11 @@ class WebSimCamelAgent:
                                 reason=(
                                     "psyber_forced_next_due_surf_0"
                                     if force_next_by_psy
-                                    else "user_not_interested_next_page"
+                                    else (
+                                        "fast_policy_next_page"
+                                        if memory.decision_mode == "fast_policy"
+                                        else "user_not_interested_next_page"
+                                    )
                                 ),
                                 status_text=status_text,
                                 timestamp_utc=self._utc_now(),
@@ -1220,11 +1430,14 @@ class WebSimCamelAgent:
             f"task_file={WEB_SIM_TASK_FILE}",
             f"dataset={memory.selected_dataset_key}",
             f"model={memory.selected_model_key}",
+            f"decision_mode={memory.decision_mode}",
             f"track_target={memory.track_target}",
             f"click_count={len(memory.click_sequence)}",
             f"skip_count={len(memory.skip_sequence)}",
             f"memory_file={self.memory_file}",
         ]
+        if memory.fast_policy_path:
+            lines.append(f"fast_policy_path={memory.fast_policy_path}")
         if self.assigned_api_id:
             lines.append(f"api_id={self.assigned_api_id}")
         self.summary_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -1296,6 +1509,22 @@ def main() -> None:
         default=None,
         help="Override track count for this run only",
     )
+    parser.add_argument(
+        "--disable-fast-inference",
+        action="store_true",
+        help="Disable online fast policy inference and always use Qwen decision path",
+    )
+    parser.add_argument(
+        "--fast-policy-path",
+        type=Path,
+        default=None,
+        help="Optional override path for fast policy file (.pt)",
+    )
+    parser.add_argument(
+        "--fast-policy-stochastic",
+        action="store_true",
+        help="Sample actions from fast policy probabilities instead of greedy argmax",
+    )
     args = parser.parse_args()
 
     agent = WebSimCamelAgent(
@@ -1307,6 +1536,9 @@ def main() -> None:
         track_override=args.track_override,
         decision_model=args.decision_model,
         qwen_base_url=args.qwen_base_url,
+        disable_fast_inference=args.disable_fast_inference,
+        fast_policy_path=args.fast_policy_path,
+        fast_policy_stochastic=args.fast_policy_stochastic,
     )
     agent.run()
 

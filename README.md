@@ -25,6 +25,7 @@ playwright install chromium
 
 ```bash
 python prelearning_agent.py --help
+python alignment_pretrain_agent.py --help
 python web_sim_camel_agent.py --help
 python app.py
 ```
@@ -44,6 +45,8 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
   - 点击“随机重置”
   - 截取当前页面截图，由 Agent 决定点击哪个 item（或不感兴趣时点击“下一页”）
 - 连续记录点击序列到 Agent memory，达到 `track`（默认 100）后关闭浏览器
+- 新增离线对齐预训练阶段：`alignment_pretrain_agent.py` 会从 `ratings.dat` 重建隐式轨迹，进行 OT 对齐训练，并输出在线快速策略模型 `fast_inference_policy.pt`
+- 在线阶段优先使用快速策略推理（5 动作并行评估 + 帕累托过滤 + 轻量策略采样）；若策略文件不存在则自动回退到 Qwen 决策
 
 > 说明：截图决策使用 OpenAI Responses API，模型固定为 `gpt-5.1-codex-mini`。  
 > 你可以二选一配置 API：  
@@ -52,6 +55,16 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
 > 若 API 不可用，会自动回退到随机策略，避免任务中断。
 
 ## 运行
+
+离线预处理流水线（建议顺序）：
+
+```bash
+cd /Users/chongzhang/PsyBer-Agent
+./run_prelearning_agent.sh
+./run_alignment_pretrain_agent.sh
+```
+
+在线仿真：
 
 ```bash
 cd /Users/chongzhang/PsyBer-Agent
@@ -65,6 +78,9 @@ cd /Users/chongzhang/PsyBer-Agent
 - `--seed 42`: 随机种子
 - `--track-override 10`: 本次运行临时覆盖 track，便于快速测试
 - `--close-service-when-done`: 若本次由 Agent 启动服务，结束时自动关闭服务
+- `--disable-fast-inference`: 关闭快速策略推理，强制走 Qwen 决策路径
+- `--fast-policy-path <path>`: 指定快速策略模型文件（默认自动按数据集路径寻找）
+- `--fast-policy-stochastic`: 快速策略按概率采样动作（默认贪心）
 
 ## API 池（高并发推荐）
 
