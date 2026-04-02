@@ -191,6 +191,7 @@ class AlignmentPretrainAgent:
         skip_recovery_boost: float,
         hidden_dim: int,
         stochastic: bool,
+        ablation_wo_template_random_selection: bool,
         seed: int,
         device: str,
     ):
@@ -218,6 +219,9 @@ class AlignmentPretrainAgent:
         self.skip_recovery_boost = float(skip_recovery_boost)
         self.hidden_dim = max(4, int(hidden_dim))
         self.stochastic = bool(stochastic)
+        self.ablation_wo_template_random_selection = bool(
+            ablation_wo_template_random_selection
+        )
         self.seed = int(seed)
         self.device = self._resolve_device(device)
 
@@ -446,15 +450,95 @@ class AlignmentPretrainAgent:
 
         return out[:k]
 
-    def _build_slate(self, target_item: str, rng: np.random.Generator) -> list[str]:
+    @staticmethod
+    def _stable_index(key: str, modulo: int) -> int:
+        if modulo <= 0:
+            return 0
+        digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+        return int(digest[:16], 16) % modulo
+
+    def _sample_negative_items_deterministic(
+        self,
+        *,
+        target_item: str,
+        k: int,
+        user_id: str,
+        step_idx: int,
+    ) -> list[str]:
         target = str(target_item)
-        negatives = self._sample_negative_items(
-            target_item=target,
-            k=self.slate_size - 1,
-            rng=rng,
+        pool_size = len(self.item_pool)
+        if k <= 0 or pool_size <= 1:
+            return []
+
+        start = self._stable_index(
+            f"tmpl-start::{user_id}::{step_idx}::{target}",
+            pool_size,
         )
+        if pool_size == 2:
+            stride = 1
+        else:
+            stride = 1 + self._stable_index(
+                f"tmpl-stride::{user_id}::{step_idx}::{target}",
+                pool_size - 1,
+            )
+            if pool_size % 2 == 0 and stride % 2 == 0:
+                stride += 1
+            stride = stride % pool_size
+            if stride == 0:
+                stride = 1
+
+        out: list[str] = []
+        seen = {target}
+        for i in range(pool_size * 2):
+            sid = str(self.item_pool[(start + i * stride) % pool_size])
+            if sid in seen:
+                continue
+            seen.add(sid)
+            out.append(sid)
+            if len(out) >= k:
+                return out[:k]
+
+        for sid in self.item_pool:
+            item_id = str(sid)
+            if item_id in seen:
+                continue
+            seen.add(item_id)
+            out.append(item_id)
+            if len(out) >= k:
+                break
+        return out[:k]
+
+    def _build_slate(
+        self,
+        target_item: str,
+        rng: np.random.Generator,
+        *,
+        user_id: str | None = None,
+        step_idx: int | None = None,
+    ) -> list[str]:
+        target = str(target_item)
+        if self.ablation_wo_template_random_selection:
+            uid = user_id or "global"
+            step = 0 if step_idx is None else int(step_idx)
+            negatives = self._sample_negative_items_deterministic(
+                target_item=target,
+                k=self.slate_size - 1,
+                user_id=uid,
+                step_idx=step,
+            )
+            insert_pos = self._stable_index(
+                f"tmpl-pos::{uid}::{step}::{target}",
+                self.slate_size,
+            )
+        else:
+            negatives = self._sample_negative_items(
+                target_item=target,
+                k=self.slate_size - 1,
+                rng=rng,
+            )
+            insert_pos = int(rng.integers(0, self.slate_size))
+
         slate = list(negatives)
-        insert_pos = int(rng.integers(0, self.slate_size))
         slate.insert(insert_pos, target)
         return slate
 
@@ -474,8 +558,13 @@ class AlignmentPretrainAgent:
         agent_states: list[np.ndarray] = []
         click_count = 0
 
-        for item_id in item_seq:
-            slate_ids = self._build_slate(item_id, rng)
+        for step_idx, item_id in enumerate(item_seq):
+            slate_ids = self._build_slate(
+                item_id,
+                rng,
+                user_id=user_id,
+                step_idx=step_idx,
+            )
             target_idx = slate_ids.index(str(item_id))
             candidates: list[dict[str, Any]] = []
             for sid in slate_ids:
@@ -828,6 +917,14 @@ class AlignmentPretrainAgent:
             "sinkhorn_iters": self.sinkhorn_iters,
             "skip_recovery_boost": self.skip_recovery_boost,
             "action_space": ["click_1", "click_2", "click_3", "click_4", "skip"],
+            "ablation_wo_template_random_selection": bool(
+                self.ablation_wo_template_random_selection
+            ),
+            "template_selection_strategy": (
+                "deterministic_hash"
+                if self.ablation_wo_template_random_selection
+                else "random"
+            ),
             "history_tail": history[-3:],
         }
 
@@ -860,6 +957,7 @@ class AlignmentPretrainAgent:
                 "skip_recovery_boost": self.skip_recovery_boost,
                 "hidden_dim": self.hidden_dim,
                 "stochastic": self.stochastic,
+                "ablation_wo_template_random_selection": self.ablation_wo_template_random_selection,
                 "seed": self.seed,
                 "device": self.device,
             },
@@ -898,8 +996,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-seq-len", type=int, default=20)
     parser.add_argument("--slate-size", type=int, default=4)
 
-    parser.add_argument("--epochs", type=int, default=60)
-    parser.add_argument("--lr", type=float, default=2e-3)
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--lr", type=float, default=5e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--gamma", type=float, default=0.98)
     parser.add_argument("--entropy-coef", type=float, default=0.005)
@@ -921,6 +1019,14 @@ def parse_args() -> argparse.Namespace:
         "--deterministic-action",
         action="store_true",
         help="Use greedy action selection instead of sampling during training rollouts.",
+    )
+    parser.add_argument(
+        "--ablation-wo-template-random-selection",
+        action="store_true",
+        help=(
+            "Table-6 style ablation: disable random slate/template selection and "
+            "use deterministic hash-based selection."
+        ),
     )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
@@ -958,6 +1064,7 @@ def main() -> None:
         skip_recovery_boost=args.skip_recovery_boost,
         hidden_dim=args.hidden_dim,
         stochastic=not args.deterministic_action,
+        ablation_wo_template_random_selection=args.ablation_wo_template_random_selection,
         seed=args.seed,
         device=args.device,
     )

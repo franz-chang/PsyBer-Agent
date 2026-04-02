@@ -81,6 +81,7 @@ cd /Users/chongzhang/PsyBer-Agent
 - `--disable-fast-inference`: 关闭快速策略推理，强制走 Qwen 决策路径
 - `--fast-policy-path <path>`: 指定快速策略模型文件（默认自动按数据集路径寻找）
 - `--fast-policy-stochastic`: 快速策略按概率采样动作（默认贪心）
+- `--ablation-wo-template-random-selection`: Table 6 风格消融，关闭随机模板/候选选择，改为确定性选择（用于复现实验对比）
 
 ## API 池（高并发推荐）
 
