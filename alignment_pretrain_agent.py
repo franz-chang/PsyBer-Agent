@@ -898,12 +898,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-seq-len", type=int, default=20)
     parser.add_argument("--slate-size", type=int, default=4)
 
-    parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--lr", type=float, default=1.5e-3)
+    parser.add_argument("--epochs", type=int, default=60)
+    parser.add_argument("--lr", type=float, default=2e-3)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--gamma", type=float, default=0.98)
     parser.add_argument("--entropy-coef", type=float, default=0.005)
-    parser.add_argument("--imitation-coef", type=float, default=0.1)
+    parser.add_argument("--imitation-coef", type=float, default=0.05)
     parser.add_argument(
         "--imitation-decay",
         type=float,
