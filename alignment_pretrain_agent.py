@@ -3,15 +3,17 @@
 
 Pipeline (between prelearning_agent.py and web_sim_camel_agent.py):
 1) Rebuild implicit click trajectories from ML-1M ratings.dat.
-2) Convert expert click trajectories into 4D intent trajectories with PsyBerEngine.
-3) Simulate 5-action slate decisions (Click1..Click4 + Skip) and collect agent intents.
-4) Compute Sinkhorn OT alignment rewards and train a lightweight fast policy network.
-5) Export fast policy for online inference in web_sim_camel_agent.py.
+2) Convert expert click trajectories into 4D psychological state trajectories with PsyBerEngine.
+3) Pretrain ICVF intent mapping psi(s)->z on temporal-distance objective.
+4) Simulate 5-action slate decisions (Click1..Click4 + Skip) and collect agent states.
+5) Compute Sinkhorn OT alignment rewards in intent space and train a lightweight fast policy network.
+6) Export fast policy for online inference in web_sim_camel_agent.py.
 """
 
 from __future__ import annotations
 
 import argparse
+import copy
 import importlib.util
 import json
 import hashlib
@@ -24,6 +26,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn.functional as F
+from torch import nn
 
 from psy_fast_inference import (
     FEATURE_DIM,
@@ -45,6 +48,8 @@ DEFAULT_PROFILES_FILE = DEFAULT_DATASET_DIR / "Embeddings" / "agent_profiles.jso
 DEFAULT_POLICY_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "fast_inference_policy.pt"
 DEFAULT_REPORT_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "alignment_pretrain_report.json"
 DEFAULT_TRAJ_PREVIEW_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "expert_intent_preview.json"
+DEFAULT_INTENT_ENCODER_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "intent_encoder.pt"
+DEFAULT_INTENT_STATS_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "intent_stats.json"
 PSY_ENGINE_FILE = PROJECT_DIR / "Psy-engine.py"
 
 
@@ -55,6 +60,48 @@ class ItemFeature:
     item_n: float
     item_c: float
     item_pop: float
+
+
+class ICVFIntentModel(nn.Module):
+    """Intent-conditioned value function with psi encoder used as intent mapper."""
+
+    def __init__(self, state_dim: int, intent_dim: int, hidden_dim: int):
+        super().__init__()
+        self.state_dim = int(state_dim)
+        self.intent_dim = int(intent_dim)
+        h = max(8, int(hidden_dim))
+
+        self.phi_net = nn.Sequential(
+            nn.Linear(self.state_dim, h),
+            nn.GELU(),
+            nn.Linear(h, self.intent_dim),
+        )
+        self.psi_net = nn.Sequential(
+            nn.Linear(self.state_dim, h),
+            nn.GELU(),
+            nn.Linear(h, self.intent_dim),
+        )
+        self.trans_net = nn.Sequential(
+            nn.Linear(self.intent_dim, h),
+            nn.GELU(),
+            nn.Linear(h, self.intent_dim * self.intent_dim),
+        )
+
+    def encode_phi(self, s: torch.Tensor) -> torch.Tensor:
+        return F.normalize(self.phi_net(s), dim=-1)
+
+    def encode_intent(self, s: torch.Tensor) -> torch.Tensor:
+        return F.normalize(self.psi_net(s), dim=-1)
+
+    def value(self, s: torch.Tensor, s_plus: torch.Tensor, z: torch.Tensor) -> torch.Tensor:
+        phi = self.encode_phi(s)
+        psi = self.encode_intent(s_plus)
+        trans = self.trans_net(z).view(-1, self.intent_dim, self.intent_dim)
+        proj = torch.bmm(trans, psi.unsqueeze(-1)).squeeze(-1)
+        return (phi * proj).sum(dim=-1)
+
+    def forward(self, s: torch.Tensor, s_plus: torch.Tensor, z: torch.Tensor) -> torch.Tensor:
+        return self.value(s, s_plus, z)
 
 
 def stable_float_01(text: str) -> float:
@@ -89,8 +136,14 @@ def build_cost_matrix(
 ) -> np.ndarray:
     a = np.array(agent_states, dtype=np.float32)
     b = np.array(expert_states, dtype=np.float32)
-    if a.ndim != 2 or b.ndim != 2 or a.shape[1] != 4 or b.shape[1] != 4:
-        raise ValueError(f"state shape invalid: agent={a.shape}, expert={b.shape}")
+    if (
+        a.ndim != 2
+        or b.ndim != 2
+        or a.shape[1] <= 0
+        or b.shape[1] <= 0
+        or a.shape[1] != b.shape[1]
+    ):
+        raise ValueError(f"state/intent shape invalid: agent={a.shape}, expert={b.shape}")
 
     dist_state = np.linalg.norm(a[:, None, :] - b[None, :, :], axis=2)
 
@@ -174,6 +227,9 @@ class AlignmentPretrainAgent:
         policy_out: Path,
         report_out: Path,
         traj_preview_out: Path,
+        agent_step_logs_out: Path | None,
+        intent_encoder_out: Path,
+        intent_stats_out: Path,
         max_users: int,
         max_steps: int,
         min_seq_len: int,
@@ -194,6 +250,20 @@ class AlignmentPretrainAgent:
         ablation_wo_template_random_selection: bool,
         seed: int,
         device: str,
+        disable_icvf: bool,
+        icvf_intent_dim: int,
+        icvf_hidden_dim: int,
+        icvf_epochs: int,
+        icvf_steps_per_epoch: int,
+        icvf_batch_size: int,
+        icvf_lr: float,
+        icvf_weight_decay: float,
+        icvf_expectile: float,
+        icvf_future_window: int,
+        icvf_lin_alpha: float,
+        icvf_lin_coef: float,
+        icvf_norm_coef: float,
+        icvf_target_tau: float,
     ):
         self.dataset_dir = dataset_dir
         self.embeddings_file = embeddings_file
@@ -201,6 +271,9 @@ class AlignmentPretrainAgent:
         self.policy_out = policy_out
         self.report_out = report_out
         self.traj_preview_out = traj_preview_out
+        self.agent_step_logs_out = agent_step_logs_out
+        self.intent_encoder_out = intent_encoder_out
+        self.intent_stats_out = intent_stats_out
 
         self.max_users = max(1, int(max_users))
         self.max_steps = max(5, int(max_steps))
@@ -224,6 +297,20 @@ class AlignmentPretrainAgent:
         )
         self.seed = int(seed)
         self.device = self._resolve_device(device)
+        self.icvf_enabled = not bool(disable_icvf)
+        self.icvf_intent_dim = max(4, int(icvf_intent_dim))
+        self.icvf_hidden_dim = max(8, int(icvf_hidden_dim))
+        self.icvf_epochs = max(1, int(icvf_epochs))
+        self.icvf_steps_per_epoch = max(1, int(icvf_steps_per_epoch))
+        self.icvf_batch_size = max(16, int(icvf_batch_size))
+        self.icvf_lr = float(icvf_lr)
+        self.icvf_weight_decay = float(icvf_weight_decay)
+        self.icvf_expectile = float(max(0.01, min(0.99, icvf_expectile)))
+        self.icvf_future_window = max(1, int(icvf_future_window))
+        self.icvf_lin_alpha = float(icvf_lin_alpha)
+        self.icvf_lin_coef = float(max(0.0, icvf_lin_coef))
+        self.icvf_norm_coef = float(max(0.0, icvf_norm_coef))
+        self.icvf_target_tau = float(max(1e-4, min(1.0, icvf_target_tau)))
 
         self.rng = np.random.default_rng(self.seed)
 
@@ -232,7 +319,11 @@ class AlignmentPretrainAgent:
         self.emb_dim = 512
         self.user_sequences: list[tuple[str, list[str]]] = []
         self.expert_states: dict[str, np.ndarray] = {}
+        self.expert_intents: dict[str, np.ndarray] = {}
         self.profile_pool: list[dict[str, Any]] = []
+        self.icvf_model: ICVFIntentModel | None = None
+        self.icvf_training_stats: dict[str, Any] = {}
+        self.agent_step_logs: list[dict[str, Any]] = []
 
         self.psy_engine_cls: type | None = None
 
@@ -418,6 +509,242 @@ class AlignmentPretrainAgent:
             out[user_id] = np.stack(states, axis=0).astype(np.float32)
         self.expert_states = out
 
+    def _sample_icvf_batch(
+        self,
+        trajectories: list[np.ndarray],
+        *,
+        batch_size: int,
+        device: torch.device,
+    ) -> dict[str, torch.Tensor]:
+        s_list: list[np.ndarray] = []
+        sp_list: list[np.ndarray] = []
+        sz_list: list[np.ndarray] = []
+        splus_list: list[np.ndarray] = []
+        k_list: list[float] = []
+        reward_list: list[float] = []
+
+        for _ in range(batch_size):
+            traj = trajectories[int(self.rng.integers(0, len(trajectories)))]
+            length = int(traj.shape[0])
+            if length < 3:
+                continue
+
+            t = int(self.rng.integers(0, length - 1))
+            future_start = t + 1
+            future_end = min(length - 1, t + self.icvf_future_window)
+            if future_start > future_end:
+                future_start = length - 1
+                future_end = length - 1
+            tz = int(self.rng.integers(future_start, future_end + 1))
+            tplus = int(self.rng.integers(future_start, future_end + 1))
+
+            s = traj[t]
+            s_prime = traj[min(t + 1, length - 1)]
+            s_z = traj[tz]
+            s_plus = traj[tplus]
+            k = float(max(1, tz - t))
+
+            s_list.append(s.astype(np.float32))
+            sp_list.append(s_prime.astype(np.float32))
+            sz_list.append(s_z.astype(np.float32))
+            splus_list.append(s_plus.astype(np.float32))
+            k_list.append(k)
+            # In continuous state spaces, exact equality is rare, so this is almost always -1.
+            reward_list.append(-1.0 if not np.allclose(s, s_z, atol=1e-6) else 0.0)
+
+        if not s_list:
+            raise RuntimeError("ICVF batch sampling failed: no valid sample")
+
+        def _to_tensor(xs: list[np.ndarray]) -> torch.Tensor:
+            return torch.tensor(np.stack(xs, axis=0), dtype=torch.float32, device=device)
+
+        return {
+            "s": _to_tensor(s_list),
+            "s_prime": _to_tensor(sp_list),
+            "s_z": _to_tensor(sz_list),
+            "s_plus": _to_tensor(splus_list),
+            "k": torch.tensor(k_list, dtype=torch.float32, device=device),
+            "reward": torch.tensor(reward_list, dtype=torch.float32, device=device),
+        }
+
+    def _polyak_update(self, target: nn.Module, source: nn.Module, tau: float) -> None:
+        with torch.no_grad():
+            for p_tgt, p_src in zip(target.parameters(), source.parameters()):
+                p_tgt.data.mul_(1.0 - tau).add_(tau * p_src.data)
+
+    def _train_icvf_intent_mapper(self) -> None:
+        if not self.icvf_enabled:
+            print("[ICVF] disabled by config, OT will use raw 4D states.")
+            self.expert_intents = {k: np.array(v, dtype=np.float32) for k, v in self.expert_states.items()}
+            self.icvf_training_stats = {
+                "enabled": False,
+                "reason": "disabled_by_flag",
+                "intent_dim": 4,
+            }
+            return
+
+        trajectories = [
+            np.array(states, dtype=np.float32)
+            for _, states in self.expert_states.items()
+            if isinstance(states, np.ndarray) and states.ndim == 2 and states.shape[0] >= 3 and states.shape[1] == 4
+        ]
+        if not trajectories:
+            raise RuntimeError("ICVF needs at least one trajectory with length >= 3 and dim=4")
+
+        device = torch.device(self.device)
+        model = ICVFIntentModel(
+            state_dim=4,
+            intent_dim=self.icvf_intent_dim,
+            hidden_dim=self.icvf_hidden_dim,
+        ).to(device)
+        target_model = copy.deepcopy(model).to(device)
+        target_model.eval()
+        for p in target_model.parameters():
+            p.requires_grad = False
+
+        optimizer = torch.optim.AdamW(
+            model.parameters(),
+            lr=self.icvf_lr,
+            weight_decay=self.icvf_weight_decay,
+        )
+
+        hist: list[dict[str, float]] = []
+        for epoch in range(1, self.icvf_epochs + 1):
+            model.train()
+            epoch_exp = 0.0
+            epoch_lin = 0.0
+            epoch_norm = 0.0
+            epoch_total = 0.0
+            n_steps = 0
+
+            for _ in range(self.icvf_steps_per_epoch):
+                batch = self._sample_icvf_batch(
+                    trajectories,
+                    batch_size=self.icvf_batch_size,
+                    device=device,
+                )
+                s = batch["s"]
+                s_prime = batch["s_prime"]
+                s_z = batch["s_z"]
+                s_plus = batch["s_plus"]
+                k = batch["k"]
+                reward = batch["reward"]
+
+                z = model.encode_intent(s_z)
+                v = model.value(s, s_plus, z)
+
+                with torch.no_grad():
+                    z_tgt = target_model.encode_intent(s_z)
+                    v_next = target_model.value(s_prime, s_plus, z_tgt)
+
+                delta = reward + self.gamma * v_next - v
+                w = torch.where(delta < 0.0, 1.0 - self.icvf_expectile, self.icvf_expectile)
+                loss_exp = torch.mean(w * delta.pow(2))
+
+                z_s = model.encode_intent(s)
+                z_sz = model.encode_intent(s_z)
+                dist_sq = torch.sum((z_sz - z_s).pow(2), dim=-1)
+                target_dist_sq = self.icvf_lin_alpha * k
+                loss_lin = torch.mean((dist_sq - target_dist_sq).pow(2))
+
+                loss_norm = torch.mean((torch.linalg.norm(z_s, dim=-1) - 1.0).pow(2))
+
+                loss = loss_exp + self.icvf_lin_coef * loss_lin + self.icvf_norm_coef * loss_norm
+
+                optimizer.zero_grad()
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+                self._polyak_update(target_model, model, self.icvf_target_tau)
+
+                n_steps += 1
+                epoch_exp += float(loss_exp.item())
+                epoch_lin += float(loss_lin.item())
+                epoch_norm += float(loss_norm.item())
+                epoch_total += float(loss.item())
+
+            rec = {
+                "epoch": float(epoch),
+                "steps": float(n_steps),
+                "loss_exp": epoch_exp / max(1, n_steps),
+                "loss_lin": epoch_lin / max(1, n_steps),
+                "loss_norm": epoch_norm / max(1, n_steps),
+                "loss_total": epoch_total / max(1, n_steps),
+            }
+            hist.append(rec)
+            print(
+                "[ICVF] "
+                f"epoch={epoch}/{self.icvf_epochs} "
+                f"loss_total={rec['loss_total']:.6f} "
+                f"loss_exp={rec['loss_exp']:.6f} "
+                f"loss_lin={rec['loss_lin']:.6f} "
+                f"loss_norm={rec['loss_norm']:.6f}"
+            )
+
+        model.eval()
+        self.icvf_model = model
+
+        # Save encoder bundle for downstream reuse.
+        self.intent_encoder_out.parent.mkdir(parents=True, exist_ok=True)
+        encoder_bundle = {
+            "state_dict": model.psi_net.state_dict(),
+            "metadata": {
+                "state_dim": 4,
+                "intent_dim": self.icvf_intent_dim,
+                "hidden_dim": self.icvf_hidden_dim,
+                "trained_utc": datetime.now(timezone.utc).isoformat(),
+                "gamma": self.gamma,
+                "expectile": self.icvf_expectile,
+                "future_window": self.icvf_future_window,
+            },
+        }
+        torch.save(encoder_bundle, self.intent_encoder_out)
+
+        self.expert_intents = {
+            user_id: self._map_states_to_intents(states)
+            for user_id, states in self.expert_states.items()
+        }
+        tail = hist[-3:] if len(hist) > 3 else hist
+        self.icvf_training_stats = {
+            "enabled": True,
+            "intent_dim": self.icvf_intent_dim,
+            "hidden_dim": self.icvf_hidden_dim,
+            "epochs": self.icvf_epochs,
+            "steps_per_epoch": self.icvf_steps_per_epoch,
+            "batch_size": self.icvf_batch_size,
+            "lr": self.icvf_lr,
+            "weight_decay": self.icvf_weight_decay,
+            "expectile": self.icvf_expectile,
+            "future_window": self.icvf_future_window,
+            "lin_alpha": self.icvf_lin_alpha,
+            "lin_coef": self.icvf_lin_coef,
+            "norm_coef": self.icvf_norm_coef,
+            "target_tau": self.icvf_target_tau,
+            "history_tail": tail,
+            "encoder_out": str(self.intent_encoder_out),
+        }
+        self.intent_stats_out.parent.mkdir(parents=True, exist_ok=True)
+        self.intent_stats_out.write_text(
+            json.dumps(self.icvf_training_stats, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+    def _map_states_to_intents(self, states: np.ndarray) -> np.ndarray:
+        arr = np.array(states, dtype=np.float32)
+        if arr.ndim != 2:
+            raise ValueError(f"states must be 2D, got {arr.shape}")
+        if arr.shape[1] != 4:
+            return arr.astype(np.float32)
+        if not self.icvf_enabled or self.icvf_model is None:
+            return arr.astype(np.float32)
+
+        device = torch.device(self.device)
+        with torch.no_grad():
+            s = torch.tensor(arr, dtype=torch.float32, device=device)
+            z = self.icvf_model.encode_intent(s)
+            out = z.detach().cpu().numpy().astype(np.float32)
+        return out
+
     def _sample_negative_items(
         self,
         *,
@@ -557,6 +884,7 @@ class AlignmentPretrainAgent:
         step_entries: list[dict[str, Any]] = []
         agent_states: list[np.ndarray] = []
         click_count = 0
+        collect_step_debug = train_mode and (self.agent_step_logs_out is not None)
 
         for step_idx, item_id in enumerate(item_seq):
             slate_ids = self._build_slate(
@@ -627,14 +955,27 @@ class AlignmentPretrainAgent:
             if train_mode:
                 log_prob = torch.log(probs[action_idx] + 1e-12)
                 entropy = -(probs * torch.log(probs + 1e-12)).sum()
-                step_entries.append(
-                    {
-                        "log_prob": log_prob,
-                        "entropy": entropy,
-                        "logits": logits,
-                        "target_idx": int(target_idx),
-                    }
-                )
+                entry: dict[str, Any] = {
+                    "log_prob": log_prob,
+                    "entropy": entropy,
+                    "logits": logits,
+                    "target_idx": int(target_idx),
+                }
+                if collect_step_debug:
+                    entry.update(
+                        {
+                            "step_idx": int(step_idx),
+                            "action_idx": int(action_idx),
+                            "selected_action": selected_action,
+                            "pareto_indices": [int(i) for i in pareto],
+                            "slate_ids": [str(sid) for sid in slate_ids],
+                            "state_before": state_before.astype(np.float32),
+                            "state_after": state_after.astype(np.float32),
+                            "logits_np": logits.detach().cpu().numpy().astype(np.float32),
+                            "probs_np": probs.detach().cpu().numpy().astype(np.float32),
+                        }
+                    )
+                step_entries.append(entry)
 
         states_np = np.stack(agent_states, axis=0).astype(np.float32) if agent_states else np.zeros((0, 4), dtype=np.float32)
         return {
@@ -653,9 +994,11 @@ class AlignmentPretrainAgent:
         if agent_states.size == 0 or expert_states.size == 0:
             return np.zeros((0,), dtype=np.float32), 0.0
 
+        agent_repr = self._map_states_to_intents(agent_states)
+        expert_repr = self._map_states_to_intents(expert_states)
         cost = build_cost_matrix(
-            agent_states,
-            expert_states,
+            agent_repr,
+            expert_repr,
             lookahead_lambda=self.lookahead_lambda,
         )
         pi = sinkhorn_transport(
@@ -677,6 +1020,7 @@ class AlignmentPretrainAgent:
         )
 
         history: list[dict[str, Any]] = []
+        step_debug_logs: list[dict[str, Any]] = []
 
         for epoch in range(1, self.epochs + 1):
             model.train()
@@ -698,7 +1042,11 @@ class AlignmentPretrainAgent:
 
             for idx in order:
                 user_id, seq = self.user_sequences[idx]
-                expert_states = self.expert_states.get(user_id)
+                expert_states = (
+                    self.expert_intents.get(user_id)
+                    if self.expert_intents
+                    else self.expert_states.get(user_id)
+                )
                 if expert_states is None or len(expert_states) == 0:
                     continue
 
@@ -742,6 +1090,49 @@ class AlignmentPretrainAgent:
                     policy_terms.append(-returns_t[t] * log_prob)
                     imitation_terms.append(F.cross_entropy(logits_raw, target))
                     entropies.append(entropy)
+
+                    if self.agent_step_logs_out is not None:
+                        state_before = entry.get("state_before")
+                        state_after = entry.get("state_after")
+                        logits_np = entry.get("logits_np")
+                        probs_np = entry.get("probs_np")
+                        if isinstance(state_before, np.ndarray):
+                            state_before_out = [float(x) for x in state_before.tolist()]
+                        else:
+                            state_before_out = []
+                        if isinstance(state_after, np.ndarray):
+                            state_after_out = [float(x) for x in state_after.tolist()]
+                        else:
+                            state_after_out = []
+                        if isinstance(logits_np, np.ndarray):
+                            logits_out = [float(x) for x in logits_np.tolist()]
+                        else:
+                            logits_out = [float(x) for x in entry["logits"].detach().cpu().numpy().tolist()]
+                        if isinstance(probs_np, np.ndarray):
+                            probs_out = [float(x) for x in probs_np.tolist()]
+                        else:
+                            probs_out = []
+
+                        step_debug_logs.append(
+                            {
+                                "epoch": int(epoch),
+                                "user_id": str(user_id),
+                                "step_idx": int(entry.get("step_idx", t)),
+                                "target_idx": int(entry["target_idx"]),
+                                "action_idx": int(entry.get("action_idx", -1)),
+                                "selected_action": str(entry.get("selected_action", "")),
+                                "pareto_indices": [int(i) for i in entry.get("pareto_indices", [])],
+                                "slate_ids": [str(s) for s in entry.get("slate_ids", [])],
+                                "reward": float(rewards[t]),
+                                "return": float(returns[t]),
+                                "log_prob": float(log_prob.detach().item()),
+                                "entropy": float(entropy.detach().item()),
+                                "state_before": state_before_out,
+                                "state_after": state_after_out,
+                                "logits": logits_out,
+                                "probs": probs_out,
+                            }
+                        )
 
                 policy_loss = torch.stack(policy_terms).mean()
                 imitation_loss = torch.stack(imitation_terms).mean()
@@ -803,6 +1194,7 @@ class AlignmentPretrainAgent:
                 f"click_rate={rec['avg_click_rate']:.4f}"
             )
 
+        self.agent_step_logs = step_debug_logs
         model.eval()
         return model, history
 
@@ -837,6 +1229,15 @@ class AlignmentPretrainAgent:
                     "id": "step2_expert_intent_conversion",
                     "implemented": True,
                     "evidence": "_build_expert_intent_states(): per-item consume -> 4D [P,C,E,S]",
+                },
+                {
+                    "id": "step2_intent_mapping_icvf_pretraining",
+                    "implemented": bool(self.icvf_enabled),
+                    "evidence": (
+                        "_train_icvf_intent_mapper(): expectile temporal-distance training for psi(s)->z"
+                        if self.icvf_enabled
+                        else "ICVF disabled by --disable-icvf; OT uses raw 4D states"
+                    ),
                 },
                 {
                     "id": "step2_agent_slate_5d_action",
@@ -896,8 +1297,17 @@ class AlignmentPretrainAgent:
         self._build_expert_intent_states()
         self._write_traj_preview()
 
+        print("[Train] ICVF intent mapping pretraining")
+        self._train_icvf_intent_mapper()
+
         print("[Train] fast policy with OT alignment rewards")
         model, history = self._fit()
+
+        ot_representation_dim = 4
+        if self.expert_intents:
+            first_intent = next(iter(self.expert_intents.values()))
+            if isinstance(first_intent, np.ndarray) and first_intent.ndim == 2 and first_intent.shape[1] > 0:
+                ot_representation_dim = int(first_intent.shape[1])
 
         metadata = {
             "trained_utc": datetime.now(timezone.utc).isoformat(),
@@ -916,6 +1326,12 @@ class AlignmentPretrainAgent:
             "sinkhorn_eps": self.sinkhorn_eps,
             "sinkhorn_iters": self.sinkhorn_iters,
             "skip_recovery_boost": self.skip_recovery_boost,
+            "icvf_enabled": bool(self.icvf_enabled),
+            "icvf_intent_dim": int(self.icvf_intent_dim),
+            "ot_representation_dim": int(ot_representation_dim),
+            "intent_encoder_out": str(self.intent_encoder_out),
+            "intent_stats_out": str(self.intent_stats_out),
+            "agent_step_logs_out": str(self.agent_step_logs_out) if self.agent_step_logs_out else "",
             "action_space": ["click_1", "click_2", "click_3", "click_4", "skip"],
             "ablation_wo_template_random_selection": bool(
                 self.ablation_wo_template_random_selection
@@ -940,6 +1356,9 @@ class AlignmentPretrainAgent:
                 "policy_out": str(self.policy_out),
                 "report_out": str(self.report_out),
                 "traj_preview_out": str(self.traj_preview_out),
+                "agent_step_logs_out": (
+                    str(self.agent_step_logs_out) if self.agent_step_logs_out else ""
+                ),
                 "max_users": self.max_users,
                 "max_steps": self.max_steps,
                 "min_seq_len": self.min_seq_len,
@@ -958,6 +1377,22 @@ class AlignmentPretrainAgent:
                 "hidden_dim": self.hidden_dim,
                 "stochastic": self.stochastic,
                 "ablation_wo_template_random_selection": self.ablation_wo_template_random_selection,
+                "icvf_enabled": self.icvf_enabled,
+                "icvf_intent_dim": self.icvf_intent_dim,
+                "icvf_hidden_dim": self.icvf_hidden_dim,
+                "icvf_epochs": self.icvf_epochs,
+                "icvf_steps_per_epoch": self.icvf_steps_per_epoch,
+                "icvf_batch_size": self.icvf_batch_size,
+                "icvf_lr": self.icvf_lr,
+                "icvf_weight_decay": self.icvf_weight_decay,
+                "icvf_expectile": self.icvf_expectile,
+                "icvf_future_window": self.icvf_future_window,
+                "icvf_lin_alpha": self.icvf_lin_alpha,
+                "icvf_lin_coef": self.icvf_lin_coef,
+                "icvf_norm_coef": self.icvf_norm_coef,
+                "icvf_target_tau": self.icvf_target_tau,
+                "intent_encoder_out": str(self.intent_encoder_out),
+                "intent_stats_out": str(self.intent_stats_out),
                 "seed": self.seed,
                 "device": self.device,
             },
@@ -965,8 +1400,11 @@ class AlignmentPretrainAgent:
                 "item_count": len(self.item_pool),
                 "embedding_dim": self.emb_dim,
                 "user_count": len(self.user_sequences),
+                "expert_state_dim": 4,
+                "ot_representation_dim": int(ot_representation_dim),
             },
             "history": history,
+            "icvf_training": self.icvf_training_stats,
             "policy_metadata": metadata,
             "doc_alignment_checklist": self._build_doc_alignment_checklist(),
         }
@@ -977,9 +1415,18 @@ class AlignmentPretrainAgent:
             encoding="utf-8",
         )
 
+        if self.agent_step_logs_out is not None:
+            self.agent_step_logs_out.parent.mkdir(parents=True, exist_ok=True)
+            self.agent_step_logs_out.write_text(
+                json.dumps(self.agent_step_logs, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+
         print(f"[Save] policy={self.policy_out}")
         print(f"[Save] report={self.report_out}")
         print(f"[Save] trajectory_preview={self.traj_preview_out}")
+        if self.agent_step_logs_out is not None:
+            print(f"[Save] agent_step_logs={self.agent_step_logs_out}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -990,6 +1437,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--policy-out", type=Path, default=DEFAULT_POLICY_OUT)
     parser.add_argument("--report-out", type=Path, default=DEFAULT_REPORT_OUT)
     parser.add_argument("--traj-preview-out", type=Path, default=DEFAULT_TRAJ_PREVIEW_OUT)
+    parser.add_argument(
+        "--agent-step-logs-out",
+        type=Path,
+        default=None,
+        help="Optional JSON file to persist per-step training rollout logs.",
+    )
+    parser.add_argument("--intent-encoder-out", type=Path, default=DEFAULT_INTENT_ENCODER_OUT)
+    parser.add_argument("--intent-stats-out", type=Path, default=DEFAULT_INTENT_STATS_OUT)
 
     parser.add_argument("--max-users", type=int, default=300)
     parser.add_argument("--max-steps", type=int, default=80)
@@ -1015,6 +1470,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-recovery-boost", type=float, default=0.3)
 
     parser.add_argument("--hidden-dim", type=int, default=64)
+    parser.add_argument(
+        "--disable-icvf",
+        action="store_true",
+        help="Disable ICVF intent mapping pretraining and use raw 4D states for OT.",
+    )
+    parser.add_argument("--icvf-intent-dim", type=int, default=32)
+    parser.add_argument("--icvf-hidden-dim", type=int, default=128)
+    parser.add_argument("--icvf-epochs", type=int, default=20)
+    parser.add_argument("--icvf-steps-per-epoch", type=int, default=100)
+    parser.add_argument("--icvf-batch-size", type=int, default=256)
+    parser.add_argument("--icvf-lr", type=float, default=1e-3)
+    parser.add_argument("--icvf-weight-decay", type=float, default=1e-5)
+    parser.add_argument("--icvf-expectile", type=float, default=0.8)
+    parser.add_argument("--icvf-future-window", type=int, default=20)
+    parser.add_argument("--icvf-lin-alpha", type=float, default=0.1)
+    parser.add_argument("--icvf-lin-coef", type=float, default=0.1)
+    parser.add_argument("--icvf-norm-coef", type=float, default=0.01)
+    parser.add_argument("--icvf-target-tau", type=float, default=0.01)
     parser.add_argument(
         "--deterministic-action",
         action="store_true",
@@ -1047,6 +1520,9 @@ def main() -> None:
         policy_out=args.policy_out,
         report_out=args.report_out,
         traj_preview_out=args.traj_preview_out,
+        agent_step_logs_out=args.agent_step_logs_out,
+        intent_encoder_out=args.intent_encoder_out,
+        intent_stats_out=args.intent_stats_out,
         max_users=args.max_users,
         max_steps=args.max_steps,
         min_seq_len=args.min_seq_len,
@@ -1067,6 +1543,20 @@ def main() -> None:
         ablation_wo_template_random_selection=args.ablation_wo_template_random_selection,
         seed=args.seed,
         device=args.device,
+        disable_icvf=args.disable_icvf,
+        icvf_intent_dim=args.icvf_intent_dim,
+        icvf_hidden_dim=args.icvf_hidden_dim,
+        icvf_epochs=args.icvf_epochs,
+        icvf_steps_per_epoch=args.icvf_steps_per_epoch,
+        icvf_batch_size=args.icvf_batch_size,
+        icvf_lr=args.icvf_lr,
+        icvf_weight_decay=args.icvf_weight_decay,
+        icvf_expectile=args.icvf_expectile,
+        icvf_future_window=args.icvf_future_window,
+        icvf_lin_alpha=args.icvf_lin_alpha,
+        icvf_lin_coef=args.icvf_lin_coef,
+        icvf_norm_coef=args.icvf_norm_coef,
+        icvf_target_tau=args.icvf_target_tau,
     )
     agent.run()
 

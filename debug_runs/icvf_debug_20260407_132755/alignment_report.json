@@ -1,0 +1,200 @@
+{
+  "config": {
+    "dataset_dir": "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main",
+    "embeddings_file": "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/item_embeddings.json",
+    "profiles_file": "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/agent_profiles.json",
+    "policy_out": "/Users/chongzhang/PsyBer-Agent/debug_runs/icvf_debug_20260407_132755/fast_policy.pt",
+    "report_out": "/Users/chongzhang/PsyBer-Agent/debug_runs/icvf_debug_20260407_132755/alignment_report.json",
+    "traj_preview_out": "/Users/chongzhang/PsyBer-Agent/debug_runs/icvf_debug_20260407_132755/expert_preview.json",
+    "max_users": 2,
+    "max_steps": 10,
+    "min_seq_len": 5,
+    "slate_size": 4,
+    "epochs": 1,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "gamma": 0.98,
+    "entropy_coef": 0.005,
+    "imitation_coef": 0.05,
+    "imitation_decay": 1.0,
+    "sinkhorn_eps": 0.1,
+    "sinkhorn_iters": 80,
+    "lookahead_lambda": 0.1,
+    "skip_recovery_boost": 0.3,
+    "hidden_dim": 64,
+    "stochastic": true,
+    "ablation_wo_template_random_selection": false,
+    "icvf_enabled": true,
+    "icvf_intent_dim": 32,
+    "icvf_hidden_dim": 128,
+    "icvf_epochs": 1,
+    "icvf_steps_per_epoch": 4,
+    "icvf_batch_size": 64,
+    "icvf_lr": 0.001,
+    "icvf_weight_decay": 1e-05,
+    "icvf_expectile": 0.8,
+    "icvf_future_window": 20,
+    "icvf_lin_alpha": 0.1,
+    "icvf_lin_coef": 0.1,
+    "icvf_norm_coef": 0.01,
+    "icvf_target_tau": 0.01,
+    "intent_encoder_out": "/Users/chongzhang/PsyBer-Agent/debug_runs/icvf_debug_20260407_132755/intent_encoder.pt",
+    "intent_stats_out": "/Users/chongzhang/PsyBer-Agent/debug_runs/icvf_debug_20260407_132755/intent_stats.json",
+    "seed": 42,
+    "device": "cpu"
+  },
+  "stats": {
+    "item_count": 3822,
+    "embedding_dim": 512,
+    "user_count": 2,
+    "expert_state_dim": 4,
+    "ot_representation_dim": 32
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "users": 2,
+      "avg_loss": -0.0929967937991023,
+      "avg_policy_loss": -0.167571522295475,
+      "avg_imitation_loss": 1.6103765368461609,
+      "avg_entropy": 1.1888209581375122,
+      "imitation_coef_epoch": 0.05,
+      "avg_reward": 0.6530393660068512,
+      "avg_alignment_cost": 0.17487642914056778,
+      "avg_objective_reward_minus_cost": 0.4781629368662834,
+      "avg_click_rate": 0.75,
+      "total_steps": 20
+    }
+  ],
+  "icvf_training": {
+    "enabled": true,
+    "intent_dim": 32,
+    "hidden_dim": 128,
+    "epochs": 1,
+    "steps_per_epoch": 4,
+    "batch_size": 64,
+    "lr": 0.001,
+    "weight_decay": 1e-05,
+    "expectile": 0.8,
+    "future_window": 20,
+    "lin_alpha": 0.1,
+    "lin_coef": 0.1,
+    "norm_coef": 0.01,
+    "target_tau": 0.01,
+    "history_tail": [
+      {
+        "epoch": 1.0,
+        "steps": 4.0,
+        "loss_exp": 0.09639223106205463,
+        "loss_lin": 0.1092075277119875,
+        "loss_norm": 1.5404344466674047e-15,
+        "loss_total": 0.10731298197060823
+      }
+    ],
+    "encoder_out": "/Users/chongzhang/PsyBer-Agent/debug_runs/icvf_debug_20260407_132755/intent_encoder.pt"
+  },
+  "policy_metadata": {
+    "trained_utc": "2026-04-07T05:28:00.531319+00:00",
+    "dataset_dir": "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main",
+    "embeddings_file": "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/item_embeddings.json",
+    "users": 2,
+    "max_steps": 10,
+    "min_seq_len": 5,
+    "slate_size": 4,
+    "epochs": 1,
+    "feature_dim": 13,
+    "hidden_dim": 64,
+    "mid_dim": 64,
+    "stochastic": true,
+    "lookahead_lambda": 0.1,
+    "sinkhorn_eps": 0.1,
+    "sinkhorn_iters": 80,
+    "skip_recovery_boost": 0.3,
+    "icvf_enabled": true,
+    "icvf_intent_dim": 32,
+    "ot_representation_dim": 32,
+    "intent_encoder_out": "/Users/chongzhang/PsyBer-Agent/debug_runs/icvf_debug_20260407_132755/intent_encoder.pt",
+    "intent_stats_out": "/Users/chongzhang/PsyBer-Agent/debug_runs/icvf_debug_20260407_132755/intent_stats.json",
+    "action_space": [
+      "click_1",
+      "click_2",
+      "click_3",
+      "click_4",
+      "skip"
+    ],
+    "ablation_wo_template_random_selection": false,
+    "template_selection_strategy": "random",
+    "history_tail": [
+      {
+        "epoch": 1,
+        "users": 2,
+        "avg_loss": -0.0929967937991023,
+        "avg_policy_loss": -0.167571522295475,
+        "avg_imitation_loss": 1.6103765368461609,
+        "avg_entropy": 1.1888209581375122,
+        "imitation_coef_epoch": 0.05,
+        "avg_reward": 0.6530393660068512,
+        "avg_alignment_cost": 0.17487642914056778,
+        "avg_objective_reward_minus_cost": 0.4781629368662834,
+        "avg_click_rate": 0.75,
+        "total_steps": 20
+      }
+    ]
+  },
+  "doc_alignment_checklist": {
+    "alignment_steps_pdf": [
+      {
+        "id": "step1_implicit_trajectory_construction",
+        "implemented": true,
+        "evidence": "_load_user_sequences(): ratings.dat -> (user,item,timestamp) sorted trajectories"
+      },
+      {
+        "id": "step2_expert_intent_conversion",
+        "implemented": true,
+        "evidence": "_build_expert_intent_states(): per-item consume -> 4D [P,C,E,S]"
+      },
+      {
+        "id": "step2_intent_mapping_icvf_pretraining",
+        "implemented": true,
+        "evidence": "_train_icvf_intent_mapper(): expectile temporal-distance training for psi(s)->z"
+      },
+      {
+        "id": "step2_agent_slate_5d_action",
+        "implemented": true,
+        "evidence": "_simulate_user_rollout(): Click1..4 + Skip with Pareto-filtered policy"
+      },
+      {
+        "id": "step3_ot_alignment_reward",
+        "implemented": true,
+        "evidence": "build_cost_matrix + sinkhorn_transport + dense_rewards_from_transport"
+      },
+      {
+        "id": "step4_offline_policy_update",
+        "implemented": true,
+        "evidence": "_fit(): policy gradient + imitation + entropy regularization"
+      },
+      {
+        "id": "step4_online_fast_inference",
+        "implemented": true,
+        "evidence": "export fast_inference_policy.pt for web_sim matrixized online path"
+      }
+    ],
+    "psy_engine_modeling_pdf": [
+      {
+        "id": "state_vector_PCES",
+        "implemented": true,
+        "evidence": "PsyBerEngine export_state()/consume_item() with P,C,E,S"
+      },
+      {
+        "id": "input_features_v_n_c_pop",
+        "implemented": true,
+        "evidence": "ItemFeature uses item_v/item_n/item_c/item_pop from embeddings"
+      },
+      {
+        "id": "pareto_multi_objective_decision",
+        "implemented": true,
+        "evidence": "pareto_front_indices + softmax action selection"
+      }
+    ]
+  }
+}
