@@ -6,7 +6,9 @@ if (set -o pipefail) >/dev/null 2>&1; then
   set -o pipefail
 fi
 
-cd /Users/chongzhang/PsyBer-Agent
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
+PROJECT_ROOT="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd -P)"
+cd "${PROJECT_ROOT}"
 
 # Prefer the currently activated conda env's python.
 if [ -n "${CONDA_PREFIX:-}" ] && [ -x "${CONDA_PREFIX}/bin/python" ]; then
@@ -51,7 +53,7 @@ for arg in "$@"; do
 done
 
 if [ "${has_help}" -eq 1 ]; then
-  exec "${PYTHON_BIN}" /Users/chongzhang/PsyBer-Agent/prelearning_agent.py "$@"
+  exec "${PYTHON_BIN}" "${PROJECT_ROOT}/prelearning_agent.py" "$@"
 fi
 
 if [ "${has_agent_num}" -eq 0 ]; then
@@ -67,7 +69,7 @@ if [ -z "${output_dir}" ]; then
   output_dir="${DEFAULT_OUTPUT_DIR}"
 fi
 
-"${PYTHON_BIN}" /Users/chongzhang/PsyBer-Agent/prelearning_agent.py "$@"
+"${PYTHON_BIN}" "${PROJECT_ROOT}/prelearning_agent.py" "$@"
 
 profiles_file="${output_dir}/agent_profiles.json"
 if [ -f "${profiles_file}" ]; then

@@ -750,7 +750,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--api-pool-file",
         type=Path,
-        default=PROJECT_DIR / "api_pool.yaml",
+        default=PROJECT_DIR / "Settings" / "api_pool.yaml",
         help="YAML file for API pool. Each task acquires one API slot and releases it when done.",
     )
     parser.add_argument(

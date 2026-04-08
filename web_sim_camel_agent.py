@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Web_sim click simulator based on CAMEL HybridBrowserToolkit.
 Workflow:
-1) Read task config from /Users/chongzhang/PsyBer-Agent/task.yaml.
+1) Read task config from /Users/chongzhang/PsyBer-Agent/Settings/task.yaml.
 2) Ensure Web_sim service is running at http://127.0.0.1:19002/.
 3) Use CAMEL Browser Toolkit to select dataset/model, click reset, then
    repeatedly click one of four items or go to next page.
@@ -61,7 +61,9 @@ from psy_fast_inference import (  # noqa: E402
 
 WEB_SIM_DIR = Path("/Users/chongzhang/Web_sim")
 PROJECT_DIR = Path(__file__).resolve().parent
-WEB_SIM_TASK_FILE = PROJECT_DIR / "task.yaml"
+SETTINGS_DIR = PROJECT_DIR / "Settings"
+WEB_SIM_TASK_FILE = SETTINGS_DIR / "task.yaml"
+LEGACY_PROJECT_TASK_FILE = PROJECT_DIR / "task.yaml"
 LEGACY_WEB_SIM_TASK_FILE = WEB_SIM_DIR / "task.yaml"
 SERVICE_URL = "http://127.0.0.1:19002"
 RUN_SERVICE_SCRIPT = WEB_SIM_DIR / "run_service.sh"
@@ -312,9 +314,11 @@ class WebSimCamelAgent:
     def ensure_task_file(self) -> None:
         if WEB_SIM_TASK_FILE.exists():
             return
-        if LEGACY_WEB_SIM_TASK_FILE.exists():
-            shutil.copyfile(LEGACY_WEB_SIM_TASK_FILE, WEB_SIM_TASK_FILE)
-            return
+        WEB_SIM_TASK_FILE.parent.mkdir(parents=True, exist_ok=True)
+        for legacy_file in (LEGACY_PROJECT_TASK_FILE, LEGACY_WEB_SIM_TASK_FILE):
+            if legacy_file.exists():
+                shutil.copyfile(legacy_file, WEB_SIM_TASK_FILE)
+                return
         default_config = {
             "dataset": ["MovieLens-1M", "Amazon Musical Instruments"],
             "model": ["SASRec", "LIghtGCN", "Multi-VAE"],

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /Users/chongzhang/PsyBer-Agent
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
+PROJECT_ROOT="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd -P)"
+cd "${PROJECT_ROOT}"
 
 # Prefer dedicated runtime env first, then activated env, then system python3.
 if [ -x "/opt/anaconda3/envs/psyber/bin/python" ]; then
@@ -14,7 +16,7 @@ fi
 
 # Check Qwen API key source before launch (env or inline code value).
 INLINE_KEY="$(
-  "${PYTHON_BIN}" -c "import re; from pathlib import Path; text=Path('/Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py').read_text(encoding='utf-8'); m=re.search(r'^\\s*QWEN_API_KEY\\s*=\\s*[\\\"\\'](.*)[\\\"\\']\\s*$', text, flags=re.MULTILINE); print((m.group(1).strip() if m else ''))"
+  "${PYTHON_BIN}" -c "import re; from pathlib import Path; text=Path('${PROJECT_ROOT}/web_sim_camel_agent.py').read_text(encoding='utf-8'); m=re.search(r'^\\s*QWEN_API_KEY\\s*=\\s*[\\\"\\'](.*)[\\\"\\']\\s*$', text, flags=re.MULTILINE); print((m.group(1).strip() if m else ''))"
 )"
 
 if [ -z "${QWEN_API_KEY:-}" ] && [ -z "${DASHSCOPE_API_KEY:-}" ] && [ -z "${INLINE_KEY}" ]; then
@@ -29,4 +31,4 @@ if ! "${PYTHON_BIN}" -c "import os,sys; from playwright.sync_api import sync_pla
   "${PYTHON_BIN}" -m playwright install chromium
 fi
 
-exec "${PYTHON_BIN}" /Users/chongzhang/PsyBer-Agent/web_sim_camel_agent.py "$@"
+exec "${PYTHON_BIN}" "${PROJECT_ROOT}/web_sim_camel_agent.py" "$@"

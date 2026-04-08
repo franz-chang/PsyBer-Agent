@@ -38,7 +38,7 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
 
 ## 功能
 
-- 从 `/Users/chongzhang/PsyBer-Agent/task.yaml` 读取任务设置：`dataset`、`model`、`track`、`agent_num`
+- 从 `/Users/chongzhang/PsyBer-Agent/Settings/task.yaml` 读取任务设置：`dataset`、`model`、`track`、`agent_num`
 - 通过 `/Users/chongzhang/Web_sim/run_service.sh` 确保服务运行在 `http://127.0.0.1:19002/`
 - 打开网页后自动：
   - 选择数据集与模型
@@ -60,8 +60,8 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
 
 ```bash
 cd /Users/chongzhang/PsyBer-Agent
-./run_prelearning_agent.sh
-./run_alignment_pretrain_agent.sh
+./Script/run_prelearning_agent.sh
+./Script/run_alignment_pretrain_agent.sh
 ```
 
 在线仿真：
@@ -87,7 +87,7 @@ cd /Users/chongzhang/PsyBer-Agent
 
 为避免高并发时所有 Agent 挤占同一个 API，项目已支持 **API 池**：
 
-- 配置文件路径：`/Users/chongzhang/PsyBer-Agent/api_pool.yaml`
+- 配置文件路径：`/Users/chongzhang/PsyBer-Agent/Settings/api_pool.yaml`
 - 每个任务启动前从池中获取一个 API 槽位（`api_id`）
 - 任务结束后自动释放该 API 槽位
 - 当池中无可用 API 时，任务会等待，不会抢同一个 API
@@ -111,7 +111,7 @@ apis:
 
 说明：
 
-- `run_10k_sim.sh` 默认强制读取 `api_pool.yaml`，且要求至少有 1 条 `enabled: true` 的 API
+- `Script/run_10k_sim.sh` 默认强制读取 `Settings/api_pool.yaml`，且要求至少有 1 条 `enabled: true` 的 API
 - 若池文件缺失或没有可用 API，脚本会直接失败（避免退回单 API 造成拒绝服务）
 - `capacity` 默认为 `1`，表示同一个 API 同时最多被 1 个任务占用
 - 你可以准备约 200 个 `apis` 条目来支撑大规模并发
@@ -128,7 +128,7 @@ apis:
 
 ## task.yaml 说明
 
-如果 `/Users/chongzhang/PsyBer-Agent/task.yaml` 不存在，Agent 会自动创建默认配置：
+如果 `/Users/chongzhang/PsyBer-Agent/Settings/task.yaml` 不存在，Agent 会自动创建默认配置：
 
 ```yaml
 dataset:

@@ -2,7 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
-cd "${SCRIPT_DIR}"
+PROJECT_ROOT="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd -P)"
+cd "${PROJECT_ROOT}"
 
 # Prefer dedicated runtime env first, then activated env, then system python3.
 if [ -x "/opt/anaconda3/envs/psyber/bin/python" ]; then
@@ -15,7 +16,7 @@ else
   PYTHON_BIN="$(command -v python3)"
 fi
 
-API_POOL_FILE="${SCRIPT_DIR}/api_pool.yaml"
+API_POOL_FILE="${PROJECT_ROOT}/Settings/api_pool.yaml"
 API_POOL_ARGS=(--api-pool-file "${API_POOL_FILE}" --api-pool-required)
 
 # Fail fast on missing core deps to avoid a full batch of failed tasks.
@@ -36,7 +37,7 @@ then
   exit 1
 fi
 
-exec "${PYTHON_BIN}" launch_websim_batch.py \
+exec "${PYTHON_BIN}" "${PROJECT_ROOT}/launch_websim_batch.py" \
   --total-tasks 10000 \
   --max-concurrency 10 \
   --launch-rate 15 \
