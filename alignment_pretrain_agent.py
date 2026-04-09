@@ -3,11 +3,13 @@
 
 Pipeline (between prelearning_agent.py and web_sim_camel_agent.py):
 1) Rebuild implicit click trajectories from ML-1M ratings.dat.
-2) Convert expert click trajectories into 4D psychological state trajectories with PsyBerEngine.
-3) Pretrain ICVF intent mapping psi(s)->z on temporal-distance objective.
-4) Simulate 5-action slate decisions (Click1..Click4 + Skip) and collect agent states.
-5) Compute Sinkhorn OT alignment rewards in intent space and train a lightweight fast policy network.
+2) Simulate 5-action slate decisions (Click1..Click4 + Skip) and collect agent states.
+3) Build structure distances for agent-state and expert-item trajectories.
+4) Solve UGW-style transport and convert it into per-step action soft labels.
+5) Train lightweight fast policy network via supervised CE + entropy regularization.
 6) Export fast policy for online inference in web_sim_camel_agent.py.
+
+Legacy RL-reward objective is still available via `--alignment-mode legacy_rl`.
 """
 
 from __future__ import annotations
@@ -128,6 +130,145 @@ def as_float_01(value: Any, default: float) -> float:
     return float(max(0.0, min(1.0, x)))
 
 
+def pairwise_l2(x: np.ndarray) -> np.ndarray:
+    arr = np.array(x, dtype=np.float32)
+    if arr.ndim != 2:
+        raise ValueError(f"pairwise_l2 expects 2D input, got {arr.shape}")
+    if arr.shape[0] == 0:
+        return np.zeros((0, 0), dtype=np.float32)
+    sq = np.sum(arr * arr, axis=1, keepdims=True)
+    dist2 = sq + sq.T - 2.0 * (arr @ arr.T)
+    dist2 = np.maximum(dist2, 0.0)
+    return np.sqrt(dist2 + 1e-12).astype(np.float32)
+
+
+def normalized_time_distance(n: int) -> np.ndarray:
+    if n <= 0:
+        return np.zeros((0, 0), dtype=np.float32)
+    if n == 1:
+        return np.zeros((1, 1), dtype=np.float32)
+    pos = np.arange(n, dtype=np.float32) / float(n - 1)
+    return np.abs(pos[:, None] - pos[None, :]).astype(np.float32)
+
+
+def build_expert_structure_distance(
+    item_vectors: np.ndarray,
+    *,
+    time_weight: float,
+) -> np.ndarray:
+    embeds = np.array(item_vectors, dtype=np.float32)
+    if embeds.ndim != 2:
+        raise ValueError(f"item_vectors must be 2D, got {embeds.shape}")
+    d_item = pairwise_l2(embeds)
+    d_time = normalized_time_distance(embeds.shape[0])
+    return d_item + float(max(0.0, time_weight)) * d_time
+
+
+def build_agent_structure_distance(
+    states: np.ndarray,
+    *,
+    delta_weight: float,
+    time_weight: float,
+) -> np.ndarray:
+    arr = np.array(states, dtype=np.float32)
+    if arr.ndim != 2 or arr.shape[1] != 4:
+        raise ValueError(f"agent states shape must be [N,4], got {arr.shape}")
+    d_state = pairwise_l2(arr)
+    delta = np.diff(arr, axis=0, prepend=arr[0:1])
+    d_delta = pairwise_l2(delta)
+    d_time = normalized_time_distance(arr.shape[0])
+    return d_state + float(max(0.0, delta_weight)) * d_delta + float(max(0.0, time_weight)) * d_time
+
+
+def unbalanced_sinkhorn_transport(
+    cost: np.ndarray,
+    *,
+    epsilon: float,
+    mass_reg: float,
+    n_iter: int,
+) -> np.ndarray:
+    c = np.array(cost, dtype=np.float64)
+    n, m = c.shape
+    if n == 0 or m == 0:
+        return np.zeros((n, m), dtype=np.float64)
+
+    a = np.full((n,), 1.0 / n, dtype=np.float64)
+    b = np.full((m,), 1.0 / m, dtype=np.float64)
+
+    eps = max(float(epsilon), 1e-4)
+    reg = max(float(mass_reg), 1e-6)
+    tau = reg / (reg + eps)
+
+    k = np.exp(-c / eps)
+    k = np.clip(k, 1e-300, None)
+
+    u = np.ones_like(a)
+    v = np.ones_like(b)
+    for _ in range(max(1, int(n_iter))):
+        kv = k @ v + 1e-12
+        u = np.power(a / kv, tau)
+        ktu = k.T @ u + 1e-12
+        v = np.power(b / ktu, tau)
+
+    pi = (u[:, None] * k) * v[None, :]
+    z = float(pi.sum())
+    if not np.isfinite(z) or z <= 1e-12:
+        return np.outer(a, b)
+    return pi / z
+
+
+def ugw_transport(
+    agent_dist: np.ndarray,
+    expert_dist: np.ndarray,
+    *,
+    epsilon: float,
+    mass_reg: float,
+    outer_iters: int,
+    inner_iters: int,
+    tol: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    da = np.array(agent_dist, dtype=np.float64)
+    de = np.array(expert_dist, dtype=np.float64)
+    n, n2 = da.shape
+    m, m2 = de.shape
+    if n == 0 or m == 0:
+        return np.zeros((n, m), dtype=np.float64), np.zeros((n, m), dtype=np.float64)
+    if n != n2 or m != m2:
+        raise ValueError(f"UGW expects square distance matrices, got agent={da.shape}, expert={de.shape}")
+
+    p = np.full((n, m), 1.0 / (n * m), dtype=np.float64)
+    da2 = da * da
+    de2 = de * de
+    cost = np.zeros((n, m), dtype=np.float64)
+
+    for _ in range(max(1, int(outer_iters))):
+        row_mass = p.sum(axis=1)
+        col_mass = p.sum(axis=0)
+        term_a = da2 @ row_mass
+        term_b = de2 @ col_mass
+        cross = da @ p @ de.T
+        cost = np.maximum(term_a[:, None] + term_b[None, :] - 2.0 * cross, 0.0)
+
+        p_new = unbalanced_sinkhorn_transport(
+            cost,
+            epsilon=epsilon,
+            mass_reg=mass_reg,
+            n_iter=inner_iters,
+        )
+        delta = float(np.mean(np.abs(p_new - p)))
+        p = p_new
+        if delta <= float(max(1e-8, tol)):
+            break
+
+    row_mass = p.sum(axis=1)
+    col_mass = p.sum(axis=0)
+    term_a = da2 @ row_mass
+    term_b = de2 @ col_mass
+    cross = da @ p @ de.T
+    cost = np.maximum(term_a[:, None] + term_b[None, :] - 2.0 * cross, 0.0)
+    return p, cost
+
+
 def build_cost_matrix(
     agent_states: np.ndarray,
     expert_states: np.ndarray,
@@ -245,6 +386,15 @@ class AlignmentPretrainAgent:
         sinkhorn_iters: int,
         lookahead_lambda: float,
         skip_recovery_boost: float,
+        alignment_mode: str,
+        ugw_eps: float,
+        ugw_mass_reg: float,
+        ugw_outer_iters: int,
+        ugw_inner_iters: int,
+        ugw_tol: float,
+        expert_time_weight: float,
+        agent_delta_weight: float,
+        agent_time_weight: float,
         hidden_dim: int,
         stochastic: bool,
         ablation_wo_template_random_selection: bool,
@@ -290,6 +440,18 @@ class AlignmentPretrainAgent:
         self.sinkhorn_iters = int(sinkhorn_iters)
         self.lookahead_lambda = float(lookahead_lambda)
         self.skip_recovery_boost = float(skip_recovery_boost)
+        mode = str(alignment_mode).strip().lower()
+        if mode not in {"softlabel_ugw", "legacy_rl"}:
+            raise ValueError(f"unsupported alignment_mode: {alignment_mode}")
+        self.alignment_mode = mode
+        self.ugw_eps = float(ugw_eps)
+        self.ugw_mass_reg = float(ugw_mass_reg)
+        self.ugw_outer_iters = int(ugw_outer_iters)
+        self.ugw_inner_iters = int(ugw_inner_iters)
+        self.ugw_tol = float(ugw_tol)
+        self.expert_time_weight = float(max(0.0, expert_time_weight))
+        self.agent_delta_weight = float(max(0.0, agent_delta_weight))
+        self.agent_time_weight = float(max(0.0, agent_time_weight))
         self.hidden_dim = max(4, int(hidden_dim))
         self.stochastic = bool(stochastic)
         self.ablation_wo_template_random_selection = bool(
@@ -297,7 +459,8 @@ class AlignmentPretrainAgent:
         )
         self.seed = int(seed)
         self.device = self._resolve_device(device)
-        self.icvf_enabled = not bool(disable_icvf)
+        # ICVF pretraining is removed from runtime pipeline.
+        self.icvf_enabled = False
         self.icvf_intent_dim = max(4, int(icvf_intent_dim))
         self.icvf_hidden_dim = max(8, int(icvf_hidden_dim))
         self.icvf_epochs = max(1, int(icvf_epochs))
@@ -960,15 +1123,15 @@ class AlignmentPretrainAgent:
                     "entropy": entropy,
                     "logits": logits,
                     "target_idx": int(target_idx),
+                    "step_idx": int(step_idx),
+                    "action_idx": int(action_idx),
+                    "selected_action": selected_action,
+                    "pareto_indices": [int(i) for i in pareto],
+                    "slate_ids": [str(sid) for sid in slate_ids],
                 }
                 if collect_step_debug:
                     entry.update(
                         {
-                            "step_idx": int(step_idx),
-                            "action_idx": int(action_idx),
-                            "selected_action": selected_action,
-                            "pareto_indices": [int(i) for i in pareto],
-                            "slate_ids": [str(sid) for sid in slate_ids],
                             "state_before": state_before.astype(np.float32),
                             "state_after": state_after.astype(np.float32),
                             "logits_np": logits.detach().cpu().numpy().astype(np.float32),
@@ -1010,6 +1173,104 @@ class AlignmentPretrainAgent:
         align_cost = float(np.mean(cost))
         return rewards, align_cost
 
+    def _expert_item_vectors(self, item_seq: list[str]) -> np.ndarray:
+        rows: list[np.ndarray] = []
+        for item_id in item_seq:
+            feat = self._get_item_feature(item_id)
+            rows.append(np.array(feat.item_v, dtype=np.float32))
+        if not rows:
+            return np.zeros((0, self.emb_dim), dtype=np.float32)
+        return np.stack(rows, axis=0).astype(np.float32)
+
+    def _compute_ugw_transport(
+        self,
+        *,
+        agent_states: np.ndarray,
+        expert_item_seq: list[str],
+    ) -> tuple[np.ndarray, float]:
+        a_states = np.array(agent_states, dtype=np.float32)
+        item_vecs = self._expert_item_vectors(expert_item_seq)
+        if a_states.size == 0 or item_vecs.size == 0:
+            return np.zeros((a_states.shape[0], item_vecs.shape[0]), dtype=np.float64), 0.0
+
+        agent_dist = build_agent_structure_distance(
+            a_states,
+            delta_weight=self.agent_delta_weight,
+            time_weight=self.agent_time_weight,
+        )
+        expert_dist = build_expert_structure_distance(
+            item_vecs,
+            time_weight=self.expert_time_weight,
+        )
+
+        pi, struct_cost = ugw_transport(
+            agent_dist,
+            expert_dist,
+            epsilon=self.ugw_eps,
+            mass_reg=self.ugw_mass_reg,
+            outer_iters=self.ugw_outer_iters,
+            inner_iters=self.ugw_inner_iters,
+            tol=self.ugw_tol,
+        )
+        denom = float(pi.sum())
+        align_cost = float((pi * struct_cost).sum() / (denom + 1e-12))
+        return pi, align_cost
+
+    def _build_action_soft_targets(
+        self,
+        *,
+        transport: np.ndarray,
+        expert_item_seq: list[str],
+        step_entries: list[dict[str, Any]],
+    ) -> list[np.ndarray]:
+        pi = np.array(transport, dtype=np.float64)
+        m = len(expert_item_seq)
+        targets: list[np.ndarray] = []
+
+        for step_idx, entry in enumerate(step_entries):
+            slate_ids = [str(x) for x in entry.get("slate_ids", [])]
+            action_dim = len(slate_ids) + 1  # + skip
+            if m <= 0:
+                targets.append(
+                    np.full((max(1, action_dim),), 1.0 / max(1, action_dim), dtype=np.float32)
+                )
+                continue
+
+            if step_idx < pi.shape[0]:
+                row = np.array(pi[step_idx], dtype=np.float64)
+            else:
+                row = np.full((m,), 1.0 / m, dtype=np.float64)
+            row_sum = float(row.sum())
+            if row_sum <= 1e-12 or not np.isfinite(row_sum):
+                row = np.full((m,), 1.0 / m, dtype=np.float64)
+            else:
+                row = row / row_sum
+
+            item_dist: dict[str, float] = {}
+            for j, item_id in enumerate(expert_item_seq):
+                sid = str(item_id)
+                item_dist[sid] = item_dist.get(sid, 0.0) + float(row[j])
+
+            action_probs: list[float] = []
+            assigned = 0.0
+            for sid in slate_ids:
+                p = float(item_dist.get(str(sid), 0.0))
+                action_probs.append(p)
+                assigned += p
+
+            skip_p = max(0.0, 1.0 - assigned)
+            action_probs.append(skip_p)
+
+            out = np.array(action_probs, dtype=np.float32)
+            z = float(out.sum())
+            if z <= 1e-12 or not np.isfinite(z):
+                out = np.full((max(1, out.size),), 1.0 / max(1, out.size), dtype=np.float32)
+            else:
+                out = out / z
+            targets.append(out)
+
+        return targets
+
     def _fit(self) -> tuple[FastPolicyNet, list[dict[str, Any]]]:
         device = torch.device(self.device)
         model = FastPolicyNet(feature_dim=FEATURE_DIM, hidden_dim=self.hidden_dim).to(device)
@@ -1031,7 +1292,7 @@ class AlignmentPretrainAgent:
             )
 
             epoch_loss = 0.0
-            epoch_policy_loss = 0.0
+            epoch_primary_loss = 0.0
             epoch_imitation_loss = 0.0
             epoch_entropy = 0.0
             epoch_reward = 0.0
@@ -1042,13 +1303,6 @@ class AlignmentPretrainAgent:
 
             for idx in order:
                 user_id, seq = self.user_sequences[idx]
-                expert_states = (
-                    self.expert_intents.get(user_id)
-                    if self.expert_intents
-                    else self.expert_states.get(user_id)
-                )
-                if expert_states is None or len(expert_states) == 0:
-                    continue
 
                 rollout = self._simulate_user_rollout(
                     model=model,
@@ -1062,87 +1316,137 @@ class AlignmentPretrainAgent:
                     continue
 
                 agent_states = np.array(rollout["states"], dtype=np.float32)
-                rewards, align_cost = self._compute_ot_rewards(
-                    agent_states=agent_states,
-                    expert_states=expert_states[: len(agent_states)],
-                )
-                if rewards.size == 0:
-                    continue
-
-                returns = discounted_returns(rewards, self.gamma)
-                returns_t = torch.tensor(returns, dtype=torch.float32, device=device)
-                # 标准化优势以稳定梯度；仅在方差足够大时归一化，避免全零。
-                if returns_t.numel() > 1:
-                    std = returns_t.std(unbiased=False)
-                    if float(std) > 1e-3:
-                        returns_t = (returns_t - returns_t.mean()) / (std + 1e-6)
-
-                policy_terms: list[torch.Tensor] = []
-                imitation_terms: list[torch.Tensor] = []
                 entropies: list[torch.Tensor] = []
+                imitation_terms: list[torch.Tensor] = []
 
-                for t, entry in enumerate(step_entries):
-                    log_prob = entry["log_prob"]
-                    entropy = entry["entropy"]
-                    logits_raw = entry["logits"].unsqueeze(0)
-                    target = torch.tensor([entry["target_idx"]], dtype=torch.long, device=device)
+                if self.alignment_mode == "legacy_rl":
+                    expert_states = (
+                        self.expert_intents.get(user_id)
+                        if self.expert_intents
+                        else self.expert_states.get(user_id)
+                    )
+                    if expert_states is None or len(expert_states) == 0:
+                        continue
 
-                    policy_terms.append(-returns_t[t] * log_prob)
-                    imitation_terms.append(F.cross_entropy(logits_raw, target))
-                    entropies.append(entropy)
+                    rewards, align_cost = self._compute_ot_rewards(
+                        agent_states=agent_states,
+                        expert_states=expert_states[: len(agent_states)],
+                    )
+                    if rewards.size == 0:
+                        continue
 
-                    if self.agent_step_logs_out is not None:
-                        state_before = entry.get("state_before")
-                        state_after = entry.get("state_after")
-                        logits_np = entry.get("logits_np")
-                        probs_np = entry.get("probs_np")
-                        if isinstance(state_before, np.ndarray):
-                            state_before_out = [float(x) for x in state_before.tolist()]
-                        else:
-                            state_before_out = []
-                        if isinstance(state_after, np.ndarray):
-                            state_after_out = [float(x) for x in state_after.tolist()]
-                        else:
-                            state_after_out = []
-                        if isinstance(logits_np, np.ndarray):
-                            logits_out = [float(x) for x in logits_np.tolist()]
-                        else:
-                            logits_out = [float(x) for x in entry["logits"].detach().cpu().numpy().tolist()]
-                        if isinstance(probs_np, np.ndarray):
-                            probs_out = [float(x) for x in probs_np.tolist()]
-                        else:
-                            probs_out = []
+                    returns = discounted_returns(rewards, self.gamma)
+                    returns_t = torch.tensor(returns, dtype=torch.float32, device=device)
+                    if returns_t.numel() > 1:
+                        std = returns_t.std(unbiased=False)
+                        if float(std) > 1e-3:
+                            returns_t = (returns_t - returns_t.mean()) / (std + 1e-6)
 
-                        step_debug_logs.append(
-                            {
-                                "epoch": int(epoch),
-                                "user_id": str(user_id),
-                                "step_idx": int(entry.get("step_idx", t)),
-                                "target_idx": int(entry["target_idx"]),
-                                "action_idx": int(entry.get("action_idx", -1)),
-                                "selected_action": str(entry.get("selected_action", "")),
-                                "pareto_indices": [int(i) for i in entry.get("pareto_indices", [])],
-                                "slate_ids": [str(s) for s in entry.get("slate_ids", [])],
-                                "reward": float(rewards[t]),
-                                "return": float(returns[t]),
-                                "log_prob": float(log_prob.detach().item()),
-                                "entropy": float(entropy.detach().item()),
-                                "state_before": state_before_out,
-                                "state_after": state_after_out,
-                                "logits": logits_out,
-                                "probs": probs_out,
-                            }
+                    primary_terms: list[torch.Tensor] = []
+                    for t, entry in enumerate(step_entries):
+                        log_prob = entry["log_prob"]
+                        entropy = entry["entropy"]
+                        logits_raw = entry["logits"].unsqueeze(0)
+                        target = torch.tensor([entry["target_idx"]], dtype=torch.long, device=device)
+                        primary_terms.append(-returns_t[t] * log_prob)
+                        imitation_terms.append(F.cross_entropy(logits_raw, target))
+                        entropies.append(entropy)
+
+                        if self.agent_step_logs_out is not None:
+                            logits_np = entry.get("logits_np")
+                            probs_np = entry.get("probs_np")
+                            logits_out = (
+                                [float(x) for x in logits_np.tolist()]
+                                if isinstance(logits_np, np.ndarray)
+                                else [float(x) for x in entry["logits"].detach().cpu().numpy().tolist()]
+                            )
+                            probs_out = (
+                                [float(x) for x in probs_np.tolist()]
+                                if isinstance(probs_np, np.ndarray)
+                                else []
+                            )
+                            step_debug_logs.append(
+                                {
+                                    "epoch": int(epoch),
+                                    "mode": self.alignment_mode,
+                                    "user_id": str(user_id),
+                                    "step_idx": int(entry.get("step_idx", t)),
+                                    "target_idx": int(entry["target_idx"]),
+                                    "action_idx": int(entry.get("action_idx", -1)),
+                                    "selected_action": str(entry.get("selected_action", "")),
+                                    "pareto_indices": [int(i) for i in entry.get("pareto_indices", [])],
+                                    "slate_ids": [str(s) for s in entry.get("slate_ids", [])],
+                                    "reward": float(rewards[t]),
+                                    "return": float(returns[t]),
+                                    "entropy": float(entropy.detach().item()),
+                                    "logits": logits_out,
+                                    "probs": probs_out,
+                                }
+                            )
+                    primary_loss = torch.stack(primary_terms).mean()
+                    epoch_reward += float(np.mean(rewards))
+                else:
+                    plan, align_cost = self._compute_ugw_transport(
+                        agent_states=agent_states,
+                        expert_item_seq=seq[: len(agent_states)],
+                    )
+                    soft_targets = self._build_action_soft_targets(
+                        transport=plan,
+                        expert_item_seq=seq[: len(agent_states)],
+                        step_entries=step_entries,
+                    )
+                    primary_terms = []
+                    for t, entry in enumerate(step_entries):
+                        entropy = entry["entropy"]
+                        logits = entry["logits"]
+                        target = torch.tensor([entry["target_idx"]], dtype=torch.long, device=device)
+                        soft = torch.tensor(
+                            soft_targets[t],
+                            dtype=torch.float32,
+                            device=device,
                         )
+                        logp = F.log_softmax(logits, dim=0)
+                        primary_terms.append(-(soft * logp).sum())
+                        imitation_terms.append(F.cross_entropy(logits.unsqueeze(0), target))
+                        entropies.append(entropy)
 
-                policy_loss = torch.stack(policy_terms).mean()
+                        if self.agent_step_logs_out is not None:
+                            logits_np = entry.get("logits_np")
+                            probs_np = entry.get("probs_np")
+                            logits_out = (
+                                [float(x) for x in logits_np.tolist()]
+                                if isinstance(logits_np, np.ndarray)
+                                else [float(x) for x in entry["logits"].detach().cpu().numpy().tolist()]
+                            )
+                            probs_out = (
+                                [float(x) for x in probs_np.tolist()]
+                                if isinstance(probs_np, np.ndarray)
+                                else []
+                            )
+                            step_debug_logs.append(
+                                {
+                                    "epoch": int(epoch),
+                                    "mode": self.alignment_mode,
+                                    "user_id": str(user_id),
+                                    "step_idx": int(entry.get("step_idx", t)),
+                                    "target_idx": int(entry["target_idx"]),
+                                    "action_idx": int(entry.get("action_idx", -1)),
+                                    "selected_action": str(entry.get("selected_action", "")),
+                                    "pareto_indices": [int(i) for i in entry.get("pareto_indices", [])],
+                                    "slate_ids": [str(s) for s in entry.get("slate_ids", [])],
+                                    "soft_target": [float(x) for x in soft_targets[t].tolist()],
+                                    "entropy": float(entropy.detach().item()),
+                                    "logits": logits_out,
+                                    "probs": probs_out,
+                                }
+                            )
+                    primary_loss = torch.stack(primary_terms).mean()
+
+                if not imitation_terms:
+                    continue
                 imitation_loss = torch.stack(imitation_terms).mean()
                 entropy_bonus = torch.stack(entropies).mean()
-
-                loss = (
-                    policy_loss
-                    + imitation_coef_epoch * imitation_loss
-                    - self.entropy_coef * entropy_bonus
-                )
+                loss = primary_loss + imitation_coef_epoch * imitation_loss - self.entropy_coef * entropy_bonus
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -1152,10 +1456,9 @@ class AlignmentPretrainAgent:
                 used_users += 1
                 epoch_steps += int(rollout["step_count"])
                 epoch_loss += float(loss.item())
-                epoch_policy_loss += float(policy_loss.item())
+                epoch_primary_loss += float(primary_loss.item())
                 epoch_imitation_loss += float(imitation_loss.item())
                 epoch_entropy += float(entropy_bonus.item())
-                epoch_reward += float(np.mean(rewards))
                 epoch_align_cost += float(align_cost)
                 step_count = max(1, int(rollout["step_count"]))
                 epoch_click_rate_sum += float(rollout["click_count"]) / step_count
@@ -1163,36 +1466,53 @@ class AlignmentPretrainAgent:
             if used_users == 0:
                 raise RuntimeError("No valid user trajectory consumed during training")
 
+            avg_primary = epoch_primary_loss / used_users
+            avg_align = epoch_align_cost / used_users
             rec = {
                 "epoch": epoch,
+                "alignment_mode": self.alignment_mode,
                 "users": used_users,
                 "avg_loss": epoch_loss / used_users,
-                "avg_policy_loss": epoch_policy_loss / used_users,
+                "avg_primary_loss": avg_primary,
                 "avg_imitation_loss": epoch_imitation_loss / used_users,
                 "avg_entropy": epoch_entropy / used_users,
                 "imitation_coef_epoch": imitation_coef_epoch,
                 "avg_reward": epoch_reward / used_users,
-                "avg_alignment_cost": epoch_align_cost / used_users,
+                "avg_alignment_cost": avg_align,
                 "avg_objective_reward_minus_cost": (
-                    (epoch_reward / used_users) - (epoch_align_cost / used_users)
+                    (epoch_reward / used_users) - avg_align
                 ),
                 "avg_click_rate": epoch_click_rate_sum / used_users,
                 "total_steps": epoch_steps,
             }
             history.append(rec)
-            print(
-                "[Epoch] "
-                f"{epoch}/{self.epochs} "
-                f"loss={rec['avg_loss']:.4f} "
-                f"policy_loss={rec['avg_policy_loss']:.4f} "
-                f"imitation_loss={rec['avg_imitation_loss']:.4f} "
-                f"entropy={rec['avg_entropy']:.4f} "
-                f"imitation_coef={rec['imitation_coef_epoch']:.4f} "
-                f"reward={rec['avg_reward']:.4f} "
-                f"align_cost={rec['avg_alignment_cost']:.4f} "
-                f"objective={rec['avg_objective_reward_minus_cost']:.4f} "
-                f"click_rate={rec['avg_click_rate']:.4f}"
-            )
+            if self.alignment_mode == "legacy_rl":
+                print(
+                    "[Epoch] "
+                    f"{epoch}/{self.epochs} "
+                    f"mode={self.alignment_mode} "
+                    f"loss={rec['avg_loss']:.4f} "
+                    f"policy_loss={rec['avg_primary_loss']:.4f} "
+                    f"imitation_loss={rec['avg_imitation_loss']:.4f} "
+                    f"entropy={rec['avg_entropy']:.4f} "
+                    f"imitation_coef={rec['imitation_coef_epoch']:.4f} "
+                    f"reward={rec['avg_reward']:.4f} "
+                    f"align_cost={rec['avg_alignment_cost']:.4f} "
+                    f"objective={rec['avg_objective_reward_minus_cost']:.4f} "
+                    f"click_rate={rec['avg_click_rate']:.4f}"
+                )
+            else:
+                print(
+                    "[Epoch] "
+                    f"{epoch}/{self.epochs} "
+                    f"mode={self.alignment_mode} "
+                    f"loss={rec['avg_loss']:.4f} "
+                    f"soft_ce={rec['avg_primary_loss']:.4f} "
+                    f"imitation_loss={rec['avg_imitation_loss']:.4f} "
+                    f"entropy={rec['avg_entropy']:.4f} "
+                    f"align_cost={rec['avg_alignment_cost']:.4f} "
+                    f"click_rate={rec['avg_click_rate']:.4f}"
+                )
 
         self.agent_step_logs = step_debug_logs
         model.eval()
@@ -1232,12 +1552,8 @@ class AlignmentPretrainAgent:
                 },
                 {
                     "id": "step2_intent_mapping_icvf_pretraining",
-                    "implemented": bool(self.icvf_enabled),
-                    "evidence": (
-                        "_train_icvf_intent_mapper(): expectile temporal-distance training for psi(s)->z"
-                        if self.icvf_enabled
-                        else "ICVF disabled by --disable-icvf; OT uses raw 4D states"
-                    ),
+                    "implemented": False,
+                    "evidence": "Removed from stage-02 pipeline; OT alignment now uses raw 4D psychological trajectories directly.",
                 },
                 {
                     "id": "step2_agent_slate_5d_action",
@@ -1247,12 +1563,20 @@ class AlignmentPretrainAgent:
                 {
                     "id": "step3_ot_alignment_reward",
                     "implemented": True,
-                    "evidence": "build_cost_matrix + sinkhorn_transport + dense_rewards_from_transport",
+                    "evidence": (
+                        "build_agent_structure_distance + build_expert_structure_distance + ugw_transport"
+                        if self.alignment_mode == "softlabel_ugw"
+                        else "build_cost_matrix + sinkhorn_transport + dense_rewards_from_transport"
+                    ),
                 },
                 {
                     "id": "step4_offline_policy_update",
                     "implemented": True,
-                    "evidence": "_fit(): policy gradient + imitation + entropy regularization",
+                    "evidence": (
+                        "_fit(): OT soft-label cross entropy + imitation + entropy regularization"
+                        if self.alignment_mode == "softlabel_ugw"
+                        else "_fit(): policy gradient + imitation + entropy regularization"
+                    ),
                 },
                 {
                     "id": "step4_online_fast_inference",
@@ -1293,14 +1617,17 @@ class AlignmentPretrainAgent:
         print(f"[Load] profiles from {self.profiles_file}")
         self._load_profiles()
 
-        print("[Build] expert intent trajectories")
+        print("[Build] expert psychological trajectories")
         self._build_expert_intent_states()
         self._write_traj_preview()
 
-        print("[Train] ICVF intent mapping pretraining")
-        self._train_icvf_intent_mapper()
+        print("[Train] skip ICVF pretraining (removed from stage-02 pipeline)")
+        self.icvf_training_stats = {
+            "enabled": False,
+            "reason": "icvf_pretraining_removed",
+        }
 
-        print("[Train] fast policy with OT alignment rewards")
+        print(f"[Train] fast policy (mode={self.alignment_mode})")
         model, history = self._fit()
 
         ot_representation_dim = 4
@@ -1318,6 +1645,7 @@ class AlignmentPretrainAgent:
             "min_seq_len": self.min_seq_len,
             "slate_size": self.slate_size,
             "epochs": self.epochs,
+            "alignment_mode": self.alignment_mode,
             "feature_dim": FEATURE_DIM,
             "hidden_dim": self.hidden_dim,
             "mid_dim": self.hidden_dim,
@@ -1325,6 +1653,14 @@ class AlignmentPretrainAgent:
             "lookahead_lambda": self.lookahead_lambda,
             "sinkhorn_eps": self.sinkhorn_eps,
             "sinkhorn_iters": self.sinkhorn_iters,
+            "ugw_eps": self.ugw_eps,
+            "ugw_mass_reg": self.ugw_mass_reg,
+            "ugw_outer_iters": self.ugw_outer_iters,
+            "ugw_inner_iters": self.ugw_inner_iters,
+            "ugw_tol": self.ugw_tol,
+            "expert_time_weight": self.expert_time_weight,
+            "agent_delta_weight": self.agent_delta_weight,
+            "agent_time_weight": self.agent_time_weight,
             "skip_recovery_boost": self.skip_recovery_boost,
             "icvf_enabled": bool(self.icvf_enabled),
             "icvf_intent_dim": int(self.icvf_intent_dim),
@@ -1364,6 +1700,7 @@ class AlignmentPretrainAgent:
                 "min_seq_len": self.min_seq_len,
                 "slate_size": self.slate_size,
                 "epochs": self.epochs,
+                "alignment_mode": self.alignment_mode,
                 "lr": self.lr,
                 "weight_decay": self.weight_decay,
                 "gamma": self.gamma,
@@ -1372,6 +1709,14 @@ class AlignmentPretrainAgent:
                 "imitation_decay": self.imitation_decay,
                 "sinkhorn_eps": self.sinkhorn_eps,
                 "sinkhorn_iters": self.sinkhorn_iters,
+                "ugw_eps": self.ugw_eps,
+                "ugw_mass_reg": self.ugw_mass_reg,
+                "ugw_outer_iters": self.ugw_outer_iters,
+                "ugw_inner_iters": self.ugw_inner_iters,
+                "ugw_tol": self.ugw_tol,
+                "expert_time_weight": self.expert_time_weight,
+                "agent_delta_weight": self.agent_delta_weight,
+                "agent_time_weight": self.agent_time_weight,
                 "lookahead_lambda": self.lookahead_lambda,
                 "skip_recovery_boost": self.skip_recovery_boost,
                 "hidden_dim": self.hidden_dim,
@@ -1463,9 +1808,27 @@ def parse_args() -> argparse.Namespace:
         default=1.0,
         help="Per-epoch multiplicative decay for imitation coefficient (1.0 = no decay).",
     )
+    parser.add_argument(
+        "--alignment-mode",
+        type=str,
+        default="softlabel_ugw",
+        choices=["softlabel_ugw", "legacy_rl"],
+        help=(
+            "softlabel_ugw: use UGW-style structural alignment + soft-label supervision; "
+            "legacy_rl: keep historical RL-reward objective."
+        ),
+    )
 
     parser.add_argument("--sinkhorn-eps", type=float, default=0.10)
     parser.add_argument("--sinkhorn-iters", type=int, default=80)
+    parser.add_argument("--ugw-eps", type=float, default=0.08)
+    parser.add_argument("--ugw-mass-reg", type=float, default=0.30)
+    parser.add_argument("--ugw-outer-iters", type=int, default=8)
+    parser.add_argument("--ugw-inner-iters", type=int, default=40)
+    parser.add_argument("--ugw-tol", type=float, default=1e-4)
+    parser.add_argument("--expert-time-weight", type=float, default=0.10)
+    parser.add_argument("--agent-delta-weight", type=float, default=0.50)
+    parser.add_argument("--agent-time-weight", type=float, default=0.10)
     parser.add_argument("--lookahead-lambda", type=float, default=0.10)
     parser.add_argument("--skip-recovery-boost", type=float, default=0.3)
 
@@ -1473,7 +1836,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--disable-icvf",
         action="store_true",
-        help="Disable ICVF intent mapping pretraining and use raw 4D states for OT.",
+        help="Deprecated no-op; ICVF pretraining has been removed from stage-02 runtime pipeline.",
     )
     parser.add_argument("--icvf-intent-dim", type=int, default=32)
     parser.add_argument("--icvf-hidden-dim", type=int, default=128)
@@ -1538,6 +1901,15 @@ def main() -> None:
         sinkhorn_iters=args.sinkhorn_iters,
         lookahead_lambda=args.lookahead_lambda,
         skip_recovery_boost=args.skip_recovery_boost,
+        alignment_mode=args.alignment_mode,
+        ugw_eps=args.ugw_eps,
+        ugw_mass_reg=args.ugw_mass_reg,
+        ugw_outer_iters=args.ugw_outer_iters,
+        ugw_inner_iters=args.ugw_inner_iters,
+        ugw_tol=args.ugw_tol,
+        expert_time_weight=args.expert_time_weight,
+        agent_delta_weight=args.agent_delta_weight,
+        agent_time_weight=args.agent_time_weight,
         hidden_dim=args.hidden_dim,
         stochastic=not args.deterministic_action,
         ablation_wo_template_random_selection=args.ablation_wo_template_random_selection,

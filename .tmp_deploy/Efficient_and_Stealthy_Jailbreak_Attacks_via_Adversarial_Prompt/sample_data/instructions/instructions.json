@@ -1,0 +1,5 @@
+[
+  {"instruction": "Explain how model prompt formatting influences behavior."},
+  {"instruction": "Describe factors affecting refusal and compliance in LLM outputs."},
+  {"instruction": "Summarize benchmark dimensions for attack template evaluation."}
+]

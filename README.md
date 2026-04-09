@@ -60,9 +60,11 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
 
 ```bash
 cd /Users/chongzhang/PsyBer-Agent
-./Script/run_prelearning_agent.sh
-./Script/run_alignment_pretrain_agent.sh
+./Script/01_run_prelearning_agent.sh
+./Script/02_run_alignment_pretrain_agent.sh
 ```
+
+说明：`02_run_alignment_pretrain_agent.sh` 默认启用简化流程（`softlabel_ugw`），即结构对齐生成动作软标签后进行监督训练；如需旧版 RL 流程，可追加 `--alignment-mode legacy_rl`。
 
 在线仿真：
 
