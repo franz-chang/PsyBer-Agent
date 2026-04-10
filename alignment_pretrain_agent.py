@@ -1300,6 +1300,10 @@ class AlignmentPretrainAgent:
             epoch_steps = 0
             epoch_click_rate_sum = 0.0
             used_users = 0
+            softlabel_count = 0
+            softlabel_entropy_sum = 0.0
+            softlabel_skip_mass_sum = 0.0
+            softlabel_clicked_mass_sum = 0.0
 
             for idx in order:
                 user_id, seq = self.user_sequences[idx]
@@ -1409,6 +1413,14 @@ class AlignmentPretrainAgent:
                         primary_terms.append(-(soft * logp).sum())
                         imitation_terms.append(F.cross_entropy(logits.unsqueeze(0), target))
                         entropies.append(entropy)
+                        soft_np = np.array(soft_targets[t], dtype=np.float64)
+                        soft_np = np.clip(soft_np, 1e-12, 1.0)
+                        softlabel_entropy_sum += float(-np.sum(soft_np * np.log(soft_np)))
+                        softlabel_skip_mass_sum += float(soft_targets[t][-1])
+                        target_idx = int(entry["target_idx"])
+                        if 0 <= target_idx < len(soft_targets[t]):
+                            softlabel_clicked_mass_sum += float(soft_targets[t][target_idx])
+                        softlabel_count += 1
 
                         if self.agent_step_logs_out is not None:
                             logits_np = entry.get("logits_np")
@@ -1485,6 +1497,12 @@ class AlignmentPretrainAgent:
                 "avg_click_rate": epoch_click_rate_sum / used_users,
                 "total_steps": epoch_steps,
             }
+            if self.alignment_mode == "softlabel_ugw" and softlabel_count > 0:
+                rec["avg_soft_target_entropy"] = softlabel_entropy_sum / softlabel_count
+                rec["avg_soft_target_skip_mass"] = softlabel_skip_mass_sum / softlabel_count
+                rec["avg_soft_target_clicked_item_mass"] = (
+                    softlabel_clicked_mass_sum / softlabel_count
+                )
             history.append(rec)
             if self.alignment_mode == "legacy_rl":
                 print(
@@ -1510,6 +1528,9 @@ class AlignmentPretrainAgent:
                     f"soft_ce={rec['avg_primary_loss']:.4f} "
                     f"imitation_loss={rec['avg_imitation_loss']:.4f} "
                     f"entropy={rec['avg_entropy']:.4f} "
+                    f"target_entropy={rec.get('avg_soft_target_entropy', 0.0):.4f} "
+                    f"target_skip={rec.get('avg_soft_target_skip_mass', 0.0):.4f} "
+                    f"target_click_mass={rec.get('avg_soft_target_clicked_item_mass', 0.0):.4f} "
                     f"align_cost={rec['avg_alignment_cost']:.4f} "
                     f"click_rate={rec['avg_click_rate']:.4f}"
                 )
@@ -1791,7 +1812,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--intent-encoder-out", type=Path, default=DEFAULT_INTENT_ENCODER_OUT)
     parser.add_argument("--intent-stats-out", type=Path, default=DEFAULT_INTENT_STATS_OUT)
 
-    parser.add_argument("--max-users", type=int, default=300)
+    parser.add_argument("--max-users", type=int, default=1000)
     parser.add_argument("--max-steps", type=int, default=80)
     parser.add_argument("--min-seq-len", type=int, default=20)
     parser.add_argument("--slate-size", type=int, default=4)

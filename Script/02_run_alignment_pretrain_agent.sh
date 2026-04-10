@@ -22,8 +22,10 @@ has_help=0
 has_alignment_mode=0
 alignment_mode=""
 expect_alignment_mode_value=0
-has_imitation_coef=0
-has_deterministic_action=0
+has_epochs=0
+has_expert_time_weight=0
+has_agent_time_weight=0
+has_agent_delta_weight=0
 
 for arg in "$@"; do
   if [ "${expect_alignment_mode_value}" -eq 1 ]; then
@@ -44,11 +46,17 @@ for arg in "$@"; do
       has_alignment_mode=1
       alignment_mode="${arg#*=}"
       ;;
-    --imitation-coef|--imitation-coef=*)
-      has_imitation_coef=1
+    --epochs|--epochs=*)
+      has_epochs=1
       ;;
-    --deterministic-action)
-      has_deterministic_action=1
+    --expert-time-weight|--expert-time-weight=*)
+      has_expert_time_weight=1
+      ;;
+    --agent-time-weight|--agent-time-weight=*)
+      has_agent_time_weight=1
+      ;;
+    --agent-delta-weight|--agent-delta-weight=*)
+      has_agent_delta_weight=1
       ;;
   esac
 done
@@ -63,14 +71,26 @@ if [ "${has_alignment_mode}" -eq 0 ]; then
   set -- --alignment-mode "${alignment_mode}" "$@"
 fi
 
-if [ "${alignment_mode}" != "legacy_rl" ]; then
-  if [ "${has_imitation_coef}" -eq 0 ]; then
-    set -- --imitation-coef 0.0 "$@"
+# Use a practical default training length for stage-02.
+if [ "${has_epochs}" -eq 0 ]; then
+  set -- --epochs 30 "$@"
+  epochs_note="default(30)"
+else
+  epochs_note="user"
+fi
+
+# Stabilize soft-label training defaults to reduce skip collapse.
+if [ "${alignment_mode}" = "softlabel_ugw" ]; then
+  if [ "${has_expert_time_weight}" -eq 0 ]; then
+    set -- --expert-time-weight 2.0 "$@"
   fi
-  if [ "${has_deterministic_action}" -eq 0 ]; then
-    set -- --deterministic-action "$@"
+  if [ "${has_agent_time_weight}" -eq 0 ]; then
+    set -- --agent-time-weight 2.0 "$@"
+  fi
+  if [ "${has_agent_delta_weight}" -eq 0 ]; then
+    set -- --agent-delta-weight 0.2 "$@"
   fi
 fi
 
-echo "[Run] alignment-mode=${alignment_mode:-softlabel_ugw}"
+echo "[Run] alignment-mode=${alignment_mode:-softlabel_ugw}, epochs=${epochs_note}"
 exec "${PYTHON_BIN}" "${PROJECT_ROOT}/alignment_pretrain_agent.py" "$@"

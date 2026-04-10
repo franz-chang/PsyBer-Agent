@@ -1,0 +1,7 @@
+assets:
+- 01-paper-first-page.png: 论文首页截图
+- 02-method-overview-figure.png: 方法总览图
+- 03-main-results-table.png: 主实验结果表
+- 04-data-distillation-table.png: 数据蒸馏结果表
+source_pdf: /Users/chongzhang/PsyBer-Agent/.codex_tmp/send_xiaohongshu_2604_04839/paper.pdf
+source_url: https://arxiv.org/pdf/2604.04839
