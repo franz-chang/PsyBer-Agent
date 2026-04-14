@@ -207,6 +207,7 @@ class WebSimCamelAgent:
         disable_fast_inference: bool,
         fast_policy_path: Path | None,
         fast_policy_stochastic: bool,
+        require_fast_inference: bool,
     ):
         self.output_root = output_root
         self.headless = headless
@@ -246,6 +247,7 @@ class WebSimCamelAgent:
             Path(fast_policy_path).expanduser() if fast_policy_path is not None else None
         )
         self.fast_policy_stochastic = bool(fast_policy_stochastic)
+        self.require_fast_inference = bool(require_fast_inference)
 
         self.service_proc: subprocess.Popen[str] | None = None
         self.service_started_by_agent = False
@@ -1122,6 +1124,15 @@ class WebSimCamelAgent:
 
             self._load_psy_resources(final_dataset_key)
             self._load_fast_policy(final_dataset_key)
+            if self.require_fast_inference and self.fast_policy_bundle is None:
+                checked = ", ".join(
+                    str(path) for path in self._get_fast_policy_candidates(final_dataset_key)
+                )
+                raise RuntimeError(
+                    "Fast policy is required for stage-03 inference, "
+                    f"but no policy bundle could be loaded for dataset={final_dataset_key}. "
+                    f"Checked paths: {checked}"
+                )
             profile = self._select_agent_profile(memory.agent_num)
             memory.agent_profile = profile
             if self.fast_policy_bundle is not None:
@@ -1198,8 +1209,16 @@ class WebSimCamelAgent:
                             next_enabled=next_enabled,
                         )
                     except Exception as err:
+                        if self.require_fast_inference:
+                            raise RuntimeError(
+                                "Fast policy runtime failed while strict inference mode is enabled"
+                            ) from err
                         print(f"[FastPolicy] runtime failed, fallback to Qwen: {err}")
                         fast_decision = None
+                    if self.require_fast_inference and fast_decision is None:
+                        raise RuntimeError(
+                            "Fast policy returned no decision while strict inference mode is enabled"
+                        )
 
                 force_next_by_psy = False
                 if fast_decision is not None:
@@ -1531,6 +1550,11 @@ def main() -> None:
         help="Override track count for this run only",
     )
     parser.add_argument(
+        "--require-fast-inference",
+        action="store_true",
+        help="Require trained fast policy and disable fallback to Qwen decisions",
+    )
+    parser.add_argument(
         "--disable-fast-inference",
         action="store_true",
         help="Disable online fast policy inference and always use Qwen decision path",
@@ -1560,6 +1584,7 @@ def main() -> None:
         disable_fast_inference=args.disable_fast_inference,
         fast_policy_path=args.fast_policy_path,
         fast_policy_stochastic=args.fast_policy_stochastic,
+        require_fast_inference=args.require_fast_inference,
     )
     agent.run()
 
