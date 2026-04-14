@@ -5,9 +5,10 @@ Pipeline (between prelearning_agent.py and web_sim_camel_agent.py):
 1) Rebuild implicit click trajectories from ML-1M ratings.dat.
 2) Simulate 5-action slate decisions (Click1..Click4 + Skip) and collect agent states.
 3) Build structure distances for agent-state and expert-item trajectories.
-4) Solve UGW-style transport and convert it into per-step action soft labels.
-5) Train lightweight fast policy network via supervised CE + entropy regularization.
-6) Export fast policy for online inference in web_sim_camel_agent.py.
+4) Learn regression prior and initialize UGW transport from pseudo-state matching.
+5) Solve UGW-style transport and convert it into per-step action soft labels.
+6) Train lightweight fast policy network via supervised CE + entropy regularization.
+7) Export fast policy for online inference in web_sim_camel_agent.py.
 
 Legacy RL-reward objective is still available via `--alignment-mode legacy_rl`.
 """
@@ -33,6 +34,7 @@ from torch import nn
 from psy_fast_inference import (
     FEATURE_DIM,
     FastPolicyNet,
+    apply_skip_guard_to_candidates,
     apply_skip_to_engine,
     build_action_features,
     load_fast_policy_bundle,
@@ -106,6 +108,24 @@ class ICVFIntentModel(nn.Module):
         return self.value(s, s_plus, z)
 
 
+class UGWInitRegressor(nn.Module):
+    """Regresses expert pseudo-psychological states for UGW prior initialization."""
+
+    def __init__(self, input_dim: int, hidden_dim: int):
+        super().__init__()
+        h = max(16, int(hidden_dim))
+        self.net = nn.Sequential(
+            nn.Linear(int(input_dim), h),
+            nn.GELU(),
+            nn.Linear(h, h),
+            nn.GELU(),
+            nn.Linear(h, 4),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.sigmoid(self.net(x))
+
+
 def stable_float_01(text: str) -> float:
     digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
     raw = int(digest[:8], 16)
@@ -149,6 +169,20 @@ def normalized_time_distance(n: int) -> np.ndarray:
         return np.zeros((1, 1), dtype=np.float32)
     pos = np.arange(n, dtype=np.float32) / float(n - 1)
     return np.abs(pos[:, None] - pos[None, :]).astype(np.float32)
+
+
+def cross_normalized_time_distance(n: int, m: int) -> np.ndarray:
+    if n <= 0 or m <= 0:
+        return np.zeros((max(0, n), max(0, m)), dtype=np.float32)
+    if n == 1:
+        pos_n = np.zeros((1,), dtype=np.float32)
+    else:
+        pos_n = np.arange(n, dtype=np.float32) / float(n - 1)
+    if m == 1:
+        pos_m = np.zeros((1,), dtype=np.float32)
+    else:
+        pos_m = np.arange(m, dtype=np.float32) / float(m - 1)
+    return np.abs(pos_n[:, None] - pos_m[None, :]).astype(np.float32)
 
 
 def build_expert_structure_distance(
@@ -226,6 +260,7 @@ def ugw_transport(
     outer_iters: int,
     inner_iters: int,
     tol: float,
+    initial_plan: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     da = np.array(agent_dist, dtype=np.float64)
     de = np.array(expert_dist, dtype=np.float64)
@@ -236,7 +271,20 @@ def ugw_transport(
     if n != n2 or m != m2:
         raise ValueError(f"UGW expects square distance matrices, got agent={da.shape}, expert={de.shape}")
 
-    p = np.full((n, m), 1.0 / (n * m), dtype=np.float64)
+    if initial_plan is None:
+        p = np.full((n, m), 1.0 / (n * m), dtype=np.float64)
+    else:
+        p0 = np.array(initial_plan, dtype=np.float64)
+        if p0.shape != (n, m):
+            raise ValueError(
+                f"UGW initial_plan shape mismatch: expected {(n, m)}, got {p0.shape}"
+            )
+        p0 = np.clip(p0, 0.0, None)
+        z = float(p0.sum())
+        if not np.isfinite(z) or z <= 1e-12:
+            p = np.full((n, m), 1.0 / (n * m), dtype=np.float64)
+        else:
+            p = p0 / z
     da2 = da * da
     de2 = de * de
     cost = np.zeros((n, m), dtype=np.float64)
@@ -395,6 +443,15 @@ class AlignmentPretrainAgent:
         expert_time_weight: float,
         agent_delta_weight: float,
         agent_time_weight: float,
+        ugw_init_temperature: float,
+        ugw_init_delta_weight: float,
+        ugw_init_time_weight: float,
+        ugw_init_sinkhorn_iters: int,
+        ugw_init_reg_epochs: int,
+        ugw_init_reg_batch_size: int,
+        ugw_init_reg_lr: float,
+        ugw_init_hidden_dim: int,
+        ugw_init_user_dim: int,
         hidden_dim: int,
         stochastic: bool,
         ablation_wo_template_random_selection: bool,
@@ -452,6 +509,15 @@ class AlignmentPretrainAgent:
         self.expert_time_weight = float(max(0.0, expert_time_weight))
         self.agent_delta_weight = float(max(0.0, agent_delta_weight))
         self.agent_time_weight = float(max(0.0, agent_time_weight))
+        self.ugw_init_temperature = float(max(1e-4, ugw_init_temperature))
+        self.ugw_init_delta_weight = float(max(0.0, ugw_init_delta_weight))
+        self.ugw_init_time_weight = float(max(0.0, ugw_init_time_weight))
+        self.ugw_init_sinkhorn_iters = max(5, int(ugw_init_sinkhorn_iters))
+        self.ugw_init_reg_epochs = max(1, int(ugw_init_reg_epochs))
+        self.ugw_init_reg_batch_size = max(32, int(ugw_init_reg_batch_size))
+        self.ugw_init_reg_lr = float(max(1e-6, ugw_init_reg_lr))
+        self.ugw_init_hidden_dim = max(16, int(ugw_init_hidden_dim))
+        self.ugw_init_user_dim = max(4, int(ugw_init_user_dim))
         self.hidden_dim = max(4, int(hidden_dim))
         self.stochastic = bool(stochastic)
         self.ablation_wo_template_random_selection = bool(
@@ -485,6 +551,9 @@ class AlignmentPretrainAgent:
         self.expert_intents: dict[str, np.ndarray] = {}
         self.profile_pool: list[dict[str, Any]] = []
         self.icvf_model: ICVFIntentModel | None = None
+        self.ugw_init_regressor: UGWInitRegressor | None = None
+        self.ugw_init_feature_dim: int = 0
+        self.ugw_init_regression_stats: dict[str, Any] = {}
         self.icvf_training_stats: dict[str, Any] = {}
         self.agent_step_logs: list[dict[str, Any]] = []
 
@@ -671,6 +740,191 @@ class AlignmentPretrainAgent:
                 states.append(state_dict_to_vec(engine.export_state()))
             out[user_id] = np.stack(states, axis=0).astype(np.float32)
         self.expert_states = out
+
+    def _build_ugw_regression_features(
+        self,
+        *,
+        user_id: str,
+        item_vecs: np.ndarray,
+    ) -> np.ndarray:
+        vecs = np.array(item_vecs, dtype=np.float32)
+        if vecs.ndim != 2 or vecs.shape[1] != self.emb_dim:
+            raise ValueError(f"item_vecs shape mismatch: expected [N,{self.emb_dim}], got {vecs.shape}")
+
+        m = int(vecs.shape[0])
+        feat_dim = self.ugw_init_user_dim + (2 * self.emb_dim) + 1
+        if m <= 0:
+            return np.zeros((0, feat_dim), dtype=np.float32)
+
+        user_vec = deterministic_unit_vector(f"user::{user_id}", self.ugw_init_user_dim).astype(np.float32)
+        user_tile = np.repeat(user_vec[None, :], m, axis=0)
+
+        prefix_mean = np.zeros_like(vecs, dtype=np.float32)
+        if m > 1:
+            csum = np.cumsum(vecs, axis=0, dtype=np.float32)
+            denom = np.arange(1, m, dtype=np.float32)[:, None]
+            prefix_mean[1:] = csum[:-1] / np.maximum(denom, 1.0)
+
+        rel_pos = np.arange(m, dtype=np.float32)
+        if m > 1:
+            rel_pos = rel_pos / float(m - 1)
+        else:
+            rel_pos[:] = 0.0
+
+        return np.concatenate(
+            [user_tile, prefix_mean, vecs, rel_pos[:, None]],
+            axis=1,
+        ).astype(np.float32)
+
+    def _train_ugw_init_regressor(self) -> None:
+        feature_rows: list[np.ndarray] = []
+        target_rows: list[np.ndarray] = []
+
+        for user_id, seq in self.user_sequences:
+            gt_states = self.expert_states.get(user_id)
+            if gt_states is None:
+                continue
+            gt = np.array(gt_states, dtype=np.float32)
+            if gt.ndim != 2 or gt.shape[1] != 4 or gt.shape[0] == 0:
+                continue
+
+            m = min(len(seq), int(gt.shape[0]))
+            if m <= 0:
+                continue
+            item_vecs = self._expert_item_vectors(seq[:m])
+            if item_vecs.shape[0] != m:
+                continue
+
+            feats = self._build_ugw_regression_features(
+                user_id=user_id,
+                item_vecs=item_vecs,
+            )
+            feature_rows.append(feats)
+            target_rows.append(gt[:m].astype(np.float32))
+
+        if not feature_rows:
+            raise RuntimeError("UGW init regression dataset is empty")
+
+        x_np = np.concatenate(feature_rows, axis=0).astype(np.float32)
+        y_np = np.concatenate(target_rows, axis=0).astype(np.float32)
+        n_samples, in_dim = x_np.shape
+        self.ugw_init_feature_dim = int(in_dim)
+
+        device = torch.device(self.device)
+        model = UGWInitRegressor(input_dim=in_dim, hidden_dim=self.ugw_init_hidden_dim).to(device)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=self.ugw_init_reg_lr, weight_decay=1e-5)
+
+        history: list[dict[str, float]] = []
+        for epoch in range(1, self.ugw_init_reg_epochs + 1):
+            order = self.rng.permutation(n_samples)
+            total_loss = 0.0
+            batch_count = 0
+            model.train()
+            for start in range(0, n_samples, self.ugw_init_reg_batch_size):
+                idx = order[start : start + self.ugw_init_reg_batch_size]
+                xb = torch.tensor(x_np[idx], dtype=torch.float32, device=device)
+                yb = torch.tensor(y_np[idx], dtype=torch.float32, device=device)
+                pred = model(xb)
+                loss = F.mse_loss(pred, yb)
+                optimizer.zero_grad()
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+                total_loss += float(loss.item())
+                batch_count += 1
+
+            rec = {
+                "epoch": float(epoch),
+                "mse": total_loss / max(1, batch_count),
+            }
+            history.append(rec)
+            print(
+                "[UGW-Init] "
+                f"epoch={epoch}/{self.ugw_init_reg_epochs} "
+                f"mse={rec['mse']:.6f}"
+            )
+
+        model.eval()
+        mae_sum = 0.0
+        mae_count = 0
+        with torch.no_grad():
+            for start in range(0, n_samples, self.ugw_init_reg_batch_size):
+                xb = torch.tensor(
+                    x_np[start : start + self.ugw_init_reg_batch_size],
+                    dtype=torch.float32,
+                    device=device,
+                )
+                yb = torch.tensor(
+                    y_np[start : start + self.ugw_init_reg_batch_size],
+                    dtype=torch.float32,
+                    device=device,
+                )
+                pred = model(xb)
+                mae_sum += float(torch.sum(torch.abs(pred - yb)).item())
+                mae_count += int(yb.numel())
+
+        self.ugw_init_regressor = model
+        self.ugw_init_regression_stats = {
+            "enabled": True,
+            "samples": int(n_samples),
+            "feature_dim": int(in_dim),
+            "hidden_dim": int(self.ugw_init_hidden_dim),
+            "epochs": int(self.ugw_init_reg_epochs),
+            "batch_size": int(self.ugw_init_reg_batch_size),
+            "lr": float(self.ugw_init_reg_lr),
+            "train_mae": float(mae_sum / max(1, mae_count)),
+            "history_tail": history[-3:] if len(history) > 3 else history,
+        }
+
+    def _predict_regressed_expert_states(
+        self,
+        *,
+        user_id: str,
+        expert_item_seq: list[str],
+    ) -> np.ndarray:
+        item_vecs = self._expert_item_vectors(expert_item_seq)
+        m = int(item_vecs.shape[0])
+        if m <= 0:
+            return np.zeros((0, 4), dtype=np.float32)
+
+        if self.ugw_init_regressor is None:
+            gt = self.expert_states.get(user_id)
+            if isinstance(gt, np.ndarray) and gt.ndim == 2 and gt.shape[1] == 4 and gt.shape[0] >= m:
+                return np.array(gt[:m], dtype=np.float32)
+            return np.zeros((m, 4), dtype=np.float32)
+
+        feats = self._build_ugw_regression_features(
+            user_id=user_id,
+            item_vecs=item_vecs,
+        )
+        device = torch.device(self.device)
+        with torch.no_grad():
+            x = torch.tensor(feats, dtype=torch.float32, device=device)
+            pred = self.ugw_init_regressor(x).detach().cpu().numpy().astype(np.float32)
+        return pred
+
+    def _build_ugw_init_cost(
+        self,
+        *,
+        agent_states: np.ndarray,
+        pseudo_expert_states: np.ndarray,
+    ) -> np.ndarray:
+        a = np.array(agent_states, dtype=np.float32)
+        b = np.array(pseudo_expert_states, dtype=np.float32)
+        if a.ndim != 2 or b.ndim != 2 or a.shape[1] != 4 or b.shape[1] != 4:
+            raise ValueError(f"UGW init states shape invalid: agent={a.shape}, expert={b.shape}")
+
+        dist_state = np.linalg.norm(a[:, None, :] - b[None, :, :], axis=2)
+        da = np.diff(a, axis=0, prepend=a[0:1])
+        db = np.diff(b, axis=0, prepend=b[0:1])
+        dist_delta = np.linalg.norm(da[:, None, :] - db[None, :, :], axis=2)
+        dist_time = cross_normalized_time_distance(a.shape[0], b.shape[0])
+
+        return (
+            dist_state
+            + self.ugw_init_delta_weight * dist_delta
+            + self.ugw_init_time_weight * dist_time
+        ).astype(np.float32)
 
     def _sample_icvf_batch(
         self,
@@ -1081,13 +1335,26 @@ class AlignmentPretrainAgent:
             actions = action_mat["actions"]
             deltas = np.array(action_mat["deltas"], dtype=np.float32)
             pareto = pareto_front_indices(deltas)
+            valid_indices = [int(i) for i in pareto if 0 <= int(i) < len(actions)]
+            valid_indices, skip_allowed, _ = apply_skip_guard_to_candidates(
+                state_before,
+                actions,
+                deltas,
+                valid_indices,
+            )
+            if not valid_indices:
+                valid_indices = [
+                    idx for idx, action in enumerate(actions) if str(action.get("action") or "") == "click"
+                ]
+                if not valid_indices:
+                    valid_indices = [0]
 
             feats = build_action_features(state_before, actions, deltas)
             x = torch.tensor(feats, dtype=torch.float32, device=device)
             logits = model(x).squeeze(-1)
 
             mask = torch.full_like(logits, -1e9)
-            for idx in pareto:
+            for idx in valid_indices:
                 if 0 <= int(idx) < logits.shape[0]:
                     mask[int(idx)] = 0.0
             # Always allow the ground-truth target item during training so
@@ -1127,6 +1394,8 @@ class AlignmentPretrainAgent:
                     "action_idx": int(action_idx),
                     "selected_action": selected_action,
                     "pareto_indices": [int(i) for i in pareto],
+                    "valid_indices": [int(i) for i in valid_indices],
+                    "skip_allowed": bool(skip_allowed),
                     "slate_ids": [str(sid) for sid in slate_ids],
                 }
                 if collect_step_debug:
@@ -1185,6 +1454,7 @@ class AlignmentPretrainAgent:
     def _compute_ugw_transport(
         self,
         *,
+        user_id: str,
         agent_states: np.ndarray,
         expert_item_seq: list[str],
     ) -> tuple[np.ndarray, float]:
@@ -1203,6 +1473,20 @@ class AlignmentPretrainAgent:
             time_weight=self.expert_time_weight,
         )
 
+        pseudo_states = self._predict_regressed_expert_states(
+            user_id=user_id,
+            expert_item_seq=expert_item_seq,
+        )
+        init_cost = self._build_ugw_init_cost(
+            agent_states=a_states,
+            pseudo_expert_states=pseudo_states,
+        )
+        init_plan = sinkhorn_transport(
+            init_cost,
+            epsilon=self.ugw_init_temperature,
+            n_iter=self.ugw_init_sinkhorn_iters,
+        )
+
         pi, struct_cost = ugw_transport(
             agent_dist,
             expert_dist,
@@ -1211,6 +1495,7 @@ class AlignmentPretrainAgent:
             outer_iters=self.ugw_outer_iters,
             inner_iters=self.ugw_inner_iters,
             tol=self.ugw_tol,
+            initial_plan=init_plan,
         )
         denom = float(pi.sum())
         align_cost = float((pi * struct_cost).sum() / (denom + 1e-12))
@@ -1262,6 +1547,14 @@ class AlignmentPretrainAgent:
             action_probs.append(skip_p)
 
             out = np.array(action_probs, dtype=np.float32)
+            skip_allowed = bool(entry.get("skip_allowed", True))
+            if (not skip_allowed) and out.size >= 2:
+                out[-1] = 0.0
+                click_mass = float(np.sum(out[:-1]))
+                if click_mass > 1e-12 and np.isfinite(click_mass):
+                    out[:-1] = out[:-1] / click_mass
+                else:
+                    out[:-1] = 1.0 / float(max(1, out.size - 1))
             z = float(out.sum())
             if z <= 1e-12 or not np.isfinite(z):
                 out = np.full((max(1, out.size),), 1.0 / max(1, out.size), dtype=np.float32)
@@ -1391,6 +1684,7 @@ class AlignmentPretrainAgent:
                     epoch_reward += float(np.mean(rewards))
                 else:
                     plan, align_cost = self._compute_ugw_transport(
+                        user_id=user_id,
                         agent_states=agent_states,
                         expert_item_seq=seq[: len(agent_states)],
                     )
@@ -1585,7 +1879,9 @@ class AlignmentPretrainAgent:
                     "id": "step3_ot_alignment_reward",
                     "implemented": True,
                     "evidence": (
-                        "build_agent_structure_distance + build_expert_structure_distance + ugw_transport"
+                        "_train_ugw_init_regressor + _build_ugw_init_cost + "
+                        "build_agent_structure_distance + build_expert_structure_distance + "
+                        "ugw_transport(initial_plan=...)"
                         if self.alignment_mode == "softlabel_ugw"
                         else "build_cost_matrix + sinkhorn_transport + dense_rewards_from_transport"
                     ),
@@ -1648,6 +1944,15 @@ class AlignmentPretrainAgent:
             "reason": "icvf_pretraining_removed",
         }
 
+        if self.alignment_mode == "softlabel_ugw":
+            print("[Train] UGW regression initializer")
+            self._train_ugw_init_regressor()
+        else:
+            self.ugw_init_regression_stats = {
+                "enabled": False,
+                "reason": "alignment_mode_not_softlabel_ugw",
+            }
+
         print(f"[Train] fast policy (mode={self.alignment_mode})")
         model, history = self._fit()
 
@@ -1682,6 +1987,15 @@ class AlignmentPretrainAgent:
             "expert_time_weight": self.expert_time_weight,
             "agent_delta_weight": self.agent_delta_weight,
             "agent_time_weight": self.agent_time_weight,
+            "ugw_init_temperature": self.ugw_init_temperature,
+            "ugw_init_delta_weight": self.ugw_init_delta_weight,
+            "ugw_init_time_weight": self.ugw_init_time_weight,
+            "ugw_init_sinkhorn_iters": self.ugw_init_sinkhorn_iters,
+            "ugw_init_reg_epochs": self.ugw_init_reg_epochs,
+            "ugw_init_reg_batch_size": self.ugw_init_reg_batch_size,
+            "ugw_init_reg_lr": self.ugw_init_reg_lr,
+            "ugw_init_hidden_dim": self.ugw_init_hidden_dim,
+            "ugw_init_user_dim": self.ugw_init_user_dim,
             "skip_recovery_boost": self.skip_recovery_boost,
             "icvf_enabled": bool(self.icvf_enabled),
             "icvf_intent_dim": int(self.icvf_intent_dim),
@@ -1738,6 +2052,15 @@ class AlignmentPretrainAgent:
                 "expert_time_weight": self.expert_time_weight,
                 "agent_delta_weight": self.agent_delta_weight,
                 "agent_time_weight": self.agent_time_weight,
+                "ugw_init_temperature": self.ugw_init_temperature,
+                "ugw_init_delta_weight": self.ugw_init_delta_weight,
+                "ugw_init_time_weight": self.ugw_init_time_weight,
+                "ugw_init_sinkhorn_iters": self.ugw_init_sinkhorn_iters,
+                "ugw_init_reg_epochs": self.ugw_init_reg_epochs,
+                "ugw_init_reg_batch_size": self.ugw_init_reg_batch_size,
+                "ugw_init_reg_lr": self.ugw_init_reg_lr,
+                "ugw_init_hidden_dim": self.ugw_init_hidden_dim,
+                "ugw_init_user_dim": self.ugw_init_user_dim,
                 "lookahead_lambda": self.lookahead_lambda,
                 "skip_recovery_boost": self.skip_recovery_boost,
                 "hidden_dim": self.hidden_dim,
@@ -1771,6 +2094,7 @@ class AlignmentPretrainAgent:
             },
             "history": history,
             "icvf_training": self.icvf_training_stats,
+            "ugw_init_regression": self.ugw_init_regression_stats,
             "policy_metadata": metadata,
             "doc_alignment_checklist": self._build_doc_alignment_checklist(),
         }
@@ -1835,7 +2159,7 @@ def parse_args() -> argparse.Namespace:
         default="softlabel_ugw",
         choices=["softlabel_ugw", "legacy_rl"],
         help=(
-            "softlabel_ugw: use UGW-style structural alignment + soft-label supervision; "
+            "softlabel_ugw: use regression-initialized UGW structural alignment + soft-label supervision; "
             "legacy_rl: keep historical RL-reward objective."
         ),
     )
@@ -1850,6 +2174,60 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expert-time-weight", type=float, default=0.10)
     parser.add_argument("--agent-delta-weight", type=float, default=0.50)
     parser.add_argument("--agent-time-weight", type=float, default=0.10)
+    parser.add_argument(
+        "--ugw-init-temperature",
+        type=float,
+        default=0.10,
+        help="Temperature for converting regression init cost into initial transport plan.",
+    )
+    parser.add_argument(
+        "--ugw-init-delta-weight",
+        type=float,
+        default=0.30,
+        help="Weight for pseudo-state delta consistency in UGW initialization cost.",
+    )
+    parser.add_argument(
+        "--ugw-init-time-weight",
+        type=float,
+        default=0.20,
+        help="Weight for relative-time prior in UGW initialization cost.",
+    )
+    parser.add_argument(
+        "--ugw-init-sinkhorn-iters",
+        type=int,
+        default=50,
+        help="Sinkhorn iterations for normalizing UGW initialization plan.",
+    )
+    parser.add_argument(
+        "--ugw-init-reg-epochs",
+        type=int,
+        default=6,
+        help="Epochs for training regression-based UGW initializer.",
+    )
+    parser.add_argument(
+        "--ugw-init-reg-batch-size",
+        type=int,
+        default=512,
+        help="Batch size for regression-based UGW initializer.",
+    )
+    parser.add_argument(
+        "--ugw-init-reg-lr",
+        type=float,
+        default=1e-3,
+        help="Learning rate for regression-based UGW initializer.",
+    )
+    parser.add_argument(
+        "--ugw-init-hidden-dim",
+        type=int,
+        default=128,
+        help="Hidden dim of regression model used for UGW initialization.",
+    )
+    parser.add_argument(
+        "--ugw-init-user-dim",
+        type=int,
+        default=16,
+        help="User id embedding dim for regression-based UGW initializer.",
+    )
     parser.add_argument("--lookahead-lambda", type=float, default=0.10)
     parser.add_argument("--skip-recovery-boost", type=float, default=0.3)
 
@@ -1931,6 +2309,15 @@ def main() -> None:
         expert_time_weight=args.expert_time_weight,
         agent_delta_weight=args.agent_delta_weight,
         agent_time_weight=args.agent_time_weight,
+        ugw_init_temperature=args.ugw_init_temperature,
+        ugw_init_delta_weight=args.ugw_init_delta_weight,
+        ugw_init_time_weight=args.ugw_init_time_weight,
+        ugw_init_sinkhorn_iters=args.ugw_init_sinkhorn_iters,
+        ugw_init_reg_epochs=args.ugw_init_reg_epochs,
+        ugw_init_reg_batch_size=args.ugw_init_reg_batch_size,
+        ugw_init_reg_lr=args.ugw_init_reg_lr,
+        ugw_init_hidden_dim=args.ugw_init_hidden_dim,
+        ugw_init_user_dim=args.ugw_init_user_dim,
         hidden_dim=args.hidden_dim,
         stochastic=not args.deterministic_action,
         ablation_wo_template_random_selection=args.ablation_wo_template_random_selection,

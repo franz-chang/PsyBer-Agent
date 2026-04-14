@@ -49,6 +49,7 @@ warnings.filterwarnings(
 
 from camel.toolkits import HybridBrowserToolkit  # noqa: E402
 from psy_fast_inference import (  # noqa: E402
+    apply_skip_guard_to_candidates,
     apply_skip_to_engine,
     build_action_features,
     load_fast_policy_bundle,
@@ -609,15 +610,29 @@ class WebSimCamelAgent:
         if len(actions) == 0 or deltas.size == 0:
             return None
 
-        pareto_front = pareto_front_indices(deltas)
+        pareto_front_raw = pareto_front_indices(deltas)
+        valid_indices = [int(i) for i in pareto_front_raw if 0 <= int(i) < len(actions)]
+        skip_allowed = False
         if not next_enabled:
-            pareto_front = [
-                idx for idx in pareto_front if str(actions[idx].get("action")) == "click"
+            valid_indices = [
+                idx for idx in valid_indices if str(actions[idx].get("action") or "") == "click"
             ]
-        if not pareto_front:
-            pareto_front = [
-                idx for idx, action in enumerate(actions) if str(action.get("action")) == "click"
-            ] or [0]
+        else:
+            valid_indices, skip_allowed, _ = apply_skip_guard_to_candidates(
+                state_before,
+                actions,
+                deltas,
+                valid_indices,
+            )
+
+        if not valid_indices:
+            valid_indices = [
+                idx for idx, action in enumerate(actions) if str(action.get("action") or "") == "click"
+            ]
+            skip_allowed = False
+        if not valid_indices:
+            valid_indices = [0]
+            skip_allowed = str(actions[0].get("action") or "") == "skip"
 
         features = build_action_features(state_before, actions, deltas)
         model = self.fast_policy_bundle["model"]
@@ -626,7 +641,7 @@ class WebSimCamelAgent:
 
         chosen_idx, probs = select_action_from_logits(
             logits,
-            pareto_front,
+            valid_indices,
             rng=self.profile_rng,
             stochastic=self.fast_policy_stochastic,
         )
@@ -654,7 +669,8 @@ class WebSimCamelAgent:
             "action": action,
             "selected_item_id": selected_item_id,
             "selected_title": selected_title,
-            "pareto_front": [int(x) for x in pareto_front],
+            "pareto_front": [int(x) for x in valid_indices],
+            "pareto_front_raw": [int(x) for x in pareto_front_raw],
             "choice_index": int(chosen_idx),
             "deltas": [float(x) for x in np.array(psy_deltas, dtype=np.float32).tolist()],
             "recovered": list(psy_recovered),
@@ -663,6 +679,7 @@ class WebSimCamelAgent:
                 "policy_prob": float(probs[int(chosen_idx)]),
                 "policy_logit": float(logits[int(chosen_idx)]),
                 "mode_fast_policy": 1.0,
+                "skip_allowed": 1.0 if skip_allowed else 0.0,
             },
             "state_before": state_before_dict,
             "state": state_after,

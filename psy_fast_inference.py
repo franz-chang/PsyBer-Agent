@@ -18,6 +18,9 @@ ACTION_COUNT = 5  # click1..click4 + skip
 FEATURE_VERSION = 2
 FEATURE_DIM = 13
 DEFAULT_HIDDEN_DIM = 64
+SKIP_GUARD_STATE_FLOOR = 0.08
+SKIP_GUARD_MIN_SUM_GAIN = 0.01
+SKIP_GUARD_MIN_DIM_GAIN = 0.03
 
 
 class FastPolicyNetV1(nn.Module):
@@ -102,6 +105,80 @@ def softmax_np(logits: np.ndarray) -> np.ndarray:
     if not np.isfinite(z) or z <= 1e-12:
         return np.full_like(exp_x, 1.0 / max(1, exp_x.size))
     return exp_x / z
+
+
+def get_skip_action_index(actions: list[dict[str, Any]]) -> int:
+    for idx, action in enumerate(actions):
+        if str(action.get("action") or "") == "skip":
+            return int(idx)
+    return -1
+
+
+def should_allow_skip_action(
+    state_before: np.ndarray,
+    actions: list[dict[str, Any]],
+    deltas: np.ndarray,
+    candidate_indices: list[int],
+    *,
+    state_floor: float = SKIP_GUARD_STATE_FLOOR,
+    min_sum_gain: float = SKIP_GUARD_MIN_SUM_GAIN,
+    min_dim_gain: float = SKIP_GUARD_MIN_DIM_GAIN,
+) -> bool:
+    """Allow skip only when no safe/improving click candidate exists."""
+    state = np.array(state_before, dtype=np.float32).reshape(-1)
+    delta_mat = np.array(deltas, dtype=np.float32)
+    if state.size != STATE_DIM:
+        return True
+    if delta_mat.ndim != 2 or delta_mat.shape[1] != STATE_DIM:
+        return True
+
+    valid = [int(i) for i in candidate_indices if 0 <= int(i) < len(actions)]
+    click_indices = [i for i in valid if str(actions[i].get("action") or "") == "click"]
+    if not click_indices:
+        return True
+
+    floor = float(max(0.0, state_floor))
+    for idx in click_indices:
+        d = np.array(delta_mat[idx], dtype=np.float32).reshape(-1)
+        after = state + d
+        if np.any(after <= 0.0):
+            continue
+        # Avoid click actions that further hurt already fragile dimensions.
+        fragile_hurt = np.any((state <= floor) & (d < -0.01))
+        if fragile_hurt:
+            continue
+        if float(np.sum(d)) >= float(min_sum_gain):
+            return False
+        if float(np.max(d)) >= float(min_dim_gain):
+            return False
+    return True
+
+
+def apply_skip_guard_to_candidates(
+    state_before: np.ndarray,
+    actions: list[dict[str, Any]],
+    deltas: np.ndarray,
+    candidate_indices: list[int],
+) -> tuple[list[int], bool, int]:
+    """Filter candidate indices so skip is available only as last resort."""
+    skip_idx = get_skip_action_index(actions)
+    valid = [int(i) for i in candidate_indices if 0 <= int(i) < len(actions)]
+    if skip_idx < 0 or skip_idx not in valid:
+        return valid, False, skip_idx
+
+    skip_allowed = should_allow_skip_action(
+        state_before,
+        actions,
+        deltas,
+        valid,
+    )
+    if skip_allowed:
+        return valid, True, skip_idx
+
+    filtered = [i for i in valid if i != skip_idx]
+    if filtered:
+        return filtered, False, skip_idx
+    return valid, True, skip_idx
 
 
 def apply_skip_transition(

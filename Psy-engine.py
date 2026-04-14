@@ -22,8 +22,8 @@ class PsyBerEngine:
         seed: int = 42,
     ):
         self.rng = np.random.default_rng(seed)
-        # 1. 初始内部状态：保持在 [0,1] 量级，避免第一步被剪裁产生巨大负梯度
-        self.P, self.C, self.E, self.S = 0.5, 0.5, 0.5, 0.5
+        # 1. 初始内部状态：保持中性但避免 P/C 过高起步导致快速饱和
+        self.P, self.C, self.E, self.S = 0.45, 0.45, 0.55, 0.55
         self.Surf = 1 
         
         # 2. 画像与记忆
@@ -47,13 +47,14 @@ class PsyBerEngine:
                 self.memory.append(_safe_norm(arr))
         
         # 3. 超参数设定
-        self.alpha_1, self.beta_1, self.gamma_1, self.delta_1 = 0.5, 0.3, 0.2, 0.1
-        self.w_load, self.w_sat, self.w_prim, self.w_nov = 0.3, 0.2, 0.1, 0.1
-        self.alpha_3, self.lambda_1, self.lambda_2, self.lambda_3 = 0.6, 0.4, 0.3, 0.3
-        self.mu_1, self.mu_2, self.mu_3, self.mu_4 = 0.2, 0.3, 0.4, 0.2
-        self.theta = 0.2  
+        # 适度收敛参数：抑制 P/C 饱和，减轻 S 过度下滑
+        self.alpha_1, self.beta_1, self.gamma_1, self.delta_1 = 0.53, 0.24, 0.17, 0.07
+        self.w_load, self.w_sat, self.w_prim, self.w_nov = 0.29, 0.22, 0.10, 0.06
+        self.alpha_3, self.lambda_1, self.lambda_2, self.lambda_3 = 0.58, 0.42, 0.26, 0.32
+        self.mu_1, self.mu_2, self.mu_3, self.mu_4 = 0.20, 0.18, 0.22, 0.28
+        self.theta = 0.12  
         # When Surf=0, next round auto-recovery for depleted dimensions.
-        self.recovery_boost = 0.3
+        self.recovery_boost = 0.25
         
         # 帕累托决策权重 (P, C, E, S 的偏好权重，可调整)
         if decision_weights is None:
@@ -90,6 +91,21 @@ class PsyBerEngine:
         """纯净的状态推演函数：计算如果消费该内容，状态会如何变化（不直接改变属性）"""
         tmp_P, tmp_C, tmp_E, tmp_S = self.P, self.C, self.E, self.S
         recovered = []
+        # 当上一轮已进入 Surf=0 时，先做一轮局部恢复，再进行本轮状态推演。
+        # 这样 recovery_boost 在点击路径和 skip 路径都能一致生效。
+        if self.Surf == 0:
+            if tmp_P <= 0.0:
+                tmp_P = float(np.clip(tmp_P + self.recovery_boost, 0, 1))
+                recovered.append("P")
+            if tmp_C <= 0.0:
+                tmp_C = float(np.clip(tmp_C + self.recovery_boost, 0, 1))
+                recovered.append("C")
+            if tmp_E <= 0.0:
+                tmp_E = float(np.clip(tmp_E + self.recovery_boost, 0, 1))
+                recovered.append("E")
+            if tmp_S <= 0.0:
+                tmp_S = float(np.clip(tmp_S + self.recovery_boost, 0, 1))
+                recovered.append("S")
 
         # 计算中间变量
         if len(self.memory) > 0:

@@ -69,7 +69,7 @@ cd /Users/chongzhang/PsyBer-Agent
 ./Script/02_run_alignment_pretrain_agent.sh
 ```
 
-说明：`02_run_alignment_pretrain_agent.sh` 默认启用简化流程（`softlabel_ugw`），即结构对齐生成动作软标签后进行监督训练；如需旧版 RL 流程，可追加 `--alignment-mode legacy_rl`。
+说明：`02_run_alignment_pretrain_agent.sh` 默认启用 `softlabel_ugw`，即先训练回归先验生成 UGW 初始对齐，再由结构对齐生成动作软标签做监督训练；如需旧版 RL 流程，可追加 `--alignment-mode legacy_rl`。
 
 在线仿真：
 
