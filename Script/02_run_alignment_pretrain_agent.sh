@@ -117,8 +117,8 @@ fi
 
 # Use a practical default training length for stage-02.
 if [ "${has_epochs}" -eq 0 ]; then
-  set -- --epochs 500 "$@"
-  epochs_note="default(500)"
+  set -- --epochs 100 "$@"
+  epochs_note="default(100)"
 else
   epochs_note="user"
 fi
