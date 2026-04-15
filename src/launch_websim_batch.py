@@ -2,7 +2,7 @@
 """Launch a large number of WebSim agent runs with concurrency and rate limiting.
 
 Example:
-  python launch_websim_batch.py \
+  python src/launch_websim_batch.py \
     --total-tasks 10000 \
     --max-concurrency 120 \
     --launch-rate 15 \
@@ -30,10 +30,14 @@ from urllib.request import urlopen
 import yaml
 
 
-PROJECT_DIR = Path(__file__).resolve().parent
-DEFAULT_AGENT_SCRIPT = PROJECT_DIR / "web_sim_camel_agent.py"
+SRC_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = SRC_DIR.parent
+DEFAULT_AGENT_SCRIPT = SRC_DIR / "web_sim_camel_agent.py"
 DEFAULT_OUTPUT_ROOT = PROJECT_DIR
 DEFAULT_WEB_SIM_DIR = Path("/Users/chongzhang/Web_sim")
+DEFAULT_API_POOL_FILE = PROJECT_DIR / "settings" / "api_pool.yaml"
+if not DEFAULT_API_POOL_FILE.exists():
+    DEFAULT_API_POOL_FILE = PROJECT_DIR / "Settings" / "api_pool.yaml"
 
 
 def utc_now() -> str:
@@ -750,7 +754,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--api-pool-file",
         type=Path,
-        default=PROJECT_DIR / "Settings" / "api_pool.yaml",
+        default=DEFAULT_API_POOL_FILE,
         help="YAML file for API pool. Each task acquires one API slot and releases it when done.",
     )
     parser.add_argument(

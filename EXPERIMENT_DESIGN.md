@@ -90,7 +90,7 @@
 1. 目标：验证大规模可用性和性价比。
 2. 规模：`N agents = {100, 500, 1k, 5k, 10k}`，每个点重复 3 次。
 3. 工程设置：
-   1. 使用 `launch_websim_batch.py` 控制并发。
+   1. 使用 `src/launch_websim_batch.py` 控制并发。
    2. 记录 wall-clock、吞吐、失败率和超时率。
 4. 指标：
    1. 主指标（效率任务组）：`Latency/decision`，`Cost per correct A/B decision`。

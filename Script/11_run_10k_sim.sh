@@ -16,7 +16,10 @@ else
   PYTHON_BIN="$(command -v python3)"
 fi
 
-API_POOL_FILE="${PROJECT_ROOT}/Settings/api_pool.yaml"
+API_POOL_FILE="${PROJECT_ROOT}/settings/api_pool.yaml"
+if [ ! -f "${API_POOL_FILE}" ]; then
+  API_POOL_FILE="${PROJECT_ROOT}/Settings/api_pool.yaml"
+fi
 API_POOL_ARGS=(--api-pool-file "${API_POOL_FILE}" --api-pool-required)
 
 # Fail fast on missing core deps to avoid a full batch of failed tasks.
@@ -37,7 +40,7 @@ then
   exit 1
 fi
 
-exec "${PYTHON_BIN}" "${PROJECT_ROOT}/launch_websim_batch.py" \
+exec "${PYTHON_BIN}" "${PROJECT_ROOT}/src/launch_websim_batch.py" \
   --total-tasks 10000 \
   --max-concurrency 10 \
   --launch-rate 15 \

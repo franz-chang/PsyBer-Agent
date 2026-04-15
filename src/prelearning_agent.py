@@ -26,7 +26,9 @@ import numpy as np
 from transformers import CLIPModel, CLIPProcessor
 
 
-DEFAULT_DATASET_DIR = Path(__file__).resolve().parent.parent / "WebSim_Dataset" / "MM-ML-1M-main"
+DEFAULT_DATASET_DIR = (
+    Path(__file__).resolve().parents[2] / "WebSim_Dataset" / "MM-ML-1M-main"
+)
 DEFAULT_MODEL_PATH = Path("/Users/chongzhang/openai-clip-vit-base-patch16")
 
 
@@ -291,7 +293,7 @@ class PreLearningAgent:
         self.report_json = self.output_dir / "prelearning_report.json"
         self.profiles_json = self.output_dir / "agent_profiles.json"
         self.project_profiles_json = (
-            Path(__file__).resolve().parent / "profiles" / "agent_profiles.json"
+            Path(__file__).resolve().parent.parent / "profiles" / "agent_profiles.json"
         )
 
         self.device = choose_device()

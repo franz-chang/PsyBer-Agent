@@ -53,7 +53,10 @@ import yaml
 project_root = Path(
     os.environ.get("PROJECT_ROOT_FOR_POLICY_CHECK", "/Users/chongzhang/PsyBer-Agent")
 )
-task_file = project_root / "Settings" / "task.yaml"
+settings_dir = project_root / "settings"
+if not settings_dir.exists():
+    settings_dir = project_root / "Settings"
+task_file = settings_dir / "task.yaml"
 policy_paths = {
     "ml1m": Path("/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/Embeddings/fast_inference_policy.pt"),
     "amazon_mi": Path("/Users/chongzhang/WebSim_Dataset/amazon_v2/Musical_Instruments/Embeddings/fast_inference_policy.pt"),
@@ -117,17 +120,17 @@ PY
   fi
 
   EXTRA_ARGS+=(--require-fast-inference)
-else
-  # Qwen key is only required when fallback decision path is allowed.
-  INLINE_KEY="$(
-    "${PYTHON_BIN}" -c "import re; from pathlib import Path; text=Path('${PROJECT_ROOT}/web_sim_camel_agent.py').read_text(encoding='utf-8'); m=re.search(r'^\\s*QWEN_API_KEY\\s*=\\s*[\\\"\\'](.*)[\\\"\\']\\s*$', text, flags=re.MULTILINE); print((m.group(1).strip() if m else ''))"
-  )"
+fi
 
-  if [ -z "${QWEN_API_KEY:-}" ] && [ -z "${DASHSCOPE_API_KEY:-}" ] && [ -z "${INLINE_KEY}" ]; then
-    echo "[ERROR] Missing Qwen API key." >&2
-    echo "Set QWEN_API_KEY or DASHSCOPE_API_KEY, or fill QWEN_API_KEY in web_sim_camel_agent.py." >&2
-    exit 1
-  fi
+# Qwen is the final decider (fast policy only provides candidate actions), so key is always required.
+INLINE_KEY="$(
+  "${PYTHON_BIN}" -c "import re; from pathlib import Path; text=Path('${PROJECT_ROOT}/src/web_sim_camel_agent.py').read_text(encoding='utf-8'); m=re.search(r'^\\s*QWEN_API_KEY\\s*=\\s*[\\\"\\'](.*)[\\\"\\']\\s*$', text, flags=re.MULTILINE); print((m.group(1).strip() if m else ''))"
+)"
+
+if [ -z "${QWEN_API_KEY:-}" ] && [ -z "${DASHSCOPE_API_KEY:-}" ] && [ -z "${INLINE_KEY}" ]; then
+  echo "[ERROR] Missing Qwen API key." >&2
+  echo "Set QWEN_API_KEY or DASHSCOPE_API_KEY, or fill QWEN_API_KEY in src/web_sim_camel_agent.py." >&2
+  exit 1
 fi
 
 # Ensure Playwright Chromium exists before launching the agent.
@@ -136,5 +139,5 @@ if ! "${PYTHON_BIN}" -c "import os,sys; from playwright.sync_api import sync_pla
   "${PYTHON_BIN}" -m playwright install chromium
 fi
 
-exec "${PYTHON_BIN}" "${PROJECT_ROOT}/web_sim_camel_agent.py" \
+exec "${PYTHON_BIN}" "${PROJECT_ROOT}/src/web_sim_camel_agent.py" \
   "${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}" "$@"

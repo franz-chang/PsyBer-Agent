@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Web_sim click simulator based on CAMEL HybridBrowserToolkit.
 Workflow:
-1) Read task config from /Users/chongzhang/PsyBer-Agent/Settings/task.yaml.
+1) Read task config from /Users/chongzhang/PsyBer-Agent/settings/task.yaml.
 2) Ensure Web_sim service is running at http://127.0.0.1:19002/.
 3) Use CAMEL Browser Toolkit to select dataset/model, click reset, then
    repeatedly click one of four items or go to next page.
@@ -61,8 +61,11 @@ from psy_fast_inference import (  # noqa: E402
 
 
 WEB_SIM_DIR = Path("/Users/chongzhang/Web_sim")
-PROJECT_DIR = Path(__file__).resolve().parent
-SETTINGS_DIR = PROJECT_DIR / "Settings"
+SRC_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = SRC_DIR.parent
+SETTINGS_DIR = PROJECT_DIR / "settings"
+if not SETTINGS_DIR.exists():
+    SETTINGS_DIR = PROJECT_DIR / "Settings"
 WEB_SIM_TASK_FILE = SETTINGS_DIR / "task.yaml"
 LEGACY_PROJECT_TASK_FILE = PROJECT_DIR / "task.yaml"
 LEGACY_WEB_SIM_TASK_FILE = WEB_SIM_DIR / "task.yaml"
@@ -86,7 +89,7 @@ ML1M_FAST_POLICY_FILE = Path(
 AMAZON_MI_FAST_POLICY_FILE = Path(
     "/Users/chongzhang/WebSim_Dataset/amazon_v2/Musical_Instruments/Embeddings/fast_inference_policy.pt"
 )
-PSY_ENGINE_FILE = PROJECT_DIR / "Psy-engine.py"
+PSY_ENGINE_FILE = SRC_DIR / "Psy-engine.py"
 PROJECT_AGENT_PROFILES_FILE = PROJECT_DIR / "profiles" / "agent_profiles.json"
 # Default to Qwen official OpenAI-compatible endpoint.
 # You can override by env:
@@ -586,11 +589,12 @@ class WebSimCamelAgent:
 
         print("[FastPolicy] no usable policy file found, fallback to Qwen decision path")
 
-    def _decide_action_with_fast_policy(
+    def _build_fast_policy_action_hints(
         self,
         *,
         cards: list[dict[str, Any]],
         next_enabled: bool,
+        top_k: int = 2,
     ) -> dict[str, Any] | None:
         if self.fast_policy_bundle is None or self.psy_engine is None:
             return None
@@ -641,50 +645,53 @@ class WebSimCamelAgent:
         with torch.no_grad():
             logits = model(torch.tensor(features, dtype=torch.float32)).squeeze(-1).cpu().numpy()
 
-        chosen_idx, probs = select_action_from_logits(
+        # Use deterministic ranking for prompt candidates.
+        _, probs = select_action_from_logits(
             logits,
             valid_indices,
             rng=self.profile_rng,
-            stochastic=self.fast_policy_stochastic,
+            stochastic=False,
         )
-        chosen = actions[int(chosen_idx)]
-        raw_action = str(chosen.get("action") or "click")
-
-        if raw_action == "click":
-            psy_deltas, psy_recovered, psy_metrics = self.psy_engine.consume_item(
-                chosen["v"],
-                float(chosen.get("n", 0.0)),
-                float(chosen.get("c", 0.0)),
-                float(chosen.get("pop", 0.0)),
+        ranked = sorted(
+            [int(i) for i in valid_indices],
+            key=lambda i: float(probs[i]),
+            reverse=True,
+        )
+        keep_k = max(1, min(int(top_k), len(ranked)))
+        choices: list[dict[str, Any]] = []
+        for rank, idx in enumerate(ranked[:keep_k], start=1):
+            action_raw = str(actions[idx].get("action") or "click")
+            action = "next" if action_raw == "skip" else "click"
+            item_id = str(actions[idx].get("item_id") or "") if action == "click" else ""
+            title = str(actions[idx].get("title") or "") if action == "click" else "[SKIP]"
+            delta_vals = np.array(deltas[idx], dtype=np.float32).tolist()
+            raw_metrics = actions[idx].get("metrics") or {}
+            metrics = (
+                {k: float(v) for k, v in raw_metrics.items()}
+                if isinstance(raw_metrics, dict)
+                else {}
             )
-            action = "click"
-            selected_item_id = str(chosen.get("item_id") or "")
-            selected_title = str(chosen.get("title") or "")
-        else:
-            psy_deltas, psy_recovered, psy_metrics = apply_skip_to_engine(self.psy_engine)
-            action = "next"
-            selected_item_id = ""
-            selected_title = "[SKIP]"
+            choices.append(
+                {
+                    "rank": rank,
+                    "index": int(idx),
+                    "action": action,
+                    "item_id": item_id,
+                    "title": title,
+                    "policy_prob": float(probs[idx]),
+                    "policy_logit": float(logits[idx]),
+                    "deltas": [float(x) for x in delta_vals],
+                    "metrics": metrics,
+                }
+            )
 
-        state_after = self.psy_engine.export_state()
         return {
-            "action": action,
-            "selected_item_id": selected_item_id,
-            "selected_title": selected_title,
+            "choices": choices,
+            "top_choice": choices[0] if choices else None,
+            "state_before": state_before_dict,
             "pareto_front": [int(x) for x in valid_indices],
             "pareto_front_raw": [int(x) for x in pareto_front_raw],
-            "choice_index": int(chosen_idx),
-            "deltas": [float(x) for x in np.array(psy_deltas, dtype=np.float32).tolist()],
-            "recovered": list(psy_recovered),
-            "metrics": {
-                **{k: float(v) for k, v in dict(psy_metrics).items()},
-                "policy_prob": float(probs[int(chosen_idx)]),
-                "policy_logit": float(logits[int(chosen_idx)]),
-                "mode_fast_policy": 1.0,
-                "skip_allowed": 1.0 if skip_allowed else 0.0,
-            },
-            "state_before": state_before_dict,
-            "state": state_after,
+            "skip_allowed": bool(skip_allowed),
         }
 
     def _load_psy_resources(self, dataset_key: str) -> None:
@@ -836,18 +843,52 @@ class WebSimCamelAgent:
         reply_text: str,
         cards: list[dict[str, Any]],
         next_enabled: bool,
+        fast_policy_hints: dict[str, Any] | None = None,
     ) -> tuple[str, str]:
         parsed = self._extract_json_object(reply_text)
         valid_ids = {str(x.get("item_id") or "") for x in cards}
         valid_ids.discard("")
+        hint_choices = (
+            fast_policy_hints.get("choices")
+            if isinstance(fast_policy_hints, dict)
+            else None
+        )
+        if not isinstance(hint_choices, list):
+            hint_choices = []
+
+        hint_click_ids = {
+            str(x.get("item_id") or "")
+            for x in hint_choices
+            if isinstance(x, dict) and str(x.get("action") or "") == "click"
+        }
+        hint_click_ids.discard("")
+        hint_next_allowed = any(
+            isinstance(x, dict) and str(x.get("action") or "") == "next"
+            for x in hint_choices
+        )
+        top_hint = hint_choices[0] if hint_choices else None
 
         if isinstance(parsed, dict):
             action = str(parsed.get("action") or "click").strip().lower()
             item_id = str(parsed.get("item_id") or "").strip()
-            if action == "next" and next_enabled:
+            if hint_choices:
+                if action == "next" and next_enabled and hint_next_allowed:
+                    return "next", ""
+                if action == "click" and item_id in valid_ids and item_id in hint_click_ids:
+                    return "click", item_id
+            else:
+                if action == "next" and next_enabled:
+                    return "next", ""
+                if action == "click" and item_id in valid_ids:
+                    return "click", item_id
+
+        if isinstance(top_hint, dict):
+            top_action = str(top_hint.get("action") or "click")
+            top_item_id = str(top_hint.get("item_id") or "")
+            if top_action == "next" and next_enabled:
                 return "next", ""
-            if action == "click" and item_id in valid_ids:
-                return "click", item_id
+            if top_action == "click" and top_item_id in valid_ids:
+                return "click", top_item_id
 
         first_id = str(cards[0].get("item_id") or "")
         return "click", first_id
@@ -861,16 +902,43 @@ class WebSimCamelAgent:
         memory: AgentMemory,
         psy_state: dict[str, Any],
         psy_engine_choice: dict[str, Any],
+        fast_policy_hints: dict[str, Any] | None,
     ) -> str:
         card_lines = []
         for idx, card in enumerate(cards, start=1):
             card_lines.append(
                 f"{idx}. item_id={card.get('item_id','')} | title={card.get('title','')}"
             )
+        hint_lines = []
+        hint_choices = (
+            fast_policy_hints.get("choices")
+            if isinstance(fast_policy_hints, dict)
+            else None
+        )
+        if isinstance(hint_choices, list):
+            for x in hint_choices:
+                if not isinstance(x, dict):
+                    continue
+                hint_lines.append(
+                    f"rank={int(x.get('rank', 0))}, action={x.get('action','click')}, "
+                    f"item_id={x.get('item_id','')}, title={x.get('title','')}, "
+                    f"policy_prob={float(x.get('policy_prob', 0.0)):.4f}, "
+                    f"policy_logit={float(x.get('policy_logit', 0.0)):.4f}, "
+                    f"deltas={x.get('deltas', [])}"
+                )
         recent = memory.click_sequence[-5:]
         recent_lines = [
             f"{x.order}. {x.item_id} | {x.title}" for x in recent
         ] or ["none"]
+        has_fast_hints = bool(hint_lines)
+        fast_policy_text = hint_lines if hint_lines else ["none"]
+        fast_rule_lines = (
+            "- 你必须优先在 fast_policy_candidates 中做最终决策。\n"
+            "- 如果输出 click，item_id 必须来自 fast_policy_candidates 且在页面 candidates 中。\n"
+            "- 如果输出 next，fast_policy_candidates 中必须含有 action=next，且 next_enabled=true。\n"
+            if has_fast_hints
+            else "- 如果没有 fast_policy_candidates，可在页面 candidates 中自行选择。\n"
+        )
         return (
             "请根据截图模拟用户点击行为。你必须只输出 JSON，不要输出其它文本。\n"
             "可选动作:\n"
@@ -880,11 +948,13 @@ class WebSimCamelAgent:
             "- 只能在候选 item_id 中选择 click。\n"
             "- 只有当 next_enabled=true 且你对当前 4 项都不感兴趣时才选 next。\n"
             "- 如果 next_enabled=false，必须选 click。\n\n"
+            f"{fast_rule_lines}\n"
             f"dataset={memory.selected_dataset_key}, model={memory.selected_model_key}\n"
             f"next_enabled={str(next_enabled).lower()}\n"
             f"status_text={status_text}\n"
             f"psy_state={psy_state}\n"
             f"psy_engine_choice={psy_engine_choice}\n"
+            f"fast_policy_candidates={fast_policy_text}\n"
             f"recent_clicks={recent_lines}\n"
             f"candidates={card_lines}\n"
         )
@@ -944,6 +1014,7 @@ class WebSimCamelAgent:
         memory: AgentMemory,
         psy_state: dict[str, Any],
         psy_engine_choice: dict[str, Any],
+        fast_policy_hints: dict[str, Any] | None,
     ) -> tuple[str, str, str]:
         prompt = self._build_decision_prompt(
             cards=cards,
@@ -952,13 +1023,14 @@ class WebSimCamelAgent:
             memory=memory,
             psy_state=psy_state,
             psy_engine_choice=psy_engine_choice,
+            fast_policy_hints=fast_policy_hints,
         )
         reply_text = self._call_openai_decision(
             prompt=prompt,
             screenshot_path=screenshot_path,
         )
         action, item_id = self._decide_action_from_agent_reply(
-            reply_text, cards, next_enabled
+            reply_text, cards, next_enabled, fast_policy_hints=fast_policy_hints
         )
         return action, item_id, reply_text
 
@@ -1136,7 +1208,7 @@ class WebSimCamelAgent:
             profile = self._select_agent_profile(memory.agent_num)
             memory.agent_profile = profile
             if self.fast_policy_bundle is not None:
-                memory.decision_mode = "fast_policy"
+                memory.decision_mode = "qwen_with_fast_candidates"
                 memory.fast_policy_path = str(self.fast_policy_bundle.get("path", ""))
             else:
                 memory.decision_mode = "qwen"
@@ -1201,106 +1273,96 @@ class WebSimCamelAgent:
                 decision_start = time.perf_counter()
                 psy_recovered_pre = list(self.psy_engine.apply_recovery_if_needed())
                 psy_state_before = self.psy_engine.export_state()
-                fast_decision: dict[str, Any] | None = None
+                psy_candidates = self._build_psy_candidates(cards)
+                psy_choice_idx, pareto_front = self.psy_engine.select_best_item(psy_candidates)
+                psy_choice = psy_candidates[psy_choice_idx]
+                selected_title = str(psy_choice.get("title", ""))
+                psy_state = self.psy_engine.export_state()
+                fast_policy_hints: dict[str, Any] | None = None
                 if self.fast_policy_bundle is not None:
                     try:
-                        fast_decision = self._decide_action_with_fast_policy(
+                        fast_policy_hints = self._build_fast_policy_action_hints(
                             cards=cards,
                             next_enabled=next_enabled,
+                            top_k=2,
                         )
                     except Exception as err:
                         if self.require_fast_inference:
                             raise RuntimeError(
                                 "Fast policy runtime failed while strict inference mode is enabled"
                             ) from err
-                        print(f"[FastPolicy] runtime failed, fallback to Qwen: {err}")
-                        fast_decision = None
-                    if self.require_fast_inference and fast_decision is None:
-                        raise RuntimeError(
-                            "Fast policy returned no decision while strict inference mode is enabled"
+                        print(f"[FastPolicy] runtime failed, fallback to pure Qwen prompt: {err}")
+                        fast_policy_hints = None
+                    if self.require_fast_inference:
+                        hint_choices = (
+                            fast_policy_hints.get("choices")
+                            if isinstance(fast_policy_hints, dict)
+                            else None
                         )
+                        if not isinstance(hint_choices, list) or len(hint_choices) == 0:
+                            raise RuntimeError(
+                                "Fast policy returned no candidate actions while strict inference mode is enabled"
+                            )
 
-                force_next_by_psy = False
-                if fast_decision is not None:
-                    action = str(fast_decision.get("action") or "click")
-                    selected_item_id = str(fast_decision.get("selected_item_id") or "")
-                    selected_title = str(fast_decision.get("selected_title") or "")
-                    pareto_front = [
-                        int(x) for x in (fast_decision.get("pareto_front") or [])
-                    ]
-                    psy_deltas = np.array(
-                        fast_decision.get("deltas") or [0.0, 0.0, 0.0, 0.0],
-                        dtype=np.float32,
+                force_next_by_psy = (
+                    int(psy_state.get("Surf", 1)) == 0
+                    or any(
+                        float(psy_state.get(k, 1.0)) <= 0.0
+                        for k in ("P", "C", "E", "S")
                     )
-                    psy_recovered = list(fast_decision.get("recovered") or [])
-                    raw_metrics = fast_decision.get("metrics") or {}
-                    if isinstance(raw_metrics, dict):
-                        psy_metrics = {k: float(v) for k, v in raw_metrics.items()}
-                    else:
-                        psy_metrics = {}
-                    psy_state = fast_decision.get("state") or self.psy_engine.export_state()
-                    _reply_text = "[FAST_POLICY]"
-                    decision_tag = "FAST"
+                )
+                if force_next_by_psy:
+                    action, selected_item_id = ("next", "")
                 else:
-                    psy_candidates = self._build_psy_candidates(cards)
-                    psy_choice_idx, pareto_front = self.psy_engine.select_best_item(
-                        psy_candidates
+                    action, selected_item_id, _ = self._decide_action_with_agent(
+                        screenshot_path=screenshot_path,
+                        cards=cards,
+                        next_enabled=next_enabled,
+                        status_text=status_text,
+                        memory=memory,
+                        psy_state=psy_state,
+                        psy_engine_choice={
+                            "item_id": psy_choice.get("item_id", ""),
+                            "title": psy_choice.get("title", ""),
+                            "item_n": float(psy_choice.get("n", 0.0)),
+                            "item_c": float(psy_choice.get("c", 0.0)),
+                            "item_pop": float(psy_choice.get("pop", 0.0)),
+                        },
+                        fast_policy_hints=fast_policy_hints,
                     )
-                    psy_choice = psy_candidates[psy_choice_idx]
-                    selected_title = str(psy_choice.get("title", ""))
-                    psy_state = self.psy_engine.export_state()
-                    force_next_by_psy = (
-                        int(psy_state.get("Surf", 1)) == 0
-                        or any(
-                            float(psy_state.get(k, 1.0)) <= 0.0
-                            for k in ("P", "C", "E", "S")
-                        )
+
+                if action == "click":
+                    selected_candidate = None
+                    for cand in psy_candidates:
+                        if str(cand.get("item_id") or "") == selected_item_id:
+                            selected_candidate = cand
+                            break
+                    if selected_candidate is None:
+                        selected_candidate = psy_choice
+                        selected_item_id = str(selected_candidate.get("item_id") or "")
+                    selected_title = str(selected_candidate.get("title") or "")
+                    psy_deltas, psy_recovered, psy_metrics = self.psy_engine.consume_item(
+                        selected_candidate["v"],
+                        selected_candidate["n"],
+                        selected_candidate["c"],
+                        selected_candidate["pop"],
                     )
-                    if force_next_by_psy:
-                        action, selected_item_id, _reply_text = (
-                            "next",
-                            "",
-                            "[FORCED_NEXT_BY_PSYBER_SURF_0]",
-                        )
-                    else:
-                        action, selected_item_id, _reply_text = self._decide_action_with_agent(
-                            screenshot_path=screenshot_path,
-                            cards=cards,
-                            next_enabled=next_enabled,
-                            status_text=status_text,
-                            memory=memory,
-                            psy_state=psy_state,
-                            psy_engine_choice={
-                                "item_id": psy_choice.get("item_id", ""),
-                                "title": psy_choice.get("title", ""),
-                                "item_n": float(psy_choice.get("n", 0.0)),
-                                "item_c": float(psy_choice.get("c", 0.0)),
-                                "item_pop": float(psy_choice.get("pop", 0.0)),
-                            },
-                        )
-                    if action == "click":
-                        selected_candidate = None
-                        for cand in psy_candidates:
-                            if str(cand.get("item_id") or "") == selected_item_id:
-                                selected_candidate = cand
-                                break
-                        if selected_candidate is None:
-                            selected_candidate = psy_choice
-                            selected_item_id = str(selected_candidate.get("item_id") or "")
-                        selected_title = str(selected_candidate.get("title") or "")
-                        psy_deltas, psy_recovered, psy_metrics = self.psy_engine.consume_item(
-                            selected_candidate["v"],
-                            selected_candidate["n"],
-                            selected_candidate["c"],
-                            selected_candidate["pop"],
-                        )
-                    else:
-                        selected_title = "[SKIP]"
-                        psy_deltas, psy_recovered, psy_metrics = apply_skip_to_engine(
-                            self.psy_engine
-                        )
-                    psy_state = self.psy_engine.export_state()
-                    decision_tag = "QWEN"
+                else:
+                    selected_title = "[SKIP]"
+                    psy_deltas, psy_recovered, psy_metrics = apply_skip_to_engine(
+                        self.psy_engine
+                    )
+                psy_state = self.psy_engine.export_state()
+                if fast_policy_hints is not None:
+                    choices = fast_policy_hints.get("choices") or []
+                    psy_metrics = {
+                        **{k: float(v) for k, v in dict(psy_metrics).items()},
+                        "mode_fast_policy_hint": 1.0,
+                        "fast_policy_hint_count": float(len(choices))
+                        if isinstance(choices, list)
+                        else 0.0,
+                    }
+                decision_tag = "QWEN+FAST" if fast_policy_hints is not None else "QWEN"
 
                 psy_record = {
                     "step": decision_step,
@@ -1315,6 +1377,9 @@ class WebSimCamelAgent:
                     "state_before": psy_state_before,
                     "state": psy_state,
                 }
+                if fast_policy_hints is not None:
+                    psy_record["fast_policy_candidates"] = fast_policy_hints.get("choices", [])
+                    psy_record["fast_policy_pareto_front"] = fast_policy_hints.get("pareto_front", [])
                 memory.append_psy_state(psy_record)
                 decision_seconds = time.perf_counter() - decision_start
                 psy_delta_vals = np.array(psy_deltas, dtype=np.float32).tolist()
@@ -1358,8 +1423,8 @@ class WebSimCamelAgent:
                                     "psyber_forced_next_due_surf_0"
                                     if force_next_by_psy
                                     else (
-                                        "fast_policy_next_page"
-                                        if memory.decision_mode == "fast_policy"
+                                        "fast_policy_candidate_next_page"
+                                        if memory.decision_mode == "qwen_with_fast_candidates"
                                         else "user_not_interested_next_page"
                                     )
                                 ),

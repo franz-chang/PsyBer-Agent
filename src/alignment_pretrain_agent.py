@@ -45,7 +45,7 @@ from psy_fast_inference import (
 )
 
 
-PROJECT_DIR = Path(__file__).resolve().parent
+SRC_DIR = Path(__file__).resolve().parent
 DEFAULT_DATASET_DIR = Path("/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main")
 DEFAULT_EMBEDDINGS_FILE = DEFAULT_DATASET_DIR / "Embeddings" / "item_embeddings.json"
 DEFAULT_PROFILES_FILE = DEFAULT_DATASET_DIR / "Embeddings" / "agent_profiles.json"
@@ -54,7 +54,7 @@ DEFAULT_REPORT_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "alignment_pretrain_re
 DEFAULT_TRAJ_PREVIEW_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "expert_intent_preview.json"
 DEFAULT_INTENT_ENCODER_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "intent_encoder.pt"
 DEFAULT_INTENT_STATS_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "intent_stats.json"
-PSY_ENGINE_FILE = PROJECT_DIR / "Psy-engine.py"
+PSY_ENGINE_FILE = SRC_DIR / "Psy-engine.py"
 
 
 @dataclass

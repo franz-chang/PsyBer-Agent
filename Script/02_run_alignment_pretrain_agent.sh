@@ -106,7 +106,7 @@ for arg in "$@"; do
 done
 
 if [ "${has_help}" -eq 1 ]; then
-  exec "${PYTHON_BIN}" "${PROJECT_ROOT}/alignment_pretrain_agent.py" "$@"
+  exec "${PYTHON_BIN}" "${PROJECT_ROOT}/src/alignment_pretrain_agent.py" "$@"
 fi
 
 # Default to simplified process: regression-initialized UGW soft-label supervision.
@@ -170,4 +170,4 @@ if [ "${alignment_mode}" = "softlabel_ugw" ]; then
 fi
 
 echo "[Run] alignment-mode=${alignment_mode:-softlabel_ugw}, epochs=${epochs_note}"
-exec "${PYTHON_BIN}" "${PROJECT_ROOT}/alignment_pretrain_agent.py" "$@"
+exec "${PYTHON_BIN}" "${PROJECT_ROOT}/src/alignment_pretrain_agent.py" "$@"

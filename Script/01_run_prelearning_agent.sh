@@ -53,7 +53,7 @@ for arg in "$@"; do
 done
 
 if [ "${has_help}" -eq 1 ]; then
-  exec "${PYTHON_BIN}" "${PROJECT_ROOT}/prelearning_agent.py" "$@"
+  exec "${PYTHON_BIN}" "${PROJECT_ROOT}/src/prelearning_agent.py" "$@"
 fi
 
 if [ "${has_agent_num}" -eq 0 ]; then
@@ -69,7 +69,7 @@ if [ -z "${output_dir}" ]; then
   output_dir="${DEFAULT_OUTPUT_DIR}"
 fi
 
-"${PYTHON_BIN}" "${PROJECT_ROOT}/prelearning_agent.py" "$@"
+"${PYTHON_BIN}" "${PROJECT_ROOT}/src/prelearning_agent.py" "$@"
 
 profiles_file="${output_dir}/agent_profiles.json"
 if [ -f "${profiles_file}" ]; then
