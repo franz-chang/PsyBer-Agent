@@ -1938,7 +1938,6 @@ class AlignmentPretrainAgent:
         self._build_expert_intent_states()
         self._write_traj_preview()
 
-        print("[Train] skip ICVF pretraining (removed from stage-02 pipeline)")
         self.icvf_training_stats = {
             "enabled": False,
             "reason": "icvf_pretraining_removed",
