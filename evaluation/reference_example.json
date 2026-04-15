@@ -1,0 +1,18 @@
+{
+  "real_ctr": 0.15,
+  "real_item_exposure": {
+    "1": 0.02,
+    "2": 0.01,
+    "3": 0.03
+  },
+  "real_pces_trajectory": [
+    [0.6, 0.5, 0.4, 0.7],
+    [0.58, 0.52, 0.39, 0.69]
+  ],
+  "ab_cases": [
+    {"oracle_lift": 0.021, "pred_lift": 0.018},
+    {"oracle_lift": -0.011, "pred_lift": -0.007},
+    {"oracle_lift": 0.000, "pred_lift": 0.002}
+  ],
+  "avg_run_cost": 1.2
+}

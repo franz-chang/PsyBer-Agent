@@ -9,6 +9,10 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
 PROJECT_ROOT="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd -P)"
 cd "${PROJECT_ROOT}"
 
+# Silence macOS malloc stack logging warning in logs.
+unset MallocStackLogging
+unset MallocStackLoggingNoCompact
+
 # Prefer dedicated runtime env first, then activated env, then system python3.
 if [ -x "/opt/anaconda3/envs/psyber/bin/python" ]; then
   PYTHON_BIN="/opt/anaconda3/envs/psyber/bin/python"

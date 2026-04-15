@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "generated_at": "2026-04-15T19:24:45.556972",
+    "runs_root": "/Users/chongzhang/PsyBer-Agent/runs",
+    "batch_root": "/Users/chongzhang/PsyBer-Agent/batch_launches",
+    "run_count": 0,
+    "ab_case_count": 0,
+    "batch_summary_count": 0,
+    "reference_file": null,
+    "ab_cases_file": null,
+    "run_metadata_file": null,
+    "selected_experiments": [
+      "E1"
+    ]
+  },
+  "E1_behavior_fidelity": {
+    "status": "insufficient_data",
+    "reason": "No runs found under runs_root."
+  }
+}

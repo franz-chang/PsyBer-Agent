@@ -1,0 +1,18 @@
+{
+  "run_meta": {
+    "20260415_155706_355135_p6639_de593f": {
+      "variant": "full",
+      "group": "high_activity",
+      "perturbation": "base",
+      "is_base": true,
+      "domain_split": "in_domain"
+    },
+    "20260415_165112_215836_p17394_966d73": {
+      "variant": "no_fast_policy",
+      "group": "long_tail",
+      "perturbation": "prompt_shuffle",
+      "is_base": false,
+      "domain_split": "cross_domain"
+    }
+  }
+}

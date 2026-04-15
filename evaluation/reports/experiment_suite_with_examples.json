@@ -1,0 +1,2794 @@
+{
+  "meta": {
+    "generated_at": "2026-04-15T17:44:14.456132",
+    "runs_root": "/Users/chongzhang/PsyBer-Agent/runs",
+    "batch_root": "/Users/chongzhang/PsyBer-Agent/batch_launches",
+    "run_count": 4,
+    "ab_case_count": 3,
+    "batch_summary_count": 0,
+    "reference_file": "evaluation/experiment_reference_example.json",
+    "ab_cases_file": "evaluation/ab_cases_example.json",
+    "run_metadata_file": "evaluation/run_metadata_example.json"
+  },
+  "E1_behavior_fidelity": {
+    "status": "ok",
+    "goal": "Behavior fidelity with psychology trajectory alignment",
+    "main_metrics": {
+      "CTR gap": 0.14411764705882354,
+      "Item exposure JS": 0.557978817887554,
+      "PCES trajectory MSE": 0.020716358476963546
+    },
+    "diagnostics": {
+      "Skip-rate gap": 0.08588235294117652,
+      "Session length error": 2.5,
+      "Repeat rate gap": 0.21,
+      "Popularity-bucket JS": 0.36910437743089036,
+      "Transition-matrix distance": 0.037136150234741774
+    },
+    "global": {
+      "CTR gap": 0.14411764705882354,
+      "Item exposure JS": 0.557978817887554,
+      "PCES trajectory MSE": 0.020716358476963546,
+      "Skip-rate gap": 0.08588235294117652,
+      "Session length error": 2.5,
+      "Repeat rate gap": 0.21,
+      "Popularity-bucket JS": 0.36910437743089036,
+      "Transition-matrix distance": 0.037136150234741774,
+      "simulated_summary": {
+        "sim_ctr": 0.29411764705882354,
+        "sim_skip_rate": 0.7058823529411765,
+        "sim_repeat_rate": 0.0,
+        "sim_session_length": 25.5,
+        "sim_transition_matrix": {
+          "click->click": 0.3333333333333333,
+          "click->skip": 0.6666666666666666,
+          "skip->click": 0.2676056338028169,
+          "skip->skip": 0.7323943661971831
+        },
+        "sim_popularity_bucket_dist": {
+          "low": 0.9333333333333333,
+          "mid": 0.06666666666666667
+        },
+        "total_runs": 4
+      }
+    },
+    "by_dataset": {
+      "ml1m": {
+        "run_count": 4,
+        "metrics": {
+          "CTR gap": 0.13411764705882354,
+          "Item exposure JS": 0.557978817887554,
+          "PCES trajectory MSE": 0.020716358476963546,
+          "Skip-rate gap": 0.10588235294117654,
+          "Session length error": 2.5,
+          "Repeat rate gap": 0.21,
+          "Popularity-bucket JS": 0.36910437743089036,
+          "Transition-matrix distance": 0.037136150234741774,
+          "simulated_summary": {
+            "sim_ctr": 0.29411764705882354,
+            "sim_skip_rate": 0.7058823529411765,
+            "sim_repeat_rate": 0.0,
+            "sim_session_length": 25.5,
+            "sim_transition_matrix": {
+              "click->click": 0.3333333333333333,
+              "click->skip": 0.6666666666666666,
+              "skip->click": 0.2676056338028169,
+              "skip->skip": 0.7323943661971831
+            },
+            "sim_popularity_bucket_dist": {
+              "low": 0.9333333333333333,
+              "mid": 0.06666666666666667
+            },
+            "total_runs": 4
+          }
+        },
+        "missing_inputs": []
+      }
+    },
+    "missing_inputs": []
+  },
+  "E2_online_ab_accuracy": {
+    "status": "ok",
+    "goal": "Online A/B winner identification under finite traffic budgets",
+    "overall": {
+      "Sign Accuracy": 0.6666666666666666,
+      "Lift MAE": 0.002666666666666668,
+      "Type-I Error": 1.0,
+      "Power@δ(1%)": 1.0,
+      "Power@δ(3%)": null,
+      "Power@δ(5%)": null,
+      "Lift RMSE": 0.0027080128015453215,
+      "Regret": 0.0
+    },
+    "by_budget": {
+      "200": {
+        "case_count": 1,
+        "metrics": {
+          "Sign Accuracy": 1.0,
+          "Lift MAE": 0.0030000000000000027,
+          "Type-I Error": null,
+          "Power@δ(1%)": 1.0,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": 0.0030000000000000027,
+          "Regret": 0.0
+        }
+      },
+      "500": {
+        "case_count": 2,
+        "metrics": {
+          "Sign Accuracy": 0.5,
+          "Lift MAE": 0.0025000000000000005,
+          "Type-I Error": 1.0,
+          "Power@δ(1%)": 1.0,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": 0.0025495097567963926,
+          "Regret": 0.0
+        }
+      },
+      "1000": {
+        "case_count": 0,
+        "metrics": {
+          "Sign Accuracy": null,
+          "Lift MAE": null,
+          "Type-I Error": null,
+          "Power@δ(1%)": null,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": null,
+          "Regret": null
+        }
+      },
+      "2000": {
+        "case_count": 0,
+        "metrics": {
+          "Sign Accuracy": null,
+          "Lift MAE": null,
+          "Type-I Error": null,
+          "Power@δ(1%)": null,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": null,
+          "Regret": null
+        }
+      },
+      "5000": {
+        "case_count": 0,
+        "metrics": {
+          "Sign Accuracy": null,
+          "Lift MAE": null,
+          "Type-I Error": null,
+          "Power@δ(1%)": null,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": null,
+          "Regret": null
+        }
+      }
+    },
+    "efficiency": {
+      "Cost per correct A/B decision": 2.725
+    },
+    "diagnostics": {
+      "Lift RMSE": 0.0027080128015453215,
+      "Regret": 0.0
+    },
+    "notes": [
+      "Sign Accuracy and Lift MAE are the primary E2 metrics.",
+      "Budget curves can be plotted from by_budget[*].metrics."
+    ]
+  },
+  "E3_cross_domain_heterogeneity": {
+    "status": "ok",
+    "goal": "Cross-domain generalization and heterogeneity robustness",
+    "table3_cross_domain": {
+      "ml1m": {
+        "run_count": 4,
+        "ab_case_count": 3,
+        "A/B": {
+          "Sign Accuracy": 0.6666666666666666,
+          "Lift MAE": 0.002666666666666668,
+          "Type-I Error": 1.0,
+          "Power@δ(1%)": 1.0,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": 0.0027080128015453215,
+          "Regret": 0.0
+        },
+        "Behavior": {
+          "CTR gap": 0.13411764705882354,
+          "Item exposure JS": 0.557978817887554
+        }
+      }
+    },
+    "group_breakdown": {
+      "high_activity": {
+        "run_count": 1,
+        "ab_case_count": 2,
+        "A/B": {
+          "Sign Accuracy": 1.0,
+          "Lift MAE": 0.003000000000000002,
+          "Type-I Error": null,
+          "Power@δ(1%)": 1.0,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": 0.003000000000000002,
+          "Regret": 0.0
+        },
+        "Behavior": {
+          "CTR gap": 0.14303030303030304,
+          "Item exposure JS": 0.560409359880933
+        }
+      },
+      "long_tail": {
+        "run_count": 1,
+        "ab_case_count": 1,
+        "A/B": {
+          "Sign Accuracy": 0.0,
+          "Lift MAE": 0.002,
+          "Type-I Error": 1.0,
+          "Power@δ(1%)": null,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": 0.002,
+          "Regret": 0.0
+        },
+        "Behavior": {
+          "CTR gap": 0.10923076923076921,
+          "Item exposure JS": 0.547703299114304
+        }
+      }
+    },
+    "worst_group_performance": {
+      "A/B Sign Accuracy (higher is better)": 0.0,
+      "Behavior CTR gap (lower is better)": 0.14303030303030304
+    },
+    "cross_domain_degradation": {
+      "Sign Accuracy degradation (cross vs in-domain)": null,
+      "Sign Accuracy degradation (few-shot vs in-domain)": null
+    },
+    "notes": [
+      "No in_domain/cross_domain/few_shot labels found; degradation is unavailable."
+    ]
+  },
+  "E4_ablation": {
+    "status": "ok",
+    "goal": "Mechanism necessity via module ablation",
+    "baseline_variant": "full",
+    "ablation_table": {
+      "full": {
+        "run_count": 1,
+        "ab_case_count": 2,
+        "A/B": {
+          "Sign Accuracy": 1.0,
+          "Lift MAE": 0.003000000000000002,
+          "Type-I Error": null
+        },
+        "Behavior": {
+          "CTR gap": 0.14303030303030304,
+          "Item exposure JS": 0.560409359880933
+        },
+        "Psychology": {
+          "PCES trajectory MSE": 0.012877244606181996
+        },
+        "Efficiency": {
+          "Latency/decision": 2.046733369230769,
+          "Cost per correct A/B decision": 1.675
+        }
+      },
+      "no_fast_policy": {
+        "run_count": 1,
+        "ab_case_count": 1,
+        "A/B": {
+          "Sign Accuracy": 0.0,
+          "Lift MAE": 0.002,
+          "Type-I Error": 1.0
+        },
+        "Behavior": {
+          "CTR gap": 0.10923076923076921,
+          "Item exposure JS": 0.547703299114304
+        },
+        "Psychology": {
+          "PCES trajectory MSE": 0.012049755464859783
+        },
+        "Efficiency": {
+          "Latency/decision": 2.08682752,
+          "Cost per correct A/B decision": null
+        }
+      },
+      "qwen_with_fast_candidates": {
+        "run_count": 2,
+        "ab_case_count": 0,
+        "A/B": {
+          "Sign Accuracy": null,
+          "Lift MAE": null,
+          "Type-I Error": null
+        },
+        "Behavior": {
+          "CTR gap": 0.4511111111111111,
+          "Item exposure JS": 0.6931471805576954
+        },
+        "Psychology": {
+          "PCES trajectory MSE": 0.01791297032110741
+        },
+        "Efficiency": {
+          "Latency/decision": 2.291878125,
+          "Cost per correct A/B decision": null
+        }
+      }
+    },
+    "delta_vs_baseline": {
+      "no_fast_policy": {
+        "Sign Accuracy Drop%": 1.0,
+        "Lift MAE Drop%": -0.3333333333333337,
+        "CTR gap Drop%": -0.23631029986962204,
+        "Item exposure JS Drop%": -0.022672820399231967,
+        "PCES trajectory MSE Drop%": -0.06425979832090473,
+        "Latency/decision Drop%": 0.019589337513121922
+      },
+      "qwen_with_fast_candidates": {
+        "Sign Accuracy Drop%": null,
+        "Lift MAE Drop%": null,
+        "CTR gap Drop%": 2.1539548022598867,
+        "Item exposure JS Drop%": 0.23685867899309263,
+        "PCES trajectory MSE Drop%": 0.3910561512909294,
+        "Latency/decision Drop%": 0.11977366444236193
+      }
+    },
+    "notes": []
+  },
+  "E5_scalability_cost": {
+    "status": "insufficient_data",
+    "reason": "No batch launch summaries found. Expected batch_launches/**/summary.json",
+    "required": [
+      "src/launch_websim_batch.py outputs",
+      "summary.json with stats.throughput/success/timeout"
+    ]
+  },
+  "E6_robustness": {
+    "status": "ok",
+    "goal": "Robustness under model/prompt/seed/track perturbations",
+    "base_condition": "base",
+    "mean_ci_table": {
+      "base": {
+        "run_count": 1,
+        "ab_case_count": 2,
+        "A/B (mean±95%CI)": {
+          "Sign Accuracy": {
+            "mean": 1.0,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Lift MAE": {
+            "mean": 0.003000000000000002,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Type-I Error": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(1%)": {
+            "mean": 1.0,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Power@δ(3%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(5%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          }
+        },
+        "Behavior (mean±95%CI)": {
+          "CTR gap": {
+            "mean": 0.14303030303030304,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Item exposure JS": {
+            "mean": 0.560409359880933,
+            "ci95": 0.0,
+            "n": 1
+          }
+        },
+        "Psychology (mean±95%CI)": {
+          "PCES trajectory MSE": {
+            "mean": 0.012877244606181996,
+            "ci95": 0.0,
+            "n": 1
+          }
+        },
+        "Efficiency (mean±95%CI)": {
+          "Latency/decision": {
+            "mean": 2.046733369230769,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Cost per correct A/B decision": 1.675
+        }
+      },
+      "mode=qwen_with_fast_candidates|track=1": {
+        "run_count": 1,
+        "ab_case_count": 0,
+        "A/B (mean±95%CI)": {
+          "Sign Accuracy": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Lift MAE": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Type-I Error": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(1%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(3%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(5%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          }
+        },
+        "Behavior (mean±95%CI)": {
+          "CTR gap": {
+            "mean": 0.84,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Item exposure JS": {
+            "mean": 0.6931471805579454,
+            "ci95": 0.0,
+            "n": 1
+          }
+        },
+        "Psychology (mean±95%CI)": {
+          "PCES trajectory MSE": {
+            "mean": 0.015109582165251273,
+            "ci95": 0.0,
+            "n": 1
+          }
+        },
+        "Efficiency (mean±95%CI)": {
+          "Latency/decision": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Cost per correct A/B decision": null
+        }
+      },
+      "mode=qwen_with_fast_candidates|track=2": {
+        "run_count": 1,
+        "ab_case_count": 0,
+        "A/B (mean±95%CI)": {
+          "Sign Accuracy": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Lift MAE": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Type-I Error": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(1%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(3%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(5%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          }
+        },
+        "Behavior (mean±95%CI)": {
+          "CTR gap": {
+            "mean": 0.06222222222222221,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Item exposure JS": {
+            "mean": 0.6931471805574454,
+            "ci95": 0.0,
+            "n": 1
+          }
+        },
+        "Psychology (mean±95%CI)": {
+          "PCES trajectory MSE": {
+            "mean": 0.020716358476963546,
+            "ci95": 0.0,
+            "n": 1
+          }
+        },
+        "Efficiency (mean±95%CI)": {
+          "Latency/decision": {
+            "mean": 2.291878125,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Cost per correct A/B decision": null
+        }
+      },
+      "prompt_shuffle": {
+        "run_count": 1,
+        "ab_case_count": 1,
+        "A/B (mean±95%CI)": {
+          "Sign Accuracy": {
+            "mean": 0.0,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Lift MAE": {
+            "mean": 0.002,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Type-I Error": {
+            "mean": 1.0,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Power@δ(1%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(3%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(5%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          }
+        },
+        "Behavior (mean±95%CI)": {
+          "CTR gap": {
+            "mean": 0.10923076923076921,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Item exposure JS": {
+            "mean": 0.547703299114304,
+            "ci95": 0.0,
+            "n": 1
+          }
+        },
+        "Psychology (mean±95%CI)": {
+          "PCES trajectory MSE": {
+            "mean": 0.012049755464859783,
+            "ci95": 0.0,
+            "n": 1
+          }
+        },
+        "Efficiency (mean±95%CI)": {
+          "Latency/decision": {
+            "mean": 2.08682752,
+            "ci95": 0.0,
+            "n": 1
+          },
+          "Cost per correct A/B decision": null
+        }
+      }
+    },
+    "drop_percent_vs_base": {
+      "mode=qwen_with_fast_candidates|track=1": {
+        "Sign Accuracy Drop%": null,
+        "Lift MAE Drop%": null,
+        "CTR gap Drop%": 4.872881355932202,
+        "Item exposure JS Drop%": 0.23685867899353877,
+        "PCES trajectory MSE Drop%": 0.1733552190192609,
+        "Latency/decision Drop%": null
+      },
+      "mode=qwen_with_fast_candidates|track=2": {
+        "Sign Accuracy Drop%": null,
+        "Lift MAE Drop%": null,
+        "CTR gap Drop%": -0.5649717514124295,
+        "Item exposure JS Drop%": 0.23685867899264648,
+        "PCES trajectory MSE Drop%": 0.6087570835625981,
+        "Latency/decision Drop%": 0.11977366444236193
+      },
+      "prompt_shuffle": {
+        "Sign Accuracy Drop%": 1.0,
+        "Lift MAE Drop%": -0.3333333333333337,
+        "CTR gap Drop%": -0.23631029986962204,
+        "Item exposure JS Drop%": -0.022672820399231967,
+        "PCES trajectory MSE Drop%": -0.06425979832090473,
+        "Latency/decision Drop%": 0.019589337513121922
+      }
+    },
+    "worst_case_performance": {
+      "Sign Accuracy (min over perturbations)": 0.0,
+      "Lift MAE (max over perturbations)": 0.003000000000000002
+    },
+    "notes": [
+      "Perturbation labels come from run_metadata[perturbation] or ab_cases[perturbation/variant].",
+      "A/B CI is computed across seeds when seed labels are available."
+    ]
+  },
+  "E7_qualitative_trajectory": {
+    "status": "ok",
+    "goal": "Qualitative trajectory analysis for success/failure/boundary/recovery patterns",
+    "case_count": 4,
+    "cases": [
+      {
+        "label": "state_recovery_case",
+        "run_id": "20260415_155706_355135_p6639_de593f",
+        "dataset": "ml1m",
+        "model": "sasrec",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 20,
+        "summary": {
+          "decisions": 66,
+          "clicks": 20,
+          "skips": 46,
+          "ctr": 0.30303030303030304,
+          "skip_rate": 0.696969696969697,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 8,
+          "latency_per_decision_sec": 2.046733369230769,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 1.9242424242424243
+        },
+        "ab_judgement": {
+          "oracle_lift": 0.021,
+          "pred_lift": 0.018,
+          "decision": "correct",
+          "pair": "sasrec_vs_lightgcn"
+        },
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-15T07:57:17.727827+00:00",
+            "action": "click",
+            "selected_item_id": "3342",
+            "selected_title": "Birdy",
+            "pces": {
+              "P": 0.5979646090601841,
+              "C": 0.3249278765436111,
+              "E": 0.4376310110092163,
+              "S": 0.5351848546041055
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.04025996848940849,
+              "Offense_t": 0.07974003255367279
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 2,
+            "timestamp_utc": "2026-04-15T07:57:18.989064+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5679646134376526,
+              "C": 0.36492785811424255,
+              "E": 0.4276310205459595,
+              "S": 0.5551848411560059
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 3,
+            "timestamp_utc": "2026-04-15T07:57:21.415446+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5379646420478821,
+              "C": 0.4049278497695923,
+              "E": 0.41763103008270264,
+              "S": 0.5751848220825195
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 4,
+            "timestamp_utc": "2026-04-15T07:57:23.809168+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5079646706581116,
+              "C": 0.444927841424942,
+              "E": 0.4076310396194458,
+              "S": 0.5951848030090332
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 5,
+            "timestamp_utc": "2026-04-15T07:57:26.161190+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.4779646694660187,
+              "C": 0.48492783308029175,
+              "E": 0.39763104915618896,
+              "S": 0.6151847839355469
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 6,
+            "timestamp_utc": "2026-04-15T07:57:28.574230+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.4479646682739258,
+              "C": 0.5249278545379639,
+              "E": 0.38763105869293213,
+              "S": 0.6351847648620605
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 7,
+            "timestamp_utc": "2026-04-15T07:57:30.931150+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.4179646670818329,
+              "C": 0.564927875995636,
+              "E": 0.3776310682296753,
+              "S": 0.6551847457885742
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 8,
+            "timestamp_utc": "2026-04-15T07:57:33.300839+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.38796466588974,
+              "C": 0.6049278974533081,
+              "E": 0.36763107776641846,
+              "S": 0.6751847267150879
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 9,
+            "timestamp_utc": "2026-04-15T07:57:35.738880+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3579646646976471,
+              "C": 0.6449279189109802,
+              "E": 0.3576310873031616,
+              "S": 0.6951847076416016
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 10,
+            "timestamp_utc": "2026-04-15T07:57:38.090742+00:00",
+            "action": "click",
+            "selected_item_id": "66",
+            "selected_title": "Lawnmower Man 2: Beyond Cyberspace",
+            "pces": {
+              "P": 0.3796139359474182,
+              "C": 0.3755190074443817,
+              "E": 0.24310892820358276,
+              "S": 0.6773908138275146
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3413684368133545,
+              "Bel_t": 0.022391941398382187,
+              "Offense_t": 0.0976080596446991
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 11,
+            "timestamp_utc": "2026-04-15T07:57:39.212378+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3496139347553253,
+              "C": 0.41551899909973145,
+              "E": 0.23310892283916473,
+              "S": 0.6973907947540283
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 12,
+            "timestamp_utc": "2026-04-15T07:57:41.642573+00:00",
+            "action": "click",
+            "selected_item_id": "11",
+            "selected_title": "The American President",
+            "pces": {
+              "P": 0.3674828112125397,
+              "C": 0.16299082338809967,
+              "E": 0.18463273346424103,
+              "S": 0.6850070953369141
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3340533971786499,
+              "Bel_t": 0.03543824702501297,
+              "Offense_t": 0.08456175029277802
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 13,
+            "timestamp_utc": "2026-04-15T07:57:42.999224+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3374828100204468,
+              "C": 0.2029908299446106,
+              "E": 0.174632728099823,
+              "S": 0.7050070762634277
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 14,
+            "timestamp_utc": "2026-04-15T07:57:45.558976+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3074828088283539,
+              "C": 0.24299082159996033,
+              "E": 0.16463272273540497,
+              "S": 0.7250070571899414
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 15,
+            "timestamp_utc": "2026-04-15T07:57:47.968668+00:00",
+            "action": "click",
+            "selected_item_id": "18",
+            "selected_title": "Four Rooms",
+            "pces": {
+              "P": 0.349800705909729,
+              "C": 0.015929678454995155,
+              "E": 0.152422234416008,
+              "S": 0.7099578380584717
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3365554213523865,
+              "Bel_t": 0.07305747270584106,
+              "Offense_t": 0.04694252461194992
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 16,
+            "timestamp_utc": "2026-04-15T07:57:49.110403+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3198007047176361,
+              "C": 0.055929675698280334,
+              "E": 0.14242222905158997,
+              "S": 0.7299578189849854
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 17,
+            "timestamp_utc": "2026-04-15T07:57:51.462304+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.2898007035255432,
+              "C": 0.09592967480421066,
+              "E": 0.13242222368717194,
+              "S": 0.749957799911499
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 18,
+            "timestamp_utc": "2026-04-15T07:57:53.873093+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.2598007023334503,
+              "C": 0.135929673910141,
+              "E": 0.1224222257733345,
+              "S": 0.7699577808380127
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 19,
+            "timestamp_utc": "2026-04-15T07:57:56.224009+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.22980070114135742,
+              "C": 0.17592966556549072,
+              "E": 0.11242222785949707,
+              "S": 0.7899577617645264
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 20,
+            "timestamp_utc": "2026-04-15T07:57:58.615493+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.19980069994926453,
+              "C": 0.21592965722084045,
+              "E": 0.10242222994565964,
+              "S": 0.80995774269104
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 21,
+            "timestamp_utc": "2026-04-15T07:58:01.260528+00:00",
+            "action": "click",
+            "selected_item_id": "40",
+            "selected_title": "Cry, the Beloved Country",
+            "pces": {
+              "P": 0.2798735201358795,
+              "C": 0.07370243221521378,
+              "E": 0.18149912357330322,
+              "S": 0.7919034361839294
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2881154417991638,
+              "Bel_t": 0.04783720523118973,
+              "Offense_t": 0.07216279208660126
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 22,
+            "timestamp_utc": "2026-04-15T07:58:02.409912+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.24987351894378662,
+              "C": 0.1137024313211441,
+              "E": 0.1714991182088852,
+              "S": 0.8119034171104431
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 23,
+            "timestamp_utc": "2026-04-15T07:58:04.829950+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.21987351775169373,
+              "C": 0.15370243787765503,
+              "E": 0.16149911284446716,
+              "S": 0.8319033980369568
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 24,
+            "timestamp_utc": "2026-04-15T07:58:07.210671+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.18987351655960083,
+              "C": 0.19370242953300476,
+              "E": 0.15149910748004913,
+              "S": 0.8519033789634705
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 25,
+            "timestamp_utc": "2026-04-15T07:58:09.547440+00:00",
+            "action": "click",
+            "selected_item_id": "24",
+            "selected_title": "Powder",
+            "pces": {
+              "P": 0.27295148372650146,
+              "C": 0.0,
+              "E": 0.20706281065940857,
+              "S": 0.8516860604286194
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3043772578239441,
+              "Bel_t": 0.08220775425434113,
+              "Offense_t": 0.03779224306344986
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 26,
+            "timestamp_utc": "2026-04-15T07:58:10.693897+00:00",
+            "action": "click",
+            "selected_item_id": "1",
+            "selected_title": "Toy Story",
+            "pces": {
+              "P": 0.34790319204330444,
+              "C": 0.0,
+              "E": 0.18810471892356873,
+              "S": 0.8437474966049194
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3996756076812744,
+              "Bel_t": 0.0525214746594429,
+              "Offense_t": 0.06747852265834808
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 27,
+            "timestamp_utc": "2026-04-15T07:58:11.821052+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.31790319085121155,
+              "C": 0.28999999165534973,
+              "E": 0.1781047135591507,
+              "S": 0.8637474775314331
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 28,
+            "timestamp_utc": "2026-04-15T07:58:14.280925+00:00",
+            "action": "click",
+            "selected_item_id": "8",
+            "selected_title": "Tom and Huck",
+            "pces": {
+              "P": 0.35177886486053467,
+              "C": 0.0,
+              "E": 0.1384473443031311,
+              "S": 0.8566583395004272
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.32908785343170166,
+              "Bel_t": 0.05578463152050972,
+              "Offense_t": 0.06421536207199097
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 29,
+            "timestamp_utc": "2026-04-15T07:58:15.435689+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3217788636684418,
+              "C": 0.28999999165534973,
+              "E": 0.12844733893871307,
+              "S": 0.8766583204269409
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 30,
+            "timestamp_utc": "2026-04-15T07:58:17.881159+00:00",
+            "action": "click",
+            "selected_item_id": "3949",
+            "selected_title": "Requiem for a Dream",
+            "pces": {
+              "P": 0.34910592436790466,
+              "C": 0.10249125957489014,
+              "E": 0.2249496579170227,
+              "S": 0.8754333853721619
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.28652364015579224,
+              "Bel_t": 0.09584852308034897,
+              "Offense_t": 0.024151474237442017
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 31,
+            "timestamp_utc": "2026-04-15T07:58:19.033728+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.31910592317581177,
+              "C": 0.14249125123023987,
+              "E": 0.21494965255260468,
+              "S": 0.8954333662986755
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 32,
+            "timestamp_utc": "2026-04-15T07:58:21.389671+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.28910592198371887,
+              "C": 0.1824912428855896,
+              "E": 0.20494964718818665,
+              "S": 0.9154333472251892
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 33,
+            "timestamp_utc": "2026-04-15T07:58:23.794633+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.259105920791626,
+              "C": 0.22249123454093933,
+              "E": 0.19494964182376862,
+              "S": 0.9354333281517029
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 34,
+            "timestamp_utc": "2026-04-15T07:58:26.124691+00:00",
+            "action": "click",
+            "selected_item_id": "25",
+            "selected_title": "Leaving Las Vegas",
+            "pces": {
+              "P": 0.30298861861228943,
+              "C": 0.0,
+              "E": 0.2222510576248169,
+              "S": 0.929899275302887
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.27744001150131226,
+              "Bel_t": 0.06176229566335678,
+              "Offense_t": 0.058237701654434204
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 35,
+            "timestamp_utc": "2026-04-15T07:58:27.281190+00:00",
+            "action": "click",
+            "selected_item_id": "101",
+            "selected_title": "Bottle Rocket",
+            "pces": {
+              "P": 0.35074833035469055,
+              "C": 0.08241285383701324,
+              "E": 0.15398956835269928,
+              "S": 0.9242318272590637
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3405684232711792,
+              "Bel_t": 0.06124982237815857,
+              "Offense_t": 0.058750174939632416
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 36,
+            "timestamp_utc": "2026-04-15T07:58:28.465815+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.32074832916259766,
+              "C": 0.12241285294294357,
+              "E": 0.14398956298828125,
+              "S": 0.9442318081855774
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 37,
+            "timestamp_utc": "2026-04-15T07:58:30.823524+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.29074832797050476,
+              "C": 0.1624128520488739,
+              "E": 0.13398955762386322,
+              "S": 0.9642317891120911
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 38,
+            "timestamp_utc": "2026-04-15T07:58:33.182632+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.26074832677841187,
+              "C": 0.20241284370422363,
+              "E": 0.12398955971002579,
+              "S": 0.9842317700386047
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 39,
+            "timestamp_utc": "2026-04-15T07:58:35.564924+00:00",
+            "action": "click",
+            "selected_item_id": "3946",
+            "selected_title": "Get Carter",
+            "pces": {
+              "P": 0.29673296213150024,
+              "C": 0.0,
+              "E": 0.16454175114631653,
+              "S": 0.9661334753036499
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.23257088661193848,
+              "Bel_t": 0.0377507321536541,
+              "Offense_t": 0.08224926888942719
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 40,
+            "timestamp_utc": "2026-04-15T07:58:36.725482+00:00",
+            "action": "click",
+            "selected_item_id": "2",
+            "selected_title": "Jumanji",
+            "pces": {
+              "P": 0.3405342698097229,
+              "C": 0.0,
+              "E": 0.2136031985282898,
+              "S": 0.9526675939559937
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3269498944282532,
+              "Bel_t": 0.03126976639032364,
+              "Offense_t": 0.08873023092746735
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 41,
+            "timestamp_utc": "2026-04-15T07:58:37.921540+00:00",
+            "action": "click",
+            "selected_item_id": "3940",
+            "selected_title": "Slumber Party Massacre III",
+            "pces": {
+              "P": 0.35301870107650757,
+              "C": 0.0,
+              "E": 0.25486046075820923,
+              "S": 0.940276026725769
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.27453118562698364,
+              "Bel_t": 0.03539961576461792,
+              "Offense_t": 0.08460038155317307
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 42,
+            "timestamp_utc": "2026-04-15T07:58:39.303039+00:00",
+            "action": "click",
+            "selected_item_id": "3951",
+            "selected_title": "Two Family House",
+            "pces": {
+              "P": 0.36817464232444763,
+              "C": 0.0,
+              "E": 0.2515234053134918,
+              "S": 0.9062981605529785
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3053639531135559,
+              "Bel_t": 0.0,
+              "Offense_t": 0.14469967782497406
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 43,
+            "timestamp_utc": "2026-04-15T07:58:40.490946+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.33817464113235474,
+              "C": 0.28999999165534973,
+              "E": 0.2415233999490738,
+              "S": 0.9262981414794922
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 44,
+            "timestamp_utc": "2026-04-15T07:58:42.887846+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.30817463994026184,
+              "C": 0.32999998331069946,
+              "E": 0.23152339458465576,
+              "S": 0.9462981224060059
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 45,
+            "timestamp_utc": "2026-04-15T07:58:45.294546+00:00",
+            "action": "click",
+            "selected_item_id": "19",
+            "selected_title": "Ace Ventura: When Nature Calls",
+            "pces": {
+              "P": 0.3242563307285309,
+              "C": 0.01932908408343792,
+              "E": 0.22118645906448364,
+              "S": 0.9365560412406921
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2329990267753601,
+              "Bel_t": 0.04558463767170906,
+              "Offense_t": 0.07441535592079163
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 46,
+            "timestamp_utc": "2026-04-15T07:58:46.417968+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.294256329536438,
+              "C": 0.0593290850520134,
+              "E": 0.2111864537000656,
+              "S": 0.9565560221672058
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 47,
+            "timestamp_utc": "2026-04-15T07:58:48.781753+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.2642563283443451,
+              "C": 0.09932908415794373,
+              "E": 0.20118644833564758,
+              "S": 0.9765560030937195
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 48,
+            "timestamp_utc": "2026-04-15T07:58:51.147586+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.2342563271522522,
+              "C": 0.13932907581329346,
+              "E": 0.19118644297122955,
+              "S": 0.9965559840202332
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 49,
+            "timestamp_utc": "2026-04-15T07:58:53.541743+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.2042563259601593,
+              "C": 0.1793290674686432,
+              "E": 0.18118643760681152,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 50,
+            "timestamp_utc": "2026-04-15T07:58:55.933493+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.1742563247680664,
+              "C": 0.21932905912399292,
+              "E": 0.1711864322423935,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 51,
+            "timestamp_utc": "2026-04-15T07:58:58.378230+00:00",
+            "action": "click",
+            "selected_item_id": "3939",
+            "selected_title": "Slumber Party Massacre II",
+            "pces": {
+              "P": 0.23468410968780518,
+              "C": 0.028750233352184296,
+              "E": 0.19882622361183167,
+              "S": 0.96830153465271
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.16771924495697021,
+              "Bel_t": 0.002986159175634384,
+              "Offense_t": 0.1170138418674469
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 52,
+            "timestamp_utc": "2026-04-15T07:58:59.501090+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.20468410849571228,
+              "C": 0.06875023245811462,
+              "E": 0.18882621824741364,
+              "S": 0.9883015155792236
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 53,
+            "timestamp_utc": "2026-04-15T07:59:01.876911+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.17468410730361938,
+              "C": 0.10875023156404495,
+              "E": 0.1788262128829956,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 54,
+            "timestamp_utc": "2026-04-15T07:59:04.194733+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.1446841061115265,
+              "C": 0.14875023066997528,
+              "E": 0.16882620751857758,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 55,
+            "timestamp_utc": "2026-04-15T07:59:06.564082+00:00",
+            "action": "click",
+            "selected_item_id": "3941",
+            "selected_title": "Sorority House Massacre",
+            "pces": {
+              "P": 0.2323267161846161,
+              "C": 0.0011099185794591904,
+              "E": 0.16012194752693176,
+              "S": 0.980478823184967
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2316373586654663,
+              "Bel_t": 0.042555347084999084,
+              "Offense_t": 0.0774446502327919
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 56,
+            "timestamp_utc": "2026-04-15T07:59:07.712008+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.2023267149925232,
+              "C": 0.04110991954803467,
+              "E": 0.15012194216251373,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 57,
+            "timestamp_utc": "2026-04-15T07:59:10.077561+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.1723267138004303,
+              "C": 0.081109918653965,
+              "E": 0.1401219367980957,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 58,
+            "timestamp_utc": "2026-04-15T07:59:12.392063+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.1423267126083374,
+              "C": 0.12110991775989532,
+              "E": 0.13012193143367767,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 59,
+            "timestamp_utc": "2026-04-15T07:59:14.773273+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.1123267114162445,
+              "C": 0.16110992431640625,
+              "E": 0.12012193351984024,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 60,
+            "timestamp_utc": "2026-04-15T07:59:17.150354+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.08232671022415161,
+              "C": 0.20110991597175598,
+              "E": 0.11012193560600281,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 61,
+            "timestamp_utc": "2026-04-15T07:59:19.589814+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.052326709032058716,
+              "C": 0.2411099076271057,
+              "E": 0.10012193769216537,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 62,
+            "timestamp_utc": "2026-04-15T07:59:22.361755+00:00",
+            "action": "click",
+            "selected_item_id": "48",
+            "selected_title": "Pocahontas",
+            "pces": {
+              "P": 0.20380085706710815,
+              "C": 0.08049008995294571,
+              "E": 0.15443316102027893,
+              "S": 0.991471529006958
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2986074686050415,
+              "Bel_t": 0.07923281937837601,
+              "Offense_t": 0.04076717793941498
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 63,
+            "timestamp_utc": "2026-04-15T07:59:23.501943+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.17380085587501526,
+              "C": 0.12049008905887604,
+              "E": 0.1444331556558609,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 64,
+            "timestamp_utc": "2026-04-15T07:59:25.958140+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.14380085468292236,
+              "C": 0.16049009561538696,
+              "E": 0.13443315029144287,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 65,
+            "timestamp_utc": "2026-04-15T07:59:28.331123+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.11380085349082947,
+              "C": 0.2004900872707367,
+              "E": 0.12443315237760544,
+              "S": 1.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 66,
+            "timestamp_utc": "2026-04-15T07:59:30.765496+00:00",
+            "action": "click",
+            "selected_item_id": "26",
+            "selected_title": "Othello",
+            "pces": {
+              "P": 0.23425082862377167,
+              "C": 0.02991185151040554,
+              "E": 0.13682106137275696,
+              "S": 0.9903489947319031
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29400378465652466,
+              "Bel_t": 0.06932355463504791,
+              "Offense_t": 0.05067644268274307
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      },
+      {
+        "label": "success_like_case",
+        "run_id": "20260415_155523_869467_p5988_1b256d",
+        "dataset": "ml1m",
+        "model": "sasrec",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 1,
+        "summary": {
+          "decisions": 1,
+          "clicks": 1,
+          "skips": 0,
+          "ctr": 1.0,
+          "skip_rate": 0.0,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 0,
+          "latency_per_decision_sec": null,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 2.0
+        },
+        "ab_judgement": null,
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-15T07:55:34.021471+00:00",
+            "action": "click",
+            "selected_item_id": "1725",
+            "selected_title": "The Education of Little Tree",
+            "pces": {
+              "P": 0.5931985324059883,
+              "C": 0.33696691194435935,
+              "E": 0.4223317503929138,
+              "S": 0.5174799358344321
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.012180786579847336,
+              "Offense_t": 0.10781921446323395
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      },
+      {
+        "label": "failure_like_case",
+        "run_id": "20260415_154925_663294_p4499_f9c852",
+        "dataset": "ml1m",
+        "model": "sasrec",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 2,
+        "summary": {
+          "decisions": 9,
+          "clicks": 2,
+          "skips": 7,
+          "ctr": 0.2222222222222222,
+          "skip_rate": 0.7777777777777778,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 0,
+          "latency_per_decision_sec": 2.291878125,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 1.6666666666666667
+        },
+        "ab_judgement": null,
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-15T07:49:35.725964+00:00",
+            "action": "click",
+            "selected_item_id": "1801",
+            "selected_title": "The Man in the Iron Mask",
+            "pces": {
+              "P": 0.6019352617298522,
+              "C": 0.24759111570379116,
+              "E": 0.35292670130729675,
+              "S": 0.5382755087690163
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.05454761162400246,
+              "Offense_t": 0.06545238196849823
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 2,
+            "timestamp_utc": "2026-04-15T07:49:36.960369+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5719352960586548,
+              "C": 0.2875911295413971,
+              "E": 0.3429267108440399,
+              "S": 0.5582754611968994
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 3,
+            "timestamp_utc": "2026-04-15T07:49:39.562983+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5419353246688843,
+              "C": 0.3275911211967468,
+              "E": 0.3329267203807831,
+              "S": 0.5782754421234131
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 4,
+            "timestamp_utc": "2026-04-15T07:49:42.075658+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5119353532791138,
+              "C": 0.36759111285209656,
+              "E": 0.32292672991752625,
+              "S": 0.5982754230499268
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 5,
+            "timestamp_utc": "2026-04-15T07:49:44.612519+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.4819353520870209,
+              "C": 0.4075911045074463,
+              "E": 0.3129267394542694,
+              "S": 0.6182754039764404
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 6,
+            "timestamp_utc": "2026-04-15T07:49:47.056681+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.451935350894928,
+              "C": 0.447591096162796,
+              "E": 0.3029267489910126,
+              "S": 0.6382753849029541
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 7,
+            "timestamp_utc": "2026-04-15T07:49:49.389527+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.4219353497028351,
+              "C": 0.48759108781814575,
+              "E": 0.29292675852775574,
+              "S": 0.6582753658294678
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 8,
+            "timestamp_utc": "2026-04-15T07:49:51.739780+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3919353485107422,
+              "C": 0.5275911092758179,
+              "E": 0.2829267680644989,
+              "S": 0.6782753467559814
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 9,
+            "timestamp_utc": "2026-04-15T07:49:54.060989+00:00",
+            "action": "click",
+            "selected_item_id": "57",
+            "selected_title": "Home for the Holidays",
+            "pces": {
+              "P": 0.434348464012146,
+              "C": 0.33693647384643555,
+              "E": 0.26921114325523376,
+              "S": 0.6525965929031372
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.4929952621459961,
+              "Bel_t": 0.0,
+              "Offense_t": 0.12977753579616547
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      },
+      {
+        "label": "additional_case",
+        "run_id": "20260415_165112_215836_p17394_966d73",
+        "dataset": "ml1m",
+        "model": "sasrec",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 20,
+        "summary": {
+          "decisions": 26,
+          "clicks": 7,
+          "skips": 19,
+          "ctr": 0.2692307692307692,
+          "skip_rate": 0.7307692307692307,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 1,
+          "latency_per_decision_sec": 2.08682752,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 1.8461538461538463
+        },
+        "ab_judgement": null,
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-15T08:51:23.690901+00:00",
+            "action": "click",
+            "selected_item_id": "2465",
+            "selected_title": "Deadly Friend",
+            "pces": {
+              "P": 0.6022587763701835,
+              "C": 0.3440355265822111,
+              "E": 0.3463936150074005,
+              "S": 0.5311746676500759
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.007180368527770042,
+              "Offense_t": 0.1128196269273758
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 2,
+            "timestamp_utc": "2026-04-15T08:51:25.011517+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5722588300704956,
+              "C": 0.38403552770614624,
+              "E": 0.3363936245441437,
+              "S": 0.5511746406555176
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 3,
+            "timestamp_utc": "2026-04-15T08:51:27.458162+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5422588586807251,
+              "C": 0.42403551936149597,
+              "E": 0.32639363408088684,
+              "S": 0.5711746215820312
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 4,
+            "timestamp_utc": "2026-04-15T08:51:29.953455+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.5122588872909546,
+              "C": 0.4640355110168457,
+              "E": 0.31639364361763,
+              "S": 0.5911746025085449
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 5,
+            "timestamp_utc": "2026-04-15T08:51:32.355195+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.4822588860988617,
+              "C": 0.5040355324745178,
+              "E": 0.30639365315437317,
+              "S": 0.6111745834350586
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 6,
+            "timestamp_utc": "2026-04-15T08:51:34.800480+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.4522588849067688,
+              "C": 0.5440355539321899,
+              "E": 0.29639366269111633,
+              "S": 0.6311745643615723
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 7,
+            "timestamp_utc": "2026-04-15T08:51:37.221298+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.4222588837146759,
+              "C": 0.5840355753898621,
+              "E": 0.2863936722278595,
+              "S": 0.6511745452880859
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 8,
+            "timestamp_utc": "2026-04-15T08:51:39.629829+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.392258882522583,
+              "C": 0.6240355968475342,
+              "E": 0.27639368176460266,
+              "S": 0.6711745262145996
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 9,
+            "timestamp_utc": "2026-04-15T08:51:42.106985+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3622588813304901,
+              "C": 0.6640356183052063,
+              "E": 0.2663936913013458,
+              "S": 0.6911745071411133
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 10,
+            "timestamp_utc": "2026-04-15T08:51:44.511401+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3322588801383972,
+              "C": 0.7040356397628784,
+              "E": 0.256393700838089,
+              "S": 0.711174488067627
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 11,
+            "timestamp_utc": "2026-04-15T08:51:46.924994+00:00",
+            "action": "click",
+            "selected_item_id": "74",
+            "selected_title": "Bed of Roses",
+            "pces": {
+              "P": 0.3534042239189148,
+              "C": 0.4479369521141052,
+              "E": 0.28043749928474426,
+              "S": 0.6997286677360535
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29622554779052734,
+              "Bel_t": 0.03905463218688965,
+              "Offense_t": 0.08094536513090134
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 12,
+            "timestamp_utc": "2026-04-15T08:51:48.086487+00:00",
+            "action": "click",
+            "selected_item_id": "1",
+            "selected_title": "Toy Story",
+            "pces": {
+              "P": 0.39428016543388367,
+              "C": 0.18180988729000092,
+              "E": 0.21910497546195984,
+              "S": 0.6765860319137573
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.41352689266204834,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1285703182220459
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 13,
+            "timestamp_utc": "2026-04-15T08:51:49.275135+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.36428016424179077,
+              "C": 0.22180989384651184,
+              "E": 0.2091049700975418,
+              "S": 0.696586012840271
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 14,
+            "timestamp_utc": "2026-04-15T08:51:51.729353+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3342801630496979,
+              "C": 0.2618098855018616,
+              "E": 0.19910496473312378,
+              "S": 0.7165859937667847
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 15,
+            "timestamp_utc": "2026-04-15T08:51:54.169680+00:00",
+            "action": "click",
+            "selected_item_id": "18",
+            "selected_title": "Four Rooms",
+            "pces": {
+              "P": 0.3631153404712677,
+              "C": 0.03068649023771286,
+              "E": 0.16095879673957825,
+              "S": 0.7000157833099365
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.33328306674957275,
+              "Bel_t": 0.019337911158800125,
+              "Offense_t": 0.10066208243370056
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 16,
+            "timestamp_utc": "2026-04-15T08:51:55.338131+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3331153392791748,
+              "C": 0.07068648934364319,
+              "E": 0.15095879137516022,
+              "S": 0.7200157642364502
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 17,
+            "timestamp_utc": "2026-04-15T08:51:57.751453+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3031153380870819,
+              "C": 0.11068648844957352,
+              "E": 0.1409587860107422,
+              "S": 0.7400157451629639
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 18,
+            "timestamp_utc": "2026-04-15T08:52:00.138403+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.273115336894989,
+              "C": 0.15068648755550385,
+              "E": 0.13095878064632416,
+              "S": 0.7600157260894775
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 19,
+            "timestamp_utc": "2026-04-15T08:52:02.554965+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.24311533570289612,
+              "C": 0.19068649411201477,
+              "E": 0.12095878273248672,
+              "S": 0.7800157070159912
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 20,
+            "timestamp_utc": "2026-04-15T08:52:04.973382+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.21311533451080322,
+              "C": 0.2306864857673645,
+              "E": 0.11095878481864929,
+              "S": 0.8000156879425049
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 21,
+            "timestamp_utc": "2026-04-15T08:52:07.328198+00:00",
+            "action": "click",
+            "selected_item_id": "40",
+            "selected_title": "Cry, the Beloved Country",
+            "pces": {
+              "P": 0.2918609082698822,
+              "C": 0.10060293972492218,
+              "E": 0.18426741659641266,
+              "S": 0.7880353927612305
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3062373399734497,
+              "Bel_t": 0.03698341175913811,
+              "Offense_t": 0.08301658928394318
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 22,
+            "timestamp_utc": "2026-04-15T08:52:08.760700+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.2618609070777893,
+              "C": 0.1406029462814331,
+              "E": 0.17426741123199463,
+              "S": 0.8080353736877441
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 23,
+            "timestamp_utc": "2026-04-15T08:52:11.141077+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.2318609058856964,
+              "C": 0.18060293793678284,
+              "E": 0.1642674058675766,
+              "S": 0.8280353546142578
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 24,
+            "timestamp_utc": "2026-04-15T08:52:13.545231+00:00",
+            "action": "click",
+            "selected_item_id": "16",
+            "selected_title": "Casino",
+            "pces": {
+              "P": 0.2998681366443634,
+              "C": 0.0,
+              "E": 0.1942426562309265,
+              "S": 0.8135794997215271
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3125312328338623,
+              "Bel_t": 0.02746514603495598,
+              "Offense_t": 0.0925348550081253
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 25,
+            "timestamp_utc": "2026-04-15T08:52:14.727435+00:00",
+            "action": "click",
+            "selected_item_id": "101",
+            "selected_title": "Bottle Rocket",
+            "pces": {
+              "P": 0.3545265793800354,
+              "C": 0.08317001163959503,
+              "E": 0.12466234713792801,
+              "S": 0.7844152450561523
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3606111407279968,
+              "Bel_t": 0.0,
+              "Offense_t": 0.16202379763126373
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 26,
+            "timestamp_utc": "2026-04-15T08:52:15.861589+00:00",
+            "action": "skip",
+            "selected_item_id": "",
+            "selected_title": "[SKIP]",
+            "pces": {
+              "P": 0.3245265781879425,
+              "C": 0.12317001074552536,
+              "E": 0.11466234922409058,
+              "S": 0.804415225982666
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      }
+    ],
+    "notes": [
+      "If ab_cases includes run_id mapping, each case includes explicit A/B judgement.",
+      "Use exported trajectory to draw timeline and PCES line charts."
+    ]
+  }
+}

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Alignment pretraining agent.
 
-Pipeline (between prelearning_agent.py and web_sim_camel_agent.py):
+Pipeline (between prelearning_agent.py and WebSim_camel_agent.py):
 1) Rebuild implicit click trajectories from ML-1M ratings.dat.
 2) Simulate 5-action slate decisions (Click1..Click4 + Skip) and collect agent states.
 3) Build structure distances for agent-state and expert-item trajectories.
 4) Learn regression prior and initialize UGW transport from pseudo-state matching.
 5) Solve UGW-style transport and convert it into per-step action soft labels.
 6) Train lightweight fast policy network via supervised CE + entropy regularization.
-7) Export fast policy for online inference in web_sim_camel_agent.py.
+7) Export fast policy for online inference in WebSim_camel_agent.py.
 
 Legacy RL-reward objective is still available via `--alignment-mode legacy_rl`.
 """
@@ -46,15 +46,29 @@ from psy_fast_inference import (
 
 
 SRC_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = SRC_DIR.parent
+FAST_POLICY_DIR = PROJECT_DIR / "outputs" / "fast_policies"
 DEFAULT_DATASET_DIR = Path("/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main")
 DEFAULT_EMBEDDINGS_FILE = DEFAULT_DATASET_DIR / "Embeddings" / "item_embeddings.json"
 DEFAULT_PROFILES_FILE = DEFAULT_DATASET_DIR / "Embeddings" / "agent_profiles.json"
-DEFAULT_POLICY_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "fast_inference_policy.pt"
+DEFAULT_POLICY_OUT = FAST_POLICY_DIR / "ml1m" / "fast_inference_policy.pt"
 DEFAULT_REPORT_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "alignment_pretrain_report.json"
 DEFAULT_TRAJ_PREVIEW_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "expert_intent_preview.json"
 DEFAULT_INTENT_ENCODER_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "intent_encoder.pt"
 DEFAULT_INTENT_STATS_OUT = DEFAULT_DATASET_DIR / "Embeddings" / "intent_stats.json"
 PSY_ENGINE_FILE = SRC_DIR / "Psy-engine.py"
+
+
+def infer_dataset_key_from_dir(dataset_dir: Path) -> str:
+    text = str(dataset_dir).strip().lower().replace("\\", "/")
+    if "musical_instruments" in text or "musical instruments" in text or "amazon_v2" in text:
+        return "amazon_mi"
+    return "ml1m"
+
+
+def default_policy_out_for_dataset(dataset_dir: Path) -> Path:
+    dataset_key = infer_dataset_key_from_dir(dataset_dir)
+    return FAST_POLICY_DIR / dataset_key / "fast_inference_policy.pt"
 
 
 @dataclass
@@ -2123,7 +2137,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset-dir", type=Path, default=DEFAULT_DATASET_DIR)
     parser.add_argument("--embeddings-file", type=Path, default=DEFAULT_EMBEDDINGS_FILE)
     parser.add_argument("--profiles-file", type=Path, default=DEFAULT_PROFILES_FILE)
-    parser.add_argument("--policy-out", type=Path, default=DEFAULT_POLICY_OUT)
+    parser.add_argument(
+        "--policy-out",
+        type=Path,
+        default=None,
+        help=(
+            "Output policy path. Default follows dataset-dir and saves under "
+            "PsyBer-Agent/outputs/fast_policies/{ml1m|amazon_mi}/fast_inference_policy.pt."
+        ),
+    )
     parser.add_argument("--report-out", type=Path, default=DEFAULT_REPORT_OUT)
     parser.add_argument("--traj-preview-out", type=Path, default=DEFAULT_TRAJ_PREVIEW_OUT)
     parser.add_argument(
@@ -2274,11 +2296,17 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    dataset_dir = Path(args.dataset_dir).expanduser().resolve()
+    policy_out = (
+        Path(args.policy_out).expanduser().resolve()
+        if args.policy_out is not None
+        else default_policy_out_for_dataset(dataset_dir)
+    )
     agent = AlignmentPretrainAgent(
-        dataset_dir=args.dataset_dir,
+        dataset_dir=dataset_dir,
         embeddings_file=args.embeddings_file,
         profiles_file=args.profiles_file,
-        policy_out=args.policy_out,
+        policy_out=policy_out,
         report_out=args.report_out,
         traj_preview_out=args.traj_preview_out,
         agent_step_logs_out=args.agent_step_logs_out,

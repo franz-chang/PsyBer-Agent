@@ -1,9 +1,14 @@
 dataset:
   - MovieLens-1M
-  # - Amazon Musical Instruments
+  # - Amazon All Beauty
+  # - Amazon Magazine Subscriptions
 model:
+  # - PopRec
+  # - BPR-MF
+  # - GRU4Rec
+  # - BERT4Rec
   - SASRec
   # - LightGCN
-  # - Multi-VAE
-track: 100
-agent_num: 10
+  # - Mult-VAE
+track: 30
+agent_num: 100

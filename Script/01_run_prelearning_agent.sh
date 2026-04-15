@@ -10,6 +10,10 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
 PROJECT_ROOT="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd -P)"
 cd "${PROJECT_ROOT}"
 
+# Silence macOS malloc stack logging warning in logs.
+unset MallocStackLogging
+unset MallocStackLoggingNoCompact
+
 # Prefer the currently activated conda env's python.
 if [ -n "${CONDA_PREFIX:-}" ] && [ -x "${CONDA_PREFIX}/bin/python" ]; then
   PYTHON_BIN="${CONDA_PREFIX}/bin/python"

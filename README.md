@@ -17,7 +17,7 @@ conda activate psyber
 pip install -U pip
 pip install -r requirements.txt
 
-# 3) 安装 Playwright 浏览器（给 web_sim_camel_agent 用）
+# 3) 安装 Playwright 浏览器（给 WebSim_camel_agent 用）
 playwright install chromium
 ```
 
@@ -26,7 +26,7 @@ playwright install chromium
 ```bash
 python src/prelearning_agent.py --help
 python src/alignment_pretrain_agent.py --help
-python src/web_sim_camel_agent.py --help
+python src/WebSim_camel_agent.py --help
 python app.py
 ```
 
@@ -45,7 +45,7 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
   - 点击“随机重置”
   - 截取当前页面截图，由 Agent 决定点击哪个 item（或不感兴趣时点击“下一页”）
 - 连续记录点击序列到 Agent memory，达到 `track`（默认 100）后关闭浏览器
-- 新增离线对齐预训练阶段：`src/alignment_pretrain_agent.py` 会从 `ratings.dat` 重建隐式轨迹，进行 OT 对齐训练，并输出在线快速策略模型 `fast_inference_policy.pt`
+- 新增离线对齐预训练阶段：`src/alignment_pretrain_agent.py` 会从 `ratings.dat` 重建隐式轨迹，进行 OT 对齐训练，并输出在线快速策略模型 `fast_inference_policy.pt`（默认保存到 `PsyBer-Agent/outputs/fast_policies/{ml1m|amazon_mi}/fast_inference_policy.pt`）
 - 在线阶段优先使用快速策略推理（5 动作并行评估 + 帕累托过滤 + 轻量策略采样）；若策略文件不存在则自动回退到 Qwen 决策
 
 ## 实验设计
@@ -56,7 +56,7 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
 > 说明：截图决策使用 OpenAI Responses API，模型固定为 `gpt-5.1-codex-mini`。  
 > 你可以二选一配置 API：  
 > 1) 环境变量 `OPENAI_API_KEY`（可选 `OPENAI_BASE_URL`）  
-> 2) 直接在 `src/web_sim_camel_agent.py` 顶部填写 `OPENAI_API_KEY_OVERRIDE` / `OPENAI_BASE_URL_OVERRIDE`。  
+> 2) 直接在 `src/WebSim_camel_agent.py` 顶部填写 `OPENAI_API_KEY_OVERRIDE` / `OPENAI_BASE_URL_OVERRIDE`。  
 > 若 API 不可用，会自动回退到随机策略，避免任务中断。
 
 ## 运行
@@ -75,7 +75,7 @@ cd /Users/chongzhang/PsyBer-Agent
 
 ```bash
 cd /Users/chongzhang/PsyBer-Agent
-/Users/chongzhang/camel/.venv/bin/python /Users/chongzhang/PsyBer-Agent/src/web_sim_camel_agent.py
+/Users/chongzhang/camel/.venv/bin/python /Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py
 ```
 
 可选参数：

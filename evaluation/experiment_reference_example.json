@@ -1,0 +1,41 @@
+{
+  "avg_run_cost": 1.2,
+  "behavior_reference": {
+    "global": {
+      "real_ctr": 0.15,
+      "real_skip_rate": 0.62,
+      "real_session_length": 28,
+      "real_repeat_rate": 0.21,
+      "real_transition_matrix": {
+        "click->click": 0.38,
+        "click->skip": 0.62,
+        "skip->click": 0.24,
+        "skip->skip": 0.76
+      },
+      "real_item_exposure": {
+        "1": 0.02,
+        "2": 0.01,
+        "3": 0.03
+      },
+      "real_pces_trajectory": [
+        [0.60, 0.50, 0.40, 0.70],
+        [0.58, 0.52, 0.39, 0.69]
+      ],
+      "real_item_popularity": {
+        "1": 10,
+        "2": 4,
+        "3": 20
+      }
+    },
+    "by_dataset": {
+      "ml1m": {
+        "real_ctr": 0.16,
+        "real_skip_rate": 0.60
+      },
+      "amazon_beauty": {
+        "real_ctr": 0.11,
+        "real_skip_rate": 0.67
+      }
+    }
+  }
+}

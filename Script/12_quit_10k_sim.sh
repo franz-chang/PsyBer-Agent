@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 
 PATTERNS=(
   "launch_websim_batch.py"
+  "WebSim_camel_agent.py"
   "web_sim_camel_agent.py"
 )
 
