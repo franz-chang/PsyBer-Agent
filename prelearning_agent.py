@@ -290,7 +290,9 @@ class PreLearningAgent:
         self.output_json = self.output_dir / "item_embeddings.json"
         self.report_json = self.output_dir / "prelearning_report.json"
         self.profiles_json = self.output_dir / "agent_profiles.json"
-        self.project_profiles_json = Path(__file__).resolve().parent / "agent_profiles.json"
+        self.project_profiles_json = (
+            Path(__file__).resolve().parent / "profiles" / "agent_profiles.json"
+        )
 
         self.device = choose_device()
         self.model: CLIPModel | None = None
@@ -505,6 +507,7 @@ class PreLearningAgent:
         profiles: list[dict[str, Any]],
     ) -> None:
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.project_profiles_json.parent.mkdir(parents=True, exist_ok=True)
         self.output_json.write_text(
             json.dumps(items, ensure_ascii=False, indent=2),
             encoding="utf-8",

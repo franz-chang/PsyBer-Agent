@@ -87,7 +87,7 @@ AMAZON_MI_FAST_POLICY_FILE = Path(
     "/Users/chongzhang/WebSim_Dataset/amazon_v2/Musical_Instruments/Embeddings/fast_inference_policy.pt"
 )
 PSY_ENGINE_FILE = PROJECT_DIR / "Psy-engine.py"
-PROJECT_AGENT_PROFILES_FILE = PROJECT_DIR / "agent_profiles.json"
+PROJECT_AGENT_PROFILES_FILE = PROJECT_DIR / "profiles" / "agent_profiles.json"
 # Default to Qwen official OpenAI-compatible endpoint.
 # You can override by env:
 # - QWEN_API_KEY / DASHSCOPE_API_KEY
