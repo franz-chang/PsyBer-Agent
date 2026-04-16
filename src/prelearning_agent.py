@@ -4,7 +4,8 @@ Pipeline:
 1) Load movie metadata from movies_details_clean.csv.
 2) Extract poster visual embeddings from posters/ with local CLIP.
 3) Extract movie description text embeddings with the same CLIP text encoder.
-4) Save JSON keyed by item_id under WebSim_Dataset/MM-ML-1M-main/Embeddings.
+4) Save JSON keyed by item_id under WebSim_Dataset/MM-ML-1M-main/Embeddings,
+   including image contrast metadata.
 5) Verify completeness and write a report.
 """
 
@@ -169,6 +170,11 @@ def stable_float_01(text: str) -> float:
     digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
     raw = int(digest[:8], 16)
     return raw / float(0xFFFFFFFF)
+
+
+def compute_image_contrast(image: Image.Image) -> float:
+    gray = np.asarray(image.convert("L"), dtype=np.float32) / 255.0
+    return float(np.std(gray))
 
 
 def build_psy_input(
@@ -341,9 +347,10 @@ class PreLearningAgent:
 
     def extract_visual_embeddings(
         self, records: list[MovieRecord]
-    ) -> tuple[dict[str, list[float] | None], dict[str, str]]:
+    ) -> tuple[dict[str, list[float] | None], dict[str, float | None], dict[str, str]]:
         assert self.model is not None and self.processor is not None
         result: dict[str, list[float] | None] = {x.item_id: None for x in records}
+        contrasts: dict[str, float | None] = {x.item_id: None for x in records}
         image_errors: dict[str, str] = {}
 
         valid_records = [x for x in records if x.poster_path is not None]
@@ -358,11 +365,14 @@ class PreLearningAgent:
                 assert rec.poster_path is not None
                 try:
                     with Image.open(rec.poster_path) as img:
-                        images.append(img.convert("RGB"))
+                        rgb_img = img.convert("RGB")
+                    contrasts[rec.item_id] = compute_image_contrast(rgb_img)
+                    images.append(rgb_img)
                     ids.append(rec.item_id)
                 except Exception as err:
                     image_errors[rec.item_id] = str(err)
                     result[rec.item_id] = None
+                    contrasts[rec.item_id] = None
 
             if images:
                 inputs = self.processor(images=images, return_tensors="pt")
@@ -379,19 +389,21 @@ class PreLearningAgent:
                 done = min(idx * self.image_batch_size, total)
                 print(f"[Image] progress: {done}/{total}")
 
-        return result, image_errors
+        return result, contrasts, image_errors
 
     def build_output_items(
         self,
         records: list[MovieRecord],
         text_embeddings: dict[str, list[float] | None],
         visual_embeddings: dict[str, list[float] | None],
+        image_contrasts: dict[str, float | None],
     ) -> dict[str, dict[str, Any]]:
         embed_dim = int(self.embed_dim or 0)
         items: dict[str, dict[str, Any]] = {}
         for rec in records:
             text_vec = text_embeddings.get(rec.item_id)
             visual_vec = visual_embeddings.get(rec.item_id)
+            image_contrast = image_contrasts.get(rec.item_id)
             text_source = "clip_text"
             visual_source = "clip_image_poster"
 
@@ -412,6 +424,7 @@ class PreLearningAgent:
             items[rec.item_id] = {
                 "visual_embedding": visual_vec,
                 "text_embedding": text_vec,
+                "image_contrast": image_contrast,
                 "visual_source": visual_source,
                 "text_source": text_source,
                 "psy_input": psy_input,
@@ -533,9 +546,9 @@ class PreLearningAgent:
         print(f"[Load] records={len(records)}, duplicates_skipped={len(duplicates)}")
 
         text_embeddings = self.extract_text_embeddings(records)
-        visual_embeddings, image_errors = self.extract_visual_embeddings(records)
+        visual_embeddings, image_contrasts, image_errors = self.extract_visual_embeddings(records)
 
-        items = self.build_output_items(records, text_embeddings, visual_embeddings)
+        items = self.build_output_items(records, text_embeddings, visual_embeddings, image_contrasts)
         report = self.verify(records, items, duplicates, image_errors)
         profiles = generate_agent_profiles(
             agent_num=self.agent_num,
@@ -572,8 +585,8 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=DEFAULT_DATASET_DIR / "Embeddings",
     )
-    parser.add_argument("--text-batch-size", type=int, default=128)
-    parser.add_argument("--image-batch-size", type=int, default=64)
+    parser.add_argument("--text-batch-size", type=int, default=512)
+    parser.add_argument("--image-batch-size", type=int, default=128)
     parser.add_argument("--agent-num", type=int, default=100)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(

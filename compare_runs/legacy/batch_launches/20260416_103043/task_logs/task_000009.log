@@ -1,0 +1,61 @@
+Traceback (most recent call last):
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1873, in <module>
+    main()
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1869, in main
+    agent.run()
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1773, in run
+    memory = asyncio.run(self.run_click_simulation(task))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1334, in run_click_simulation
+    await toolkit.browser_open()
+  File "/Users/chongzhang/camel/camel/utils/commons.py", line 1062, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chongzhang/camel/camel/toolkits/hybrid_browser_toolkit_py/hybrid_browser_toolkit.py", line 1154, in browser_open
+    await self._session.ensure_browser()
+  File "/Users/chongzhang/camel/camel/toolkits/hybrid_browser_toolkit_py/browser_session.py", line 501, in ensure_browser
+    await self._ensure_browser_inner()
+  File "/Users/chongzhang/camel/camel/toolkits/hybrid_browser_toolkit_py/browser_session.py", line 548, in _ensure_browser_inner
+    self._browser = await self._playwright.chromium.launch(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/playwright/async_api/_generated.py", line 14547, in launch
+    await self._impl_obj.launch(
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/playwright/_impl/_browser_type.py", line 97, in launch
+    await self._channel.send(
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/playwright/_impl/_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/playwright/_impl/_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TargetClosedError: BrowserType.launch: Target page, context or browser has been closed
+Browser logs:
+
+<launching> /Users/chongzhang/Library/Caches/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/var/folders/82/dwj7gbw96jnc4q75n2xm008w0000gn/T/playwright_chromiumdev_profile-dmGlxt --remote-debugging-pipe --no-startup-window
+<launched> pid=4497
+[pid=4497][err] [0416/103055.391848:ERROR:base/power_monitor/thermal_state_observer_mac.mm:140] ThermalStateObserverMac unable to register to power notifications. Result: 9
+[pid=4497][err] [0416/103055.395772:ERROR:net/dns/dns_config_service_posix.cc:138] DNS config watch failed to start.
+[pid=4497][err] [0416/103055.396430:FATAL:base/apple/mach_port_rendezvous_mac.cc:155] Check failed: kr == KERN_SUCCESS. bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer.4497: Permission denied (1100)
+Call log:
+  - <launching> /Users/chongzhang/Library/Caches/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/var/folders/82/dwj7gbw96jnc4q75n2xm008w0000gn/T/playwright_chromiumdev_profile-dmGlxt --remote-debugging-pipe --no-startup-window
+  - <launched> pid=4497
+  - [pid=4497][err] [0416/103055.391848:ERROR:base/power_monitor/thermal_state_observer_mac.mm:140] ThermalStateObserverMac unable to register to power notifications. Result: 9
+  - [pid=4497][err] [0416/103055.395772:ERROR:net/dns/dns_config_service_posix.cc:138] DNS config watch failed to start.
+  - [pid=4497][err] [0416/103055.396430:FATAL:base/apple/mach_port_rendezvous_mac.cc:155] Check failed: kr == KERN_SUCCESS. bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer.4497: Permission denied (1100)
+  - [pid=4497] <gracefully close start>
+  - [pid=4497] <kill>
+  - [pid=4497] <will force kill>
+  - [pid=4497] exception while trying to kill process: Error: kill EPERM
+  - [pid=4497] <process did exit: exitCode=null, signal=SIGTRAP>
+  - [pid=4497] starting temporary directories cleanup
+  - [pid=4497] finished temporary directories cleanup
+  - [pid=4497] <gracefully close end>
+

@@ -1,0 +1,26 @@
+[FastPolicy] loaded: /Users/chongzhang/PsyBer-Agent/outputs/fast_policies/ml1m/fast_inference_policy.pt
+[QWEN+FAST] 2026-04-16 10:52:05 step=1 action=click item_id=1419 page_pos=4 DT=4.791 recovered_before_round=- psy_state=(P=0.591,C=0.293,E=0.500,S=0.534,Surf=1) psy_delta=(dP=+0.141,dC=-0.157,dE=-0.050,dS=-0.016)
+[QWEN+FAST] 2026-04-16 10:52:10 step=2 action=click item_id=2858 page_pos=1 DT=4.398 recovered_before_round=- psy_state=(P=0.517,C=0.235,E=0.446,S=0.525,Surf=1) psy_delta=(dP=-0.074,dC=-0.058,dE=-0.054,dS=-0.009)
+[QWEN+FAST] 2026-04-16 10:52:18 step=3 action=click item_id=480 page_pos=4 DT=6.840 recovered_before_round=- psy_state=(P=0.449,C=0.074,E=0.415,S=0.500,Surf=1) psy_delta=(dP=-0.068,dC=-0.161,dE=-0.031,dS=-0.025)
+[QWEN+FAST] 2026-04-16 10:52:24 step=4 action=click item_id=589 page_pos=4 DT=4.712 recovered_before_round=- psy_state=(P=0.419,C=0.000,E=0.414,S=0.484,Surf=0) psy_delta=(dP=-0.030,dC=-0.074,dE=-0.001,dS=-0.017)
+[QWEN+FAST] 2026-04-16 10:52:30 step=5 action=click item_id=2028 page_pos=4 DT=5.438 recovered_before_round=C psy_state=(P=0.409,C=0.149,E=0.323,S=0.465,Surf=1) psy_delta=(dP=-0.010,dC=-0.101,dE=-0.091,dS=-0.018)
+[QWEN+FAST] 2026-04-16 10:52:37 step=6 action=click item_id=1270 page_pos=4 DT=5.827 recovered_before_round=- psy_state=(P=0.373,C=0.000,E=0.292,S=0.453,Surf=0) psy_delta=(dP=-0.036,dC=-0.149,dE=-0.031,dS=-0.012)
+[QWEN+FAST] 2026-04-16 10:52:42 step=7 action=click item_id=260 page_pos=1 DT=3.724 recovered_before_round=C psy_state=(P=0.368,C=0.117,E=0.217,S=0.438,Surf=1) psy_delta=(dP=-0.005,dC=-0.133,dE=-0.075,dS=-0.016)
+[QWEN+FAST] 2026-04-16 10:52:48 step=8 action=click item_id=2571 page_pos=4 DT=5.781 recovered_before_round=- psy_state=(P=0.343,C=0.032,E=0.274,S=0.418,Surf=1) psy_delta=(dP=-0.026,dC=-0.085,dE=+0.057,dS=-0.020)
+[QWEN+FAST] 2026-04-16 10:53:00 step=9 action=click item_id=593 page_pos=3 DT=11.096 recovered_before_round=- psy_state=(P=0.381,C=0.000,E=0.306,S=0.414,Surf=0) psy_delta=(dP=+0.038,dC=-0.032,dE=+0.032,dS=-0.004)
+[QWEN+FAST] 2026-04-16 10:53:08 step=10 action=click item_id=1210 page_pos=2 DT=6.490 recovered_before_round=C psy_state=(P=0.332,C=0.143,E=0.233,S=0.392,Surf=1) psy_delta=(dP=-0.048,dC=-0.107,dE=-0.073,dS=-0.021)
+[QWEN+FAST] 2026-04-16 10:53:15 step=11 action=click item_id=110 page_pos=2 DT=5.869 recovered_before_round=- psy_state=(P=0.350,C=0.038,E=0.242,S=0.382,Surf=1) psy_delta=(dP=+0.017,dC=-0.105,dE=+0.009,dS=-0.011)
+[QWEN+FAST] 2026-04-16 10:53:21 step=12 action=click item_id=1198 page_pos=4 DT=5.125 recovered_before_round=- psy_state=(P=0.340,C=0.000,E=0.271,S=0.371,Surf=0) psy_delta=(dP=-0.010,dC=-0.038,dE=+0.030,dS=-0.011)
+[QWEN+FAST] 2026-04-16 10:53:26 step=13 action=click item_id=2396 page_pos=3 DT=4.559 recovered_before_round=C psy_state=(P=0.357,C=0.093,E=0.257,S=0.361,Surf=1) psy_delta=(dP=+0.018,dC=-0.157,dE=-0.015,dS=-0.010)
+[QWEN+FAST] 2026-04-16 10:53:32 step=14 action=click item_id=1580 page_pos=4 DT=5.255 recovered_before_round=- psy_state=(P=0.348,C=0.000,E=0.307,S=0.351,Surf=0) psy_delta=(dP=-0.009,dC=-0.093,dE=+0.050,dS=-0.009)
+[QWEN+FAST] 2026-04-16 10:53:41 step=15 action=click item_id=2762 page_pos=2 DT=7.405 recovered_before_round=C psy_state=(P=0.353,C=0.194,E=0.290,S=0.328,Surf=1) psy_delta=(dP=+0.005,dC=-0.056,dE=-0.016,dS=-0.023)
+[QWEN+FAST] 2026-04-16 10:53:46 step=16 action=click item_id=2997 page_pos=3 DT=4.529 recovered_before_round=- psy_state=(P=0.350,C=0.113,E=0.217,S=0.311,Surf=1) psy_delta=(dP=-0.003,dC=-0.080,dE=-0.074,dS=-0.017)
+[QWEN+FAST] 2026-04-16 10:53:52 step=17 action=click item_id=1197 page_pos=4 DT=4.933 recovered_before_round=- psy_state=(P=0.350,C=0.000,E=0.286,S=0.294,Surf=0) psy_delta=(dP=-0.000,dC=-0.113,dE=+0.069,dS=-0.017)
+[QWEN+FAST] 2026-04-16 10:53:57 step=18 action=click item_id=527 page_pos=4 DT=4.184 recovered_before_round=C psy_state=(P=0.359,C=0.185,E=0.318,S=0.280,Surf=1) psy_delta=(dP=+0.009,dC=-0.065,dE=+0.032,dS=-0.014)
+[QWEN+FAST] 2026-04-16 10:54:05 step=19 action=click item_id=858 page_pos=4 DT=6.341 recovered_before_round=- psy_state=(P=0.363,C=0.045,E=0.289,S=0.273,Surf=1) psy_delta=(dP=+0.004,dC=-0.140,dE=-0.029,dS=-0.007)
+[QWEN+FAST] 2026-04-16 10:54:10 step=20 action=click item_id=1617 page_pos=4 DT=4.321 recovered_before_round=- psy_state=(P=0.367,C=0.000,E=0.251,S=0.269,Surf=0) psy_delta=(dP=+0.004,dC=-0.045,dE=-0.038,dS=-0.004)
+[Cleanup] removed 20 image(s) from /Users/chongzhang/PsyBer-Agent/runs/20260416_105152_627262_p10037_667049/browser_cache
+Run completed.
+- output: /Users/chongzhang/PsyBer-Agent/runs/20260416_105152_627262_p10037_667049
+- memory: /Users/chongzhang/PsyBer-Agent/runs/20260416_105152_627262_p10037_667049/memory.json
+- clicks: 20 / 20

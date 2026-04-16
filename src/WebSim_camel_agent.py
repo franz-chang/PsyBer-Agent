@@ -99,7 +99,8 @@ PROJECT_AGENT_PROFILES_FILE = PROJECT_DIR / "profiles" / "agent_profiles.json"
 # - QWEN_API_KEY / DASHSCOPE_API_KEY
 # - QWEN_BASE_URL
 # - QWEN_MODEL
-QWEN_MODEL_DEFAULT = "qwen3-vl-flash"
+# QWEN_MODEL_DEFAULT = "qwen-vl-plus"
+QWEN_MODEL_DEFAULT = "qwen3-vl-flash-2025-10-15"
 QWEN_BASE_URL_DEFAULT = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 # Fill your key here if you don't want to use environment variables.
 # Example: QWEN_API_KEY = "sk-xxxx"
@@ -644,12 +645,32 @@ class WebSimCamelAgent:
 
         print("[FastPolicy] no usable policy file found, fallback to Qwen decision path")
 
+    def _fast_policy_include_skip_action(self) -> bool:
+        """Backward-compatible switch from policy metadata."""
+        if not isinstance(self.fast_policy_bundle, dict):
+            return True
+        meta = self.fast_policy_bundle.get("metadata")
+        if not isinstance(meta, dict):
+            return True
+        if "include_skip_action" in meta:
+            try:
+                return bool(meta.get("include_skip_action"))
+            except Exception:
+                return True
+        action_space = meta.get("action_space")
+        if isinstance(action_space, list):
+            names = [str(x).strip().lower() for x in action_space]
+            if "skip" not in names:
+                return False
+        return True
+
     def _build_fast_policy_action_hints(
         self,
         *,
         cards: list[dict[str, Any]],
         next_enabled: bool,
         top_k: int = 2,
+        forbidden_item_ids: set[str] | None = None,
     ) -> dict[str, Any] | None:
         if self.fast_policy_bundle is None or self.psy_engine is None:
             return None
@@ -660,19 +681,32 @@ class WebSimCamelAgent:
 
         state_before_dict = self.psy_engine.export_state()
         state_before = state_dict_to_vec(state_before_dict)
+        include_skip_action = self._fast_policy_include_skip_action()
 
         action_mat = simulate_action_matrix(
             self.psy_engine,
             candidates,
-            include_skip=True,
+            include_skip=include_skip_action,
         )
         actions = action_mat.get("actions", [])
         deltas = np.array(action_mat.get("deltas", []), dtype=np.float32)
         if len(actions) == 0 or deltas.size == 0:
             return None
+        forbidden_ids = {
+            str(x).strip() for x in (forbidden_item_ids or set()) if str(x).strip()
+        }
+
+        def _is_forbidden_click(idx: int) -> bool:
+            action_raw = str(actions[idx].get("action") or "").strip().lower()
+            if action_raw != "click":
+                return False
+            item_id_raw = str(actions[idx].get("item_id") or "").strip()
+            return item_id_raw in forbidden_ids
 
         pareto_front_raw = pareto_front_indices(deltas)
         valid_indices = [int(i) for i in pareto_front_raw if 0 <= int(i) < len(actions)]
+        if forbidden_ids:
+            valid_indices = [idx for idx in valid_indices if not _is_forbidden_click(idx)]
         skip_allowed = False
         if not next_enabled:
             valid_indices = [
@@ -685,15 +719,35 @@ class WebSimCamelAgent:
                 deltas,
                 valid_indices,
             )
+            if forbidden_ids:
+                valid_indices = [idx for idx in valid_indices if not _is_forbidden_click(idx)]
 
         if not valid_indices:
             valid_indices = [
-                idx for idx, action in enumerate(actions) if str(action.get("action") or "") == "click"
+                idx
+                for idx, action in enumerate(actions)
+                if str(action.get("action") or "") == "click" and (not _is_forbidden_click(idx))
             ]
             skip_allowed = False
+        if (not valid_indices) and next_enabled:
+            valid_indices = [
+                idx for idx, action in enumerate(actions) if str(action.get("action") or "") == "skip"
+            ]
+            skip_allowed = bool(valid_indices)
         if not valid_indices:
-            valid_indices = [0]
-            skip_allowed = str(actions[0].get("action") or "") == "skip"
+            fallback_idx = None
+            for idx, action in enumerate(actions):
+                action_raw = str(action.get("action") or "").strip().lower()
+                if action_raw == "skip":
+                    fallback_idx = idx
+                    break
+                if not _is_forbidden_click(idx):
+                    fallback_idx = idx
+                    break
+            if fallback_idx is None:
+                fallback_idx = 0
+            valid_indices = [int(fallback_idx)]
+            skip_allowed = str(actions[int(fallback_idx)].get("action") or "") == "skip"
 
         features = build_action_features(state_before, actions, deltas)
         model = self.fast_policy_bundle["model"]
@@ -827,6 +881,14 @@ class WebSimCamelAgent:
                 history_vectors.append([float(x) for x in feat["item_v"]])
         return history_vectors
 
+    @staticmethod
+    def _collect_clicked_item_ids(memory: AgentMemory) -> set[str]:
+        return {
+            str(rec.item_id).strip()
+            for rec in memory.click_sequence
+            if str(rec.item_id).strip()
+        }
+
     def _select_agent_profile(self, agent_num: int) -> dict[str, Any]:
         if not self.agent_profiles:
             return {}
@@ -899,10 +961,16 @@ class WebSimCamelAgent:
         cards: list[dict[str, Any]],
         next_enabled: bool,
         fast_policy_hints: dict[str, Any] | None = None,
+        forbidden_item_ids: set[str] | None = None,
     ) -> tuple[str, str]:
         parsed = self._extract_json_object(reply_text)
         valid_ids = {str(x.get("item_id") or "") for x in cards}
         valid_ids.discard("")
+        forbidden_ids = {
+            str(x).strip() for x in (forbidden_item_ids or set()) if str(x).strip()
+        }
+        if forbidden_ids:
+            valid_ids = {x for x in valid_ids if x not in forbidden_ids}
         hint_choices = (
             fast_policy_hints.get("choices")
             if isinstance(fast_policy_hints, dict)
@@ -910,32 +978,15 @@ class WebSimCamelAgent:
         )
         if not isinstance(hint_choices, list):
             hint_choices = []
-
-        hint_click_ids = {
-            str(x.get("item_id") or "")
-            for x in hint_choices
-            if isinstance(x, dict) and str(x.get("action") or "") == "click"
-        }
-        hint_click_ids.discard("")
-        hint_next_allowed = any(
-            isinstance(x, dict) and str(x.get("action") or "") == "next"
-            for x in hint_choices
-        )
         top_hint = hint_choices[0] if hint_choices else None
 
         if isinstance(parsed, dict):
             action = str(parsed.get("action") or "click").strip().lower()
             item_id = str(parsed.get("item_id") or "").strip()
-            if hint_choices:
-                if action == "next" and next_enabled and hint_next_allowed:
-                    return "next", ""
-                if action == "click" and item_id in valid_ids and item_id in hint_click_ids:
-                    return "click", item_id
-            else:
-                if action == "next" and next_enabled:
-                    return "next", ""
-                if action == "click" and item_id in valid_ids:
-                    return "click", item_id
+            if action == "next" and next_enabled:
+                return "next", ""
+            if action == "click" and item_id in valid_ids:
+                return "click", item_id
 
         if isinstance(top_hint, dict):
             top_action = str(top_hint.get("action") or "click")
@@ -945,7 +996,13 @@ class WebSimCamelAgent:
             if top_action == "click" and top_item_id in valid_ids:
                 return "click", top_item_id
 
-        first_id = str(cards[0].get("item_id") or "")
+        for card in cards:
+            first_id = str(card.get("item_id") or "").strip()
+            if first_id and first_id in valid_ids:
+                return "click", first_id
+        if next_enabled:
+            return "next", ""
+        first_id = str(cards[0].get("item_id") or "").strip() if cards else ""
         return "click", first_id
 
     def _build_decision_prompt(
@@ -957,12 +1014,34 @@ class WebSimCamelAgent:
         memory: AgentMemory,
         psy_state: dict[str, Any],
         psy_engine_choice: dict[str, Any],
+        psy_candidates_prompt: list[dict[str, Any]],
+        psy_pareto_front: list[int],
         fast_policy_hints: dict[str, Any] | None,
     ) -> str:
+        clicked_item_ids = sorted(self._collect_clicked_item_ids(memory))
+        clicked_item_set = set(clicked_item_ids)
         card_lines = []
         for idx, card in enumerate(cards, start=1):
+            item_id = str(card.get("item_id", ""))
             card_lines.append(
-                f"{idx}. item_id={card.get('item_id','')} | title={card.get('title','')}"
+                f"{idx}. item_id={item_id} | title={card.get('title','')} | clicked_before={str(item_id in clicked_item_set).lower()}"
+            )
+        psy_candidate_lines = []
+        for cand in psy_candidates_prompt:
+            if not isinstance(cand, dict):
+                continue
+            psy_candidate_lines.append(
+                "rank={rank}, item_id={item_id}, title={title}, n={n:.4f}, c={c:.4f}, "
+                "pop={pop:.4f}, psy_top={psy_top}, pareto={pareto}".format(
+                    rank=int(cand.get("rank", 0)),
+                    item_id=str(cand.get("item_id", "")),
+                    title=str(cand.get("title", "")),
+                    n=float(cand.get("n", 0.0)),
+                    c=float(cand.get("c", 0.0)),
+                    pop=float(cand.get("pop", 0.0)),
+                    psy_top=str(bool(cand.get("psy_top", False))).lower(),
+                    pareto=str(bool(cand.get("pareto", False))).lower(),
+                )
             )
         hint_lines = []
         hint_choices = (
@@ -985,32 +1064,35 @@ class WebSimCamelAgent:
         recent_lines = [
             f"{x.order}. {x.item_id} | {x.title}" for x in recent
         ] or ["none"]
-        has_fast_hints = bool(hint_lines)
         fast_policy_text = hint_lines if hint_lines else ["none"]
-        fast_rule_lines = (
-            "- 你必须优先在 fast_policy_candidates 中做最终决策。\n"
-            "- 如果输出 click，item_id 必须来自 fast_policy_candidates 且在页面 candidates 中。\n"
-            "- 如果输出 next，fast_policy_candidates 中必须含有 action=next，且 next_enabled=true。\n"
-            if has_fast_hints
-            else "- 如果没有 fast_policy_candidates，可在页面 candidates 中自行选择。\n"
-        )
+        psy_candidate_text = psy_candidate_lines if psy_candidate_lines else ["none"]
+        clicked_item_text = clicked_item_ids if clicked_item_ids else ["none"]
         return (
-            "请根据截图模拟用户点击行为。你必须只输出 JSON，不要输出其它文本。\n"
+            "你是一名线上用户，请根据截图选择你喜欢的，然后点击你喜欢的图片。你必须只输出 JSON,不要输出其它文本。\n"
+            "你会同时收到以下决策信息: 你此时的心理状态: psy_state、根据你的心理状态下可能的选择:fast_policy_candidates(top-k)、最近点击: recent_clicks 与页面上可选项: candidates。\n"
+            "请综合判断，由你做最终决策。\n"
             "可选动作:\n"
             '1) {"action":"click","item_id":"<候选中的item_id>","reason":"..."}\n'
-            '2) {"action":"next","reason":"..."}\n'
             "规则:\n"
             "- 只能在候选 item_id 中选择 click。\n"
-            "- 只有当 next_enabled=true 且你对当前 4 项都不感兴趣时才选 next。\n"
-            "- 如果 next_enabled=false，必须选 click。\n\n"
-            f"{fast_rule_lines}\n"
+            "- 严禁重复点击: clicked_item_ids 中出现过的 item_id 不能再次点击。\n"
+            "- 尽量不选择next,只有当 next_enabled=true 且psy_candidates和fast_policy_candidates第一个都是next, 且你对当前 4 项都不感兴趣时才选 next。\n"
+            "- 如果 next_enabled=true, 如果 fast_policy_candidates 中没有Next则必须选 click。且参考recent_clicks不能连续选择 next。\n"
+            "- 如果当前页候选都已经在 clicked_item_ids 中, 且 next_enabled=true, 必须选 next。\n"
+            "- 如果 next_enabled=false, 必须选 click。\n\n"
+            "说明:\n"
+            "- 你此时的心理状态: 根据你的心理状态下可能的选择: fast_policy_candidates 是参考信号, 不是硬约束。\n"
+            "- 当多个信号冲突时，请基于截图与行为连贯性选出你喜欢的，作为最终判断。\n\n"
             f"dataset={memory.selected_dataset_key}, model={memory.selected_model_key}\n"
             f"next_enabled={str(next_enabled).lower()}\n"
             f"status_text={status_text}\n"
             f"psy_state={psy_state}\n"
-            f"psy_engine_choice={psy_engine_choice}\n"
+            # f"psy_engine_choice={psy_engine_choice}\n"
+            f"psy_pareto_front={psy_pareto_front}\n"
+            f"psy_candidates={psy_candidate_text}\n"
             f"fast_policy_candidates={fast_policy_text}\n"
             f"recent_clicks={recent_lines}\n"
+            f"clicked_item_ids={clicked_item_text}\n"
             f"candidates={card_lines}\n"
         )
 
@@ -1069,7 +1151,10 @@ class WebSimCamelAgent:
         memory: AgentMemory,
         psy_state: dict[str, Any],
         psy_engine_choice: dict[str, Any],
+        psy_candidates_prompt: list[dict[str, Any]],
+        psy_pareto_front: list[int],
         fast_policy_hints: dict[str, Any] | None,
+        forbidden_item_ids: set[str] | None = None,
     ) -> tuple[str, str, str]:
         prompt = self._build_decision_prompt(
             cards=cards,
@@ -1078,6 +1163,8 @@ class WebSimCamelAgent:
             memory=memory,
             psy_state=psy_state,
             psy_engine_choice=psy_engine_choice,
+            psy_candidates_prompt=psy_candidates_prompt,
+            psy_pareto_front=psy_pareto_front,
             fast_policy_hints=fast_policy_hints,
         )
         reply_text = self._call_openai_decision(
@@ -1085,7 +1172,11 @@ class WebSimCamelAgent:
             screenshot_path=screenshot_path,
         )
         action, item_id = self._decide_action_from_agent_reply(
-            reply_text, cards, next_enabled, fast_policy_hints=fast_policy_hints
+            reply_text,
+            cards,
+            next_enabled,
+            fast_policy_hints=fast_policy_hints,
+            forbidden_item_ids=forbidden_item_ids,
         )
         return action, item_id, reply_text
 
@@ -1288,10 +1379,17 @@ class WebSimCamelAgent:
                 state = await self._get_state(toolkit)
 
                 cards = [x for x in state.get("cards", []) if x.get("ref")]
+                clicked_item_ids = self._collect_clicked_item_ids(memory)
+                decision_cards = [
+                    x
+                    for x in cards
+                    if str(x.get("item_id") or "").strip() not in clicked_item_ids
+                ]
                 next_ref = str(state.get("next_ref") or "")
                 next_disabled = bool(state.get("next_disabled", False))
                 next_enabled = bool(next_ref) and (not next_disabled)
                 status_text = str(state.get("status_text") or "")
+                reset_ref = str(state.get("reset_ref") or "")
 
                 if not cards:
                     if next_enabled:
@@ -1307,7 +1405,6 @@ class WebSimCamelAgent:
                         await asyncio.sleep(0.5)
                         continue
 
-                    reset_ref = str(state.get("reset_ref") or "")
                     if reset_ref:
                         await self._click_by_ref(toolkit, reset_ref, "click reset")
                         memory.append_skip(
@@ -1323,23 +1420,68 @@ class WebSimCamelAgent:
 
                     raise RuntimeError("No cards and no next/reset action available")
 
+                if not decision_cards:
+                    if next_enabled:
+                        await self._click_by_ref(toolkit, next_ref, "click next")
+                        memory.append_skip(
+                            SkipRecord(
+                                reason="all_cards_already_clicked_then_next",
+                                status_text=status_text,
+                                timestamp_utc=self._utc_now(),
+                            )
+                        )
+                        self._persist_memory(memory)
+                        await asyncio.sleep(0.5)
+                        continue
+                    if reset_ref:
+                        await self._click_by_ref(toolkit, reset_ref, "click reset")
+                        memory.append_skip(
+                            SkipRecord(
+                                reason="all_cards_already_clicked_then_reset",
+                                status_text=status_text,
+                                timestamp_utc=self._utc_now(),
+                            )
+                        )
+                        self._persist_memory(memory)
+                        await asyncio.sleep(0.5)
+                        continue
+                    raise RuntimeError(
+                        "All cards on current page were already clicked and no next/reset action is available"
+                    )
+
                 screenshot_path = await self._capture_som_screenshot_path(toolkit)
                 decision_step += 1
                 decision_start = time.perf_counter()
                 psy_recovered_pre = list(self.psy_engine.apply_recovery_if_needed())
                 psy_state_before = self.psy_engine.export_state()
-                psy_candidates = self._build_psy_candidates(cards)
+                psy_candidates = self._build_psy_candidates(decision_cards)
                 psy_choice_idx, pareto_front = self.psy_engine.select_best_item(psy_candidates)
                 psy_choice = psy_candidates[psy_choice_idx]
+                pareto_front_set = {int(x) for x in pareto_front}
+                psy_candidates_prompt = []
+                for idx, cand in enumerate(psy_candidates, start=1):
+                    psy_candidates_prompt.append(
+                        {
+                            "rank": idx,
+                            "item_id": str(cand.get("item_id", "")),
+                            "title": str(cand.get("title", "")),
+                            "n": float(cand.get("n", 0.0)),
+                            "c": float(cand.get("c", 0.0)),
+                            "pop": float(cand.get("pop", 0.0)),
+                            "psy_top": bool((idx - 1) == int(psy_choice_idx)),
+                            "pareto": bool((idx - 1) in pareto_front_set),
+                        }
+                    )
                 selected_title = str(psy_choice.get("title", ""))
                 psy_state = self.psy_engine.export_state()
                 fast_policy_hints: dict[str, Any] | None = None
                 if self.fast_policy_bundle is not None:
                     try:
                         fast_policy_hints = self._build_fast_policy_action_hints(
-                            cards=cards,
+                            cards=decision_cards,
                             next_enabled=next_enabled,
                             top_k=2,
+                            forbidden_item_ids=clicked_item_ids,
                         )
                     except Exception as err:
                         if self.require_fast_inference:
@@ -1359,32 +1501,46 @@ class WebSimCamelAgent:
                                 "Fast policy returned no candidate actions while strict inference mode is enabled"
                             )
 
-                force_next_by_psy = (
-                    int(psy_state.get("Surf", 1)) == 0
-                    or any(
-                        float(psy_state.get(k, 1.0)) <= 0.0
-                        for k in ("P", "C", "E", "S")
-                    )
+                action, selected_item_id, _ = self._decide_action_with_agent(
+                    screenshot_path=screenshot_path,
+                    cards=decision_cards,
+                    next_enabled=next_enabled,
+                    status_text=status_text,
+                    memory=memory,
+                    psy_state=psy_state,
+                    psy_engine_choice={
+                        "item_id": psy_choice.get("item_id", ""),
+                        "title": psy_choice.get("title", ""),
+                        "item_n": float(psy_choice.get("n", 0.0)),
+                        "item_c": float(psy_choice.get("c", 0.0)),
+                        "item_pop": float(psy_choice.get("pop", 0.0)),
+                    },
+                    psy_candidates_prompt=psy_candidates_prompt,
+                    psy_pareto_front=[int(x) for x in pareto_front],
+                    fast_policy_hints=fast_policy_hints,
+                    forbidden_item_ids=clicked_item_ids,
                 )
-                if force_next_by_psy:
-                    action, selected_item_id = ("next", "")
-                else:
-                    action, selected_item_id, _ = self._decide_action_with_agent(
-                        screenshot_path=screenshot_path,
-                        cards=cards,
-                        next_enabled=next_enabled,
-                        status_text=status_text,
-                        memory=memory,
-                        psy_state=psy_state,
-                        psy_engine_choice={
-                            "item_id": psy_choice.get("item_id", ""),
-                            "title": psy_choice.get("title", ""),
-                            "item_n": float(psy_choice.get("n", 0.0)),
-                            "item_c": float(psy_choice.get("c", 0.0)),
-                            "item_pop": float(psy_choice.get("pop", 0.0)),
-                        },
-                        fast_policy_hints=fast_policy_hints,
+
+                if action == "click" and selected_item_id in clicked_item_ids:
+                    print(
+                        "[Safety] blocked repeated click from model output: "
+                        f"item_id={selected_item_id}"
                     )
+                    fallback_item_id = ""
+                    for card in decision_cards:
+                        cand_id = str(card.get("item_id") or "").strip()
+                        if cand_id and cand_id not in clicked_item_ids:
+                            fallback_item_id = cand_id
+                            break
+                    if fallback_item_id:
+                        selected_item_id = fallback_item_id
+                    elif next_enabled:
+                        action = "next"
+                        selected_item_id = ""
+                    else:
+                        raise RuntimeError(
+                            "Repeated click selected but no valid replacement item is available"
+                        )
 
                 if action == "click":
                     selected_candidate = None
@@ -1454,7 +1610,7 @@ class WebSimCamelAgent:
                 )
                 page_pos: str | int = "-"
                 if action == "click":
-                    for idx, card in enumerate(cards, start=1):
+                    for idx, card in enumerate(decision_cards, start=1):
                         if str(card.get("item_id") or "") == selected_item_id:
                             page_pos = idx
                             break
@@ -1463,7 +1619,6 @@ class WebSimCamelAgent:
                     f"[{decision_tag}] {decision_time} step={decision_step} "
                     f"action={action} item_id={selected_item_id or '-'} "
                     f"page_pos={page_pos} DT={decision_seconds:.3f} "
-                    f"forced_next={str(force_next_by_psy).lower()} "
                     f"recovered_before_round={recovered_log} "
                     f"psy_state=({psy_state_log}) "
                     f"psy_delta=({psy_delta_log})"
@@ -1475,13 +1630,9 @@ class WebSimCamelAgent:
                         memory.append_skip(
                             SkipRecord(
                                 reason=(
-                                    "psyber_forced_next_due_surf_0"
-                                    if force_next_by_psy
-                                    else (
-                                        "fast_policy_candidate_next_page"
-                                        if memory.decision_mode == "qwen_with_fast_candidates"
-                                        else "user_not_interested_next_page"
-                                    )
+                                    "qwen_decision_next_page_with_fast_hints"
+                                    if memory.decision_mode == "qwen_with_fast_candidates"
+                                    else "qwen_decision_next_page"
                                 ),
                                 status_text=status_text,
                                 timestamp_utc=self._utc_now(),
@@ -1508,9 +1659,9 @@ class WebSimCamelAgent:
                     raise RuntimeError("Action next selected but no next/reset available")
 
                 match = [
-                    x for x in cards if str(x.get("item_id") or "") == selected_item_id
+                    x for x in decision_cards if str(x.get("item_id") or "") == selected_item_id
                 ]
-                choice = match[0] if match else cards[0]
+                choice = match[0] if match else decision_cards[0]
                 item_id = str(choice.get("item_id") or "")
                 title = str(choice.get("title") or "")
                 click_ok = False
@@ -1545,6 +1696,11 @@ class WebSimCamelAgent:
                     retry_cards = [
                         x for x in retry_state.get("cards", []) if x.get("ref")
                     ]
+                    retry_cards = [
+                        x
+                        for x in retry_cards
+                        if str(x.get("item_id") or "").strip() not in clicked_item_ids
+                    ]
                     if not retry_cards:
                         continue
                     new_choice = retry_cards[0]
@@ -1553,6 +1709,10 @@ class WebSimCamelAgent:
 
                 if not click_ok:
                     raise RuntimeError(click_error or "click card failed")
+                if item_id in clicked_item_ids:
+                    raise RuntimeError(
+                        f"Safety check failed: duplicated click detected for item_id={item_id}"
+                    )
 
                 memory.append_click(
                     ClickRecord(

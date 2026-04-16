@@ -30,6 +30,8 @@ has_epochs=0
 has_lr=0
 has_imitation_coef=0
 has_imitation_decay=0
+has_include_skip_action=0
+has_skip_action_weight=0
 has_skip_recovery_boost=0
 has_ugw_eps=0
 has_expert_time_weight=0
@@ -72,6 +74,12 @@ for arg in "$@"; do
       ;;
     --imitation-decay|--imitation-decay=*)
       has_imitation_decay=1
+      ;;
+    --include-skip-action|--disable-skip-action)
+      has_include_skip_action=1
+      ;;
+    --skip-action-weight|--skip-action-weight=*)
+      has_skip_action_weight=1
       ;;
     --skip-recovery-boost|--skip-recovery-boost=*)
       has_skip_recovery_boost=1
@@ -121,8 +129,8 @@ fi
 
 # Use a practical default training length for stage-02.
 if [ "${has_epochs}" -eq 0 ]; then
-  set -- --epochs 100 "$@"
-  epochs_note="default(100)"
+  set -- --epochs 20 "$@"
+  epochs_note="default(20)"
 else
   epochs_note="user"
 fi
@@ -137,6 +145,12 @@ if [ "${alignment_mode}" = "softlabel_ugw" ]; then
   fi
   if [ "${has_imitation_decay}" -eq 0 ]; then
     set -- --imitation-decay 0.97 "$@"
+  fi
+  if [ "${has_include_skip_action}" -eq 0 ]; then
+    set -- --disable-skip-action "$@"
+  fi
+  if [ "${has_skip_action_weight}" -eq 0 ]; then
+    set -- --skip-action-weight 0.10 "$@"
   fi
   if [ "${has_skip_recovery_boost}" -eq 0 ]; then
     set -- --skip-recovery-boost 0.10 "$@"
@@ -163,10 +177,10 @@ if [ "${alignment_mode}" = "softlabel_ugw" ]; then
     set -- --ugw-init-time-weight 0.40 "$@"
   fi
   if [ "${has_ugw_init_reg_epochs}" -eq 0 ]; then
-    set -- --ugw-init-reg-epochs 50 "$@"
+    set -- --ugw-init-reg-epochs 100 "$@"
   fi
   if [ "${has_ugw_init_reg_batch_size}" -eq 0 ]; then
-    set -- --ugw-init-reg-batch-size 2048 "$@"
+    set -- --ugw-init-reg-batch-size 4096 "$@"
   fi
   if [ "${has_ugw_init_reg_lr}" -eq 0 ]; then
     set -- --ugw-init-reg-lr 5e-3 "$@"

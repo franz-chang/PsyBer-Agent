@@ -194,6 +194,38 @@ Each pipeline step now has its own startup script under:
 - `evaluation/steps/01_run_experiment_suite.sh`
 - `evaluation/steps/02_run_memory_eval.sh`
 - `evaluation/steps/03_generate_markdown_report.sh`
+- `evaluation/steps/04_plot_e1_item_distribution.sh`
 - `evaluation/steps/run_e1.sh` ... `evaluation/steps/run_e7.sh` (single experiment wrappers)
 
 You can run these step-by-step manually, or call `evaluation/run_all_experiments.sh` for end-to-end execution.
+
+## 8) E1 item distribution plot (agent vs offline logs)
+
+For preliminary E1 behavior-fidelity visualization, compare:
+
+- Agent click-item distribution from `runs/*/memory.json`
+- Offline item distribution from `ratings.dat` (ML-1M)
+
+Run:
+
+```bash
+cd /Users/chongzhang/PsyBer-Agent
+bash evaluation/steps/04_plot_e1_item_distribution.sh
+```
+
+Default output files in `evaluation/reports/`:
+
+- `e1_item_dist_ml1m_top30_<timestamp>.png`
+- `e1_item_dist_ml1m_rank_<timestamp>.png`
+- `e1_item_dist_ml1m_metrics_<timestamp>.json`
+
+Optional env vars:
+
+- `RUNS_ROOT`
+- `OUTPUT_DIR`
+- `DATASET_KEY` (default: `ml1m`)
+- `RATING_THRESHOLD` (default: `0`, means all ratings)
+- `TOP_K` (default: `30`)
+- `OFFLINE_RATINGS_FILE` (override default ML-1M path)
+- `OFFLINE_TITLES_FILE` (override default `movies.dat`)
+- `OUTPUT_PREFIX`

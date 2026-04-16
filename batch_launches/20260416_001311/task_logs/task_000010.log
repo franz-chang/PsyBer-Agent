@@ -1,0 +1,97 @@
+[FastPolicy] loaded: /Users/chongzhang/PsyBer-Agent/outputs/fast_policies/ml1m/fast_inference_policy.pt
+[QWEN+FAST] 2026-04-16 00:13:39 step=1 action=click item_id=258 page_pos=1 DT=3.494 recovered_before_round=- psy_state=(P=0.595,C=0.220,E=0.405,S=0.530,Surf=1) psy_delta=(dP=+0.145,dC=-0.230,dE=-0.145,dS=-0.020)
+[QWEN+FAST] 2026-04-16 00:13:46 step=2 action=click item_id=2 page_pos=3 DT=5.960 recovered_before_round=- psy_state=(P=0.502,C=0.000,E=0.356,S=0.519,Surf=0) psy_delta=(dP=-0.093,dC=-0.220,dE=-0.049,dS=-0.010)
+[Cleanup] removed 3 image(s) from /Users/chongzhang/PsyBer-Agent/runs/20260416_001321_732171_p2427_ec0869/browser_cache
+Traceback (most recent call last):
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpcore/_sync/http_proxy.py", line 288, in handle_request
+    connect_response = self._connection.handle_request(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpcore/_sync/connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpcore/_backends/sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 61] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/openai/_base_client.py", line 1005, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 61] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1873, in <module>
+    main()
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1869, in main
+    agent.run()
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1773, in run
+    memory = asyncio.run(self.run_click_simulation(task))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1504, in run_click_simulation
+    action, selected_item_id, _ = self._decide_action_with_agent(
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1170, in _decide_action_with_agent
+    reply_text = self._call_openai_decision(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1129, in _call_openai_decision
+    resp = client.responses.create(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/openai/resources/responses/responses.py", line 898, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/site-packages/openai/_base_client.py", line 1037, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.

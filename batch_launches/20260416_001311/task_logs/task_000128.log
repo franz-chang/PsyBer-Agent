@@ -1,0 +1,45 @@
+[FastPolicy] loaded: /Users/chongzhang/PsyBer-Agent/outputs/fast_policies/ml1m/fast_inference_policy.pt
+[QWEN+FAST] 2026-04-16 00:25:14 step=1 action=click item_id=1839 page_pos=1 DT=4.923 recovered_before_round=- psy_state=(P=0.601,C=0.387,E=0.378,S=0.534,Surf=1) psy_delta=(dP=+0.151,dC=-0.063,dE=-0.172,dS=-0.016)
+[QWEN+FAST] 2026-04-16 00:25:22 step=2 action=click item_id=2 page_pos=3 DT=7.062 recovered_before_round=- psy_state=(P=0.508,C=0.053,E=0.339,S=0.522,Surf=1) psy_delta=(dP=-0.093,dC=-0.334,dE=-0.039,dS=-0.012)
+[QWEN+FAST] 2026-04-16 00:25:28 step=3 action=click item_id=3 page_pos=4 DT=5.619 recovered_before_round=- psy_state=(P=0.446,C=0.000,E=0.239,S=0.503,Surf=0) psy_delta=(dP=-0.062,dC=-0.053,dE=-0.099,dS=-0.019)
+[QWEN+FAST] 2026-04-16 00:25:34 step=4 action=click item_id=3951 page_pos=3 DT=4.856 recovered_before_round=C psy_state=(P=0.408,C=0.000,E=0.243,S=0.482,Surf=0) psy_delta=(dP=-0.038,dC=-0.250,dE=+0.003,dS=-0.022)
+[QWEN+FAST] 2026-04-16 00:25:39 step=5 action=click item_id=3949 page_pos=4 DT=4.219 recovered_before_round=C psy_state=(P=0.410,C=0.064,E=0.279,S=0.470,Surf=1) psy_delta=(dP=+0.002,dC=-0.186,dE=+0.037,dS=-0.012)
+[QWEN+FAST] 2026-04-16 00:25:44 step=6 action=click item_id=3948 page_pos=4 DT=3.668 recovered_before_round=- psy_state=(P=0.373,C=0.000,E=0.183,S=0.451,Surf=0) psy_delta=(dP=-0.037,dC=-0.064,dE=-0.096,dS=-0.019)
+[QWEN+FAST] 2026-04-16 00:25:48 step=7 action=click item_id=101 page_pos=1 DT=3.331 recovered_before_round=C psy_state=(P=0.390,C=0.083,E=0.122,S=0.434,Surf=1) psy_delta=(dP=+0.017,dC=-0.167,dE=-0.061,dS=-0.016)
+[QWEN+FAST] 2026-04-16 00:25:54 step=8 action=click item_id=3946 page_pos=1 DT=5.070 recovered_before_round=- psy_state=(P=0.383,C=0.000,E=0.156,S=0.410,Surf=0) psy_delta=(dP=-0.007,dC=-0.083,dE=+0.034,dS=-0.025)
+[QWEN+FAST] 2026-04-16 00:26:00 step=9 action=click item_id=3950 page_pos=3 DT=5.491 recovered_before_round=C psy_state=(P=0.410,C=0.087,E=0.148,S=0.390,Surf=1) psy_delta=(dP=+0.027,dC=-0.163,dE=-0.008,dS=-0.020)
+[QWEN+FAST] 2026-04-16 00:26:04 step=10 action=click item_id=3947 page_pos=3 DT=2.753 recovered_before_round=- psy_state=(P=0.312,C=0.000,E=0.092,S=0.365,Surf=0) psy_delta=(dP=-0.098,dC=-0.087,dE=-0.056,dS=-0.025)
+[QWEN+FAST] 2026-04-16 00:26:10 step=11 action=click item_id=1 page_pos=2 DT=4.733 recovered_before_round=C psy_state=(P=0.349,C=0.000,E=0.110,S=0.336,Surf=0) psy_delta=(dP=+0.037,dC=-0.250,dE=+0.018,dS=-0.029)
+[QWEN+FAST] 2026-04-16 00:26:16 step=12 action=click item_id=3944 page_pos=3 DT=5.229 recovered_before_round=C psy_state=(P=0.355,C=0.056,E=0.116,S=0.310,Surf=1) psy_delta=(dP=+0.006,dC=-0.194,dE=+0.006,dS=-0.026)
+[QWEN+FAST] 2026-04-16 00:26:21 step=13 action=click item_id=3941 page_pos=1 DT=4.141 recovered_before_round=- psy_state=(P=0.360,C=0.000,E=0.126,S=0.295,Surf=0) psy_delta=(dP=+0.005,dC=-0.056,dE=+0.010,dS=-0.016)
+[QWEN+FAST] 2026-04-16 00:26:26 step=14 action=click item_id=3940 page_pos=1 DT=4.400 recovered_before_round=C psy_state=(P=0.352,C=0.000,E=0.197,S=0.267,Surf=0) psy_delta=(dP=-0.008,dC=-0.250,dE=+0.071,dS=-0.028)
+[QWEN+FAST] 2026-04-16 00:26:33 step=15 action=click item_id=3939 page_pos=1 DT=5.745 recovered_before_round=C psy_state=(P=0.329,C=0.075,E=0.213,S=0.246,Surf=1) psy_delta=(dP=-0.023,dC=-0.175,dE=+0.017,dS=-0.021)
+[QWEN+FAST] 2026-04-16 00:26:41 step=16 action=click item_id=3938 page_pos=1 DT=7.322 recovered_before_round=- psy_state=(P=0.309,C=0.000,E=0.141,S=0.227,Surf=0) psy_delta=(dP=-0.020,dC=-0.075,dE=-0.073,dS=-0.019)
+Traceback (most recent call last):
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1873, in <module>
+    main()
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1869, in main
+    agent.run()
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1773, in run
+    memory = asyncio.run(self.run_click_simulation(task))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1728, in run_click_simulation
+    self._persist_memory(memory)
+  File "/Users/chongzhang/PsyBer-Agent/src/WebSim_camel_agent.py", line 1261, in _persist_memory
+    self.memory_file.write_text(
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/pathlib.py", line 1078, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/envs/psyber/lib/python3.11/pathlib.py", line 1044, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/chongzhang/PsyBer-Agent/runs/20260416_002501_985444_p5807_a4502b/memory.json'

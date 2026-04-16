@@ -9,6 +9,29 @@ cd "${PROJECT_ROOT}"
 unset MallocStackLogging
 unset MallocStackLoggingNoCompact
 
+# Compatibility shim:
+# WebSim_camel_agent.py expects /Users/chongzhang/Web_sim/run_service.sh,
+# while newer Web_sim repos place it under scripts/run_service.sh.
+WEB_SIM_ROOT="/Users/chongzhang/Web_sim"
+EXPECTED_SERVICE_SCRIPT="${WEB_SIM_ROOT}/run_service.sh"
+FALLBACK_SERVICE_SCRIPT="${WEB_SIM_ROOT}/scripts/run_service.sh"
+
+if [ ! -f "${EXPECTED_SERVICE_SCRIPT}" ] && [ -f "${FALLBACK_SERVICE_SCRIPT}" ]; then
+  cat > "${EXPECTED_SERVICE_SCRIPT}" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
+exec "${SCRIPT_DIR}/scripts/run_service.sh" "$@"
+EOF
+  chmod +x "${EXPECTED_SERVICE_SCRIPT}"
+fi
+
+if [ ! -f "${EXPECTED_SERVICE_SCRIPT}" ]; then
+  echo "[ERROR] Missing Web_sim service launcher script: ${EXPECTED_SERVICE_SCRIPT}" >&2
+  echo "Expected fallback was also missing: ${FALLBACK_SERVICE_SCRIPT}" >&2
+  exit 1
+fi
+
 # Prefer dedicated runtime env first, then activated env, then system python3.
 if [ -x "/opt/anaconda3/envs/psyber/bin/python" ]; then
   PYTHON_BIN="/opt/anaconda3/envs/psyber/bin/python"

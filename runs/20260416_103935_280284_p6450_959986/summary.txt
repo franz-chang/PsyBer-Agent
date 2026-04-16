@@ -1,0 +1,11 @@
+run_dir=/Users/chongzhang/PsyBer-Agent/runs/20260416_103935_280284_p6450_959986
+task_file=/Users/chongzhang/PsyBer-Agent/settings/task.yaml
+dataset=ml1m
+model=lightgcn
+decision_mode=qwen_with_fast_candidates
+track_target=20
+click_count=20
+skip_count=0
+memory_file=/Users/chongzhang/PsyBer-Agent/runs/20260416_103935_280284_p6450_959986/memory.json
+fast_policy_path=/Users/chongzhang/PsyBer-Agent/outputs/fast_policies/ml1m/fast_inference_policy.pt
+api_id=api-030

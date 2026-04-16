@@ -1,0 +1,2466 @@
+{
+  "meta": {
+    "generated_at": "2026-04-16T12:08:39.604304",
+    "runs_root": "/Users/chongzhang/PsyBer-Agent/runs",
+    "batch_root": "/Users/chongzhang/PsyBer-Agent/batch_launches",
+    "run_count": 200,
+    "ab_case_count": 0,
+    "batch_summary_count": 4,
+    "reference_file": null,
+    "ab_cases_file": null,
+    "run_metadata_file": null,
+    "selected_experiments": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7"
+    ]
+  },
+  "E1_behavior_fidelity": {
+    "status": "ok",
+    "goal": "Behavior fidelity with psychology trajectory alignment",
+    "main_metrics": {
+      "CTR gap": null,
+      "Item exposure JS": null,
+      "PCES trajectory MSE": null
+    },
+    "diagnostics": {
+      "Skip-rate gap": null,
+      "Session length error": null,
+      "Repeat rate gap": null,
+      "Popularity-bucket JS": null,
+      "Transition-matrix distance": null
+    },
+    "global": {
+      "CTR gap": null,
+      "Item exposure JS": null,
+      "PCES trajectory MSE": null,
+      "Skip-rate gap": null,
+      "Session length error": null,
+      "Repeat rate gap": null,
+      "Popularity-bucket JS": null,
+      "Transition-matrix distance": null,
+      "simulated_summary": {
+        "sim_ctr": 1.0,
+        "sim_skip_rate": 0.0,
+        "sim_repeat_rate": 0.0,
+        "sim_session_length": 20.0,
+        "sim_transition_matrix": {
+          "click->click": 1.0,
+          "click->skip": 0.0,
+          "skip->click": 0.0,
+          "skip->skip": 0.0
+        },
+        "sim_popularity_bucket_dist": {
+          "mid": 0.03825,
+          "high": 0.93125,
+          "low": 0.0305
+        },
+        "total_runs": 200
+      }
+    },
+    "by_dataset": {
+      "ml1m": {
+        "run_count": 200,
+        "metrics": {
+          "CTR gap": null,
+          "Item exposure JS": null,
+          "PCES trajectory MSE": null,
+          "Skip-rate gap": null,
+          "Session length error": null,
+          "Repeat rate gap": null,
+          "Popularity-bucket JS": null,
+          "Transition-matrix distance": null,
+          "simulated_summary": {
+            "sim_ctr": 1.0,
+            "sim_skip_rate": 0.0,
+            "sim_repeat_rate": 0.0,
+            "sim_session_length": 20.0,
+            "sim_transition_matrix": {
+              "click->click": 1.0,
+              "click->skip": 0.0,
+              "skip->click": 0.0,
+              "skip->skip": 0.0
+            },
+            "sim_popularity_bucket_dist": {
+              "mid": 0.03825,
+              "high": 0.93125,
+              "low": 0.0305
+            },
+            "total_runs": 200
+          }
+        },
+        "missing_inputs": [
+          "real_ctr",
+          "real_item_exposure",
+          "real_pces_trajectory",
+          "real_popularity_bucket_dist or (real_item_exposure + real_item_popularity)",
+          "real_repeat_rate",
+          "real_session_length",
+          "real_skip_rate",
+          "real_transition_matrix"
+        ]
+      }
+    },
+    "missing_inputs": [
+      "real_ctr",
+      "real_item_exposure",
+      "real_pces_trajectory",
+      "real_popularity_bucket_dist or (real_item_exposure + real_item_popularity)",
+      "real_repeat_rate",
+      "real_session_length",
+      "real_skip_rate",
+      "real_transition_matrix"
+    ]
+  },
+  "E2_online_ab_accuracy": {
+    "status": "insufficient_data",
+    "reason": "No A/B cases found. Provide --ab-cases-file or reference.ab_cases.",
+    "required_fields": [
+      "oracle_lift",
+      "pred_lift",
+      "budget(optional)",
+      "seed(optional)",
+      "cost(optional)"
+    ]
+  },
+  "E3_cross_domain_heterogeneity": {
+    "status": "ok",
+    "goal": "Cross-domain generalization and heterogeneity robustness",
+    "table3_cross_domain": {
+      "ml1m": {
+        "run_count": 200,
+        "ab_case_count": 0,
+        "A/B": {
+          "Sign Accuracy": null,
+          "Lift MAE": null,
+          "Type-I Error": null,
+          "Power@δ(1%)": null,
+          "Power@δ(3%)": null,
+          "Power@δ(5%)": null,
+          "Lift RMSE": null,
+          "Regret": null
+        },
+        "Behavior": {
+          "CTR gap": null,
+          "Item exposure JS": null
+        }
+      }
+    },
+    "group_breakdown": {},
+    "worst_group_performance": {
+      "A/B Sign Accuracy (higher is better)": null,
+      "Behavior CTR gap (lower is better)": null
+    },
+    "cross_domain_degradation": {
+      "Sign Accuracy degradation (cross vs in-domain)": null,
+      "Sign Accuracy degradation (few-shot vs in-domain)": null
+    },
+    "notes": [
+      "No group labels found (run metadata[group] or ab_cases[group]).",
+      "No in_domain/cross_domain/few_shot labels found; degradation is unavailable."
+    ]
+  },
+  "E4_ablation": {
+    "status": "ok",
+    "goal": "Mechanism necessity via module ablation",
+    "baseline_variant": "qwen_with_fast_candidates",
+    "ablation_table": {
+      "qwen_with_fast_candidates": {
+        "run_count": 200,
+        "ab_case_count": 0,
+        "A/B": {
+          "Sign Accuracy": null,
+          "Lift MAE": null,
+          "Type-I Error": null
+        },
+        "Behavior": {
+          "CTR gap": null,
+          "Item exposure JS": null
+        },
+        "Psychology": {
+          "PCES trajectory MSE": null
+        },
+        "Efficiency": {
+          "Latency/decision": 5.682710605789474,
+          "Cost per correct A/B decision": null
+        }
+      }
+    },
+    "delta_vs_baseline": {},
+    "notes": [
+      "Only one variant found. Add metadata.variant or ab_cases.variant for full ablation."
+    ]
+  },
+  "E5_scalability_cost": {
+    "status": "ok",
+    "goal": "Scalability, throughput, reliability, and cost-quality tradeoffs",
+    "efficiency_table": [
+      {
+        "launch_tag": "20260415_193646",
+        "N_agents": 200,
+        "throughput_tasks_per_sec": 0.07742201769784059,
+        "success_rate": 1.0,
+        "timeout_rate": 0.0,
+        "latency_per_task_sec": 12.916222409789917,
+        "Sign Accuracy (if linked AB)": null,
+        "summary_path": "/Users/chongzhang/PsyBer-Agent/batch_launches/20260415_193646/summary.json"
+      },
+      {
+        "launch_tag": "20260415_233552",
+        "N_agents": 200,
+        "throughput_tasks_per_sec": 0.3702010792452065,
+        "success_rate": 1.0,
+        "timeout_rate": 0.0,
+        "latency_per_task_sec": 2.7012346966650513,
+        "Sign Accuracy (if linked AB)": null,
+        "summary_path": "/Users/chongzhang/PsyBer-Agent/batch_launches/20260415_233552/summary.json"
+      },
+      {
+        "launch_tag": "20260416_002951",
+        "N_agents": 200,
+        "throughput_tasks_per_sec": 0.14590664651919566,
+        "success_rate": 1.0,
+        "timeout_rate": 0.0,
+        "latency_per_task_sec": 6.85369737333,
+        "Sign Accuracy (if linked AB)": null,
+        "summary_path": "/Users/chongzhang/PsyBer-Agent/batch_launches/20260416_002951/summary.json"
+      },
+      {
+        "launch_tag": "20260416_103712",
+        "N_agents": 200,
+        "throughput_tasks_per_sec": 0.1537981480366087,
+        "success_rate": 1.0,
+        "timeout_rate": 0.0,
+        "latency_per_task_sec": 6.502028878540001,
+        "Sign Accuracy (if linked AB)": null,
+        "summary_path": "/Users/chongzhang/PsyBer-Agent/batch_launches/20260416_103712/summary.json"
+      }
+    ],
+    "headline_metrics": {
+      "Latency/decision (from runs)": 5.682710605789474,
+      "Throughput": 0.18683197287471287,
+      "Success rate": 1.0,
+      "Timeout rate": 0.0
+    },
+    "iso_cost": null,
+    "iso_quality": null,
+    "notes": [
+      "No launch_tag-linked A/B cases; iso-cost/iso-quality are limited.",
+      "No per-case cost in AB cases; cost-quality analysis is unavailable."
+    ]
+  },
+  "E6_robustness": {
+    "status": "ok",
+    "goal": "Robustness under model/prompt/seed/track perturbations",
+    "base_condition": "mode=qwen_with_fast_candidates|track=20",
+    "mean_ci_table": {
+      "mode=qwen_with_fast_candidates|track=20": {
+        "run_count": 200,
+        "ab_case_count": 0,
+        "A/B (mean±95%CI)": {
+          "Sign Accuracy": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Lift MAE": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Type-I Error": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(1%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(3%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Power@δ(5%)": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          }
+        },
+        "Behavior (mean±95%CI)": {
+          "CTR gap": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          },
+          "Item exposure JS": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          }
+        },
+        "Psychology (mean±95%CI)": {
+          "PCES trajectory MSE": {
+            "mean": null,
+            "ci95": null,
+            "n": 0
+          }
+        },
+        "Efficiency (mean±95%CI)": {
+          "Latency/decision": {
+            "mean": 5.682710605789474,
+            "ci95": 0.14358218181617796,
+            "n": 200
+          },
+          "Cost per correct A/B decision": null
+        }
+      }
+    },
+    "drop_percent_vs_base": {},
+    "worst_case_performance": {
+      "Sign Accuracy (min over perturbations)": null,
+      "Lift MAE (max over perturbations)": null
+    },
+    "notes": [
+      "Perturbation labels come from run_metadata[perturbation] or ab_cases[perturbation/variant].",
+      "A/B CI is computed across seeds when seed labels are available."
+    ]
+  },
+  "E7_qualitative_trajectory": {
+    "status": "ok",
+    "goal": "Qualitative trajectory analysis for success/failure/boundary/recovery patterns",
+    "case_count": 5,
+    "cases": [
+      {
+        "label": "state_recovery_case",
+        "run_id": "20260416_103718_623950_p5852_b3f060",
+        "dataset": "ml1m",
+        "model": "lightgcn",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 20,
+        "summary": {
+          "decisions": 20,
+          "clicks": 20,
+          "skips": 0,
+          "ctr": 1.0,
+          "skip_rate": 0.0,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 7,
+          "latency_per_decision_sec": 5.7715972631578945,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 1.9
+        },
+        "ab_judgement": null,
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-16T02:37:31.676031+00:00",
+            "action": "click",
+            "selected_item_id": "2047",
+            "selected_title": "The Gnome-Mobile",
+            "pces": {
+              "P": 0.5846381387468326,
+              "C": 0.333042432487215,
+              "E": 0.4522911608219147,
+              "S": 0.5457650623511147
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.013133667409420013,
+              "Offense_t": 0.06686633080244064
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 2,
+            "timestamp_utc": "2026-04-16T02:37:35.329888+00:00",
+            "action": "click",
+            "selected_item_id": "2691",
+            "selected_title": "The Legend of 1900",
+            "pces": {
+              "P": 0.4968028508384469,
+              "C": 0.1569863689194524,
+              "E": 0.42171710729599,
+              "S": 0.5293525145616006
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.330333948135376,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09073218703269958
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 3,
+            "timestamp_utc": "2026-04-16T02:37:41.238800+00:00",
+            "action": "click",
+            "selected_item_id": "1827",
+            "selected_title": "The Big Red One",
+            "pces": {
+              "P": 0.46215577159775184,
+              "C": 0.004622570236571602,
+              "E": 0.3134191036224365,
+              "S": 0.5197959495644174
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.36992985010147095,
+              "Bel_t": 0.0026205331087112427,
+              "Offense_t": 0.07737946510314941
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 4,
+            "timestamp_utc": "2026-04-16T02:37:48.307768+00:00",
+            "action": "click",
+            "selected_item_id": "589",
+            "selected_title": "Terminator 2: Judgment Day",
+            "pces": {
+              "P": 0.430618095757655,
+              "C": 0.0,
+              "E": 0.3513641953468323,
+              "S": 0.508940929540535
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.32555413246154785,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09045850485563278
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 5,
+            "timestamp_utc": "2026-04-16T02:37:52.459764+00:00",
+            "action": "click",
+            "selected_item_id": "1210",
+            "selected_title": "Return of the Jedi",
+            "pces": {
+              "P": 0.4018688587922568,
+              "C": 0.17614404310505433,
+              "E": 0.2609640061855316,
+              "S": 0.49922778084232433
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29315775632858276,
+              "Bel_t": 0.0,
+              "Offense_t": 0.08094290643930435
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 6,
+            "timestamp_utc": "2026-04-16T02:37:58.415498+00:00",
+            "action": "click",
+            "selected_item_id": "480",
+            "selected_title": "Jurassic Park",
+            "pces": {
+              "P": 0.3837434277041833,
+              "C": 0.01653986983611698,
+              "E": 0.3001960515975952,
+              "S": 0.48524301405354364
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.28999292850494385,
+              "Bel_t": 0.0,
+              "Offense_t": 0.11653972417116165
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 7,
+            "timestamp_utc": "2026-04-16T02:38:03.913326+00:00",
+            "action": "click",
+            "selected_item_id": "2028",
+            "selected_title": "Saving Private Ryan",
+            "pces": {
+              "P": 0.36138734496301705,
+              "C": 0.0,
+              "E": 0.254190593957901,
+              "S": 0.47624969900875314
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.23976969718933105,
+              "Bel_t": 0.009367191232740879,
+              "Offense_t": 0.07063280791044235
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 8,
+            "timestamp_utc": "2026-04-16T02:38:12.474894+00:00",
+            "action": "click",
+            "selected_item_id": "1270",
+            "selected_title": "Back to the Future",
+            "pces": {
+              "P": 0.34645853483918476,
+              "C": 0.07930554423711583,
+              "E": 0.2494901567697525,
+              "S": 0.46400525280564053
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.22941666841506958,
+              "Bel_t": 0.0,
+              "Offense_t": 0.10203705728054047
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 9,
+            "timestamp_utc": "2026-04-16T02:38:19.321983+00:00",
+            "action": "click",
+            "selected_item_id": "260",
+            "selected_title": "Star Wars",
+            "pces": {
+              "P": 0.3138494567454654,
+              "C": 0.0,
+              "E": 0.19067654013633728,
+              "S": 0.4503737804415725
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.12966126203536987,
+              "Bel_t": 0.0,
+              "Offense_t": 0.11359560489654541
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 10,
+            "timestamp_utc": "2026-04-16T02:38:26.287422+00:00",
+            "action": "click",
+            "selected_item_id": "2571",
+            "selected_title": "The Matrix",
+            "pces": {
+              "P": 0.3121929515257748,
+              "C": 0.16731003357936686,
+              "E": 0.25951406359672546,
+              "S": 0.4443194952263586
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2067461609840393,
+              "Bel_t": 0.011077514849603176,
+              "Offense_t": 0.0689224824309349
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 11,
+            "timestamp_utc": "2026-04-16T02:38:31.279382+00:00",
+            "action": "click",
+            "selected_item_id": "1196",
+            "selected_title": "The Empire Strikes Back",
+            "pces": {
+              "P": 0.2901826755995057,
+              "C": 0.0,
+              "E": 0.19494318962097168,
+              "S": 0.4324058548017494
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.10480552911758423,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09928034245967865
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 12,
+            "timestamp_utc": "2026-04-16T02:38:36.163996+00:00",
+            "action": "click",
+            "selected_item_id": "2762",
+            "selected_title": "The Sixth Sense",
+            "pces": {
+              "P": 0.32050628489437094,
+              "C": 0.18997420581535912,
+              "E": 0.22114446759223938,
+              "S": 0.42266045533410235
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.27234387397766113,
+              "Bel_t": 0.0,
+              "Offense_t": 0.08121166378259659
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 13,
+            "timestamp_utc": "2026-04-16T02:38:40.496117+00:00",
+            "action": "click",
+            "selected_item_id": "2396",
+            "selected_title": "Shakespeare in Love",
+            "pces": {
+              "P": 0.3477840150324124,
+              "C": 0.040578595026247444,
+              "E": 0.2239454686641693,
+              "S": 0.41116994176349564
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.31522732973098755,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09575428068637848
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 14,
+            "timestamp_utc": "2026-04-16T02:38:48.740344+00:00",
+            "action": "click",
+            "selected_item_id": "1198",
+            "selected_title": "Raiders of the Lost Ark",
+            "pces": {
+              "P": 0.33858845518002245,
+              "C": 0.0,
+              "E": 0.2617599070072174,
+              "S": 0.4063612027029596
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.23364412784576416,
+              "Bel_t": 0.014968670904636383,
+              "Offense_t": 0.06503132730722427
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 15,
+            "timestamp_utc": "2026-04-16T02:38:54.806610+00:00",
+            "action": "click",
+            "selected_item_id": "1580",
+            "selected_title": "Men in Black",
+            "pces": {
+              "P": 0.33763231993856857,
+              "C": 0.06257060065371647,
+              "E": 0.30810338258743286,
+              "S": 0.3972750878101071
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.24979805946350098,
+              "Bel_t": 0.0016054583247750998,
+              "Offense_t": 0.07839453965425491
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 16,
+            "timestamp_utc": "2026-04-16T02:38:58.121104+00:00",
+            "action": "click",
+            "selected_item_id": "593",
+            "selected_title": "The Silence of the Lambs",
+            "pces": {
+              "P": 0.3657293901864686,
+              "C": 0.0,
+              "E": 0.3237462639808655,
+              "S": 0.38332594504112805
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.34301406145095825,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0970102921128273
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 17,
+            "timestamp_utc": "2026-04-16T02:39:03.548761+00:00",
+            "action": "click",
+            "selected_item_id": "2858",
+            "selected_title": "American Beauty",
+            "pces": {
+              "P": 0.37634638094962525,
+              "C": 0.16955301208263118,
+              "E": 0.32994699478149414,
+              "S": 0.3687102165212711
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3080870509147644,
+              "Bel_t": 0.0,
+              "Offense_t": 0.12179774045944214
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 18,
+            "timestamp_utc": "2026-04-16T02:39:08.158618+00:00",
+            "action": "click",
+            "selected_item_id": "110",
+            "selected_title": "Braveheart",
+            "pces": {
+              "P": 0.37416433220778006,
+              "C": 0.05869060449874549,
+              "E": 0.30173367261886597,
+              "S": 0.353994158483096
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.30794471502304077,
+              "Bel_t": 0.0,
+              "Offense_t": 0.12263382226228714
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 19,
+            "timestamp_utc": "2026-04-16T02:39:14.824643+00:00",
+            "action": "click",
+            "selected_item_id": "1197",
+            "selected_title": "The Princess Bride",
+            "pces": {
+              "P": 0.36192220893203497,
+              "C": 0.0,
+              "E": 0.3387349545955658,
+              "S": 0.343109062327989
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.25631892681121826,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0907091349363327
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 20,
+            "timestamp_utc": "2026-04-16T02:39:21.336379+00:00",
+            "action": "click",
+            "selected_item_id": "527",
+            "selected_title": "Schindler's List",
+            "pces": {
+              "P": 0.36573852971745946,
+              "C": 0.19169646132786877,
+              "E": 0.35074561834335327,
+              "S": 0.32966175248379315
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3038328289985657,
+              "Bel_t": 0.0,
+              "Offense_t": 0.11206091940402985
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      },
+      {
+        "label": "success_like_case",
+        "run_id": "20260416_103717_828340_p5851_6813a6",
+        "dataset": "ml1m",
+        "model": "lightgcn",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 20,
+        "summary": {
+          "decisions": 20,
+          "clicks": 20,
+          "skips": 0,
+          "ctr": 1.0,
+          "skip_rate": 0.0,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 6,
+          "latency_per_decision_sec": 4.8320485263157895,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 2.0
+        },
+        "ab_judgement": null,
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-16T02:37:31.085774+00:00",
+            "action": "click",
+            "selected_item_id": "2793",
+            "selected_title": "An American Werewolf in Paris",
+            "pces": {
+              "P": 0.5850322194432179,
+              "C": 0.43965289974988964,
+              "E": 0.4485900402069092,
+              "S": 0.5689505012208105
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.06989160180091858,
+              "Offense_t": 0.010108396410942078
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 2,
+            "timestamp_utc": "2026-04-16T02:37:34.884205+00:00",
+            "action": "click",
+            "selected_item_id": "260",
+            "selected_title": "Star Wars",
+            "pces": {
+              "P": 0.5205666407717027,
+              "C": 0.311092815759549,
+              "E": 0.31956177949905396,
+              "S": 0.5672155632139624
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.4194457530975342,
+              "Bel_t": 0.03250635787844658,
+              "Offense_t": 0.04749364033341408
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 3,
+            "timestamp_utc": "2026-04-16T02:37:39.530602+00:00",
+            "action": "click",
+            "selected_item_id": "1210",
+            "selected_title": "Return of the Jedi",
+            "pces": {
+              "P": 0.41080734853682377,
+              "C": 0.24554143113596558,
+              "E": 0.25136998295783997,
+              "S": 0.5741889459980161
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.12966126203536987,
+              "Bel_t": 0.07178494334220886,
+              "Offense_t": 0.008215054869651794
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 4,
+            "timestamp_utc": "2026-04-16T02:37:43.425445+00:00",
+            "action": "click",
+            "selected_item_id": "480",
+            "selected_title": "Jurassic Park",
+            "pces": {
+              "P": 0.39568403080953135,
+              "C": 0.08653834579318848,
+              "E": 0.30628105998039246,
+              "S": 0.5888836243841655
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.31751757860183716,
+              "Bel_t": 0.07608409225940704,
+              "Offense_t": 0.003915905952453613
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 5,
+            "timestamp_utc": "2026-04-16T02:37:47.786244+00:00",
+            "action": "click",
+            "selected_item_id": "589",
+            "selected_title": "Terminator 2: Judgment Day",
+            "pces": {
+              "P": 0.3852348534344953,
+              "C": 0.0,
+              "E": 0.3565220236778259,
+              "S": 0.5989538852311529
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29315775632858276,
+              "Bel_t": 0.06145724281668663,
+              "Offense_t": 0.018542755395174026
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 6,
+            "timestamp_utc": "2026-04-16T02:37:53.905490+00:00",
+            "action": "click",
+            "selected_item_id": "2028",
+            "selected_title": "Saving Private Ryan",
+            "pces": {
+              "P": 0.39042804615028354,
+              "C": 0.14740881977349013,
+              "E": 0.2976078689098358,
+              "S": 0.6090223211515553
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3516589403152466,
+              "Bel_t": 0.06145071983337402,
+              "Offense_t": 0.018549278378486633
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 7,
+            "timestamp_utc": "2026-04-16T02:38:00.148659+00:00",
+            "action": "click",
+            "selected_item_id": "2858",
+            "selected_title": "American Beauty",
+            "pces": {
+              "P": 0.39017762828936164,
+              "C": 0.07285475021487264,
+              "E": 0.3236246109008789,
+              "S": 0.619533645659671
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3080870509147644,
+              "Bel_t": 0.0628327876329422,
+              "Offense_t": 0.017167210578918457
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 8,
+            "timestamp_utc": "2026-04-16T02:38:06.352533+00:00",
+            "action": "click",
+            "selected_item_id": "2571",
+            "selected_title": "The Matrix",
+            "pces": {
+              "P": 0.3549367275903567,
+              "C": 0.0,
+              "E": 0.345564603805542,
+              "S": 0.6213112848065652
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2067461609840393,
+              "Bel_t": 0.0355461984872818,
+              "Offense_t": 0.04445379972457886
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 9,
+            "timestamp_utc": "2026-04-16T02:38:12.837680+00:00",
+            "action": "click",
+            "selected_item_id": "110",
+            "selected_title": "Braveheart",
+            "pces": {
+              "P": 0.3621749263265897,
+              "C": 0.13074519200258705,
+              "E": 0.31649693846702576,
+              "S": 0.6220500364154435
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.30794471502304077,
+              "Bel_t": 0.03230028226971626,
+              "Offense_t": 0.047699715942144394
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 10,
+            "timestamp_utc": "2026-04-16T02:38:17.453743+00:00",
+            "action": "click",
+            "selected_item_id": "2762",
+            "selected_title": "The Sixth Sense",
+            "pces": {
+              "P": 0.36082194530153794,
+              "C": 0.07463961605052014,
+              "E": 0.30455416440963745,
+              "S": 0.628585751140476
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.27234387397766113,
+              "Bel_t": 0.05223628133535385,
+              "Offense_t": 0.027763716876506805
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 11,
+            "timestamp_utc": "2026-04-16T02:38:21.392833+00:00",
+            "action": "click",
+            "selected_item_id": "1196",
+            "selected_title": "The Empire Strikes Back",
+            "pces": {
+              "P": 0.3174149121139331,
+              "C": 0.0,
+              "E": 0.23153717815876007,
+              "S": 0.6389834701269723
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.10480552911758423,
+              "Bel_t": 0.062476471066474915,
+              "Offense_t": 0.017523527145385742
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 12,
+            "timestamp_utc": "2026-04-16T02:38:27.415542+00:00",
+            "action": "click",
+            "selected_item_id": "1198",
+            "selected_title": "Raiders of the Lost Ark",
+            "pces": {
+              "P": 0.32158175754567403,
+              "C": 0.15084651528121867,
+              "E": 0.2709729075431824,
+              "S": 0.6427718409988887
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.23364412784576416,
+              "Bel_t": 0.044908106327056885,
+              "Offense_t": 0.03509189188480377
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 13,
+            "timestamp_utc": "2026-04-16T02:38:32.942397+00:00",
+            "action": "click",
+            "selected_item_id": "2396",
+            "selected_title": "Shakespeare in Love",
+            "pces": {
+              "P": 0.3471422749013253,
+              "C": 0.0,
+              "E": 0.2634734809398651,
+              "S": 0.6507194856833525
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.31028664112091064,
+              "Bel_t": 0.05482206866145134,
+              "Offense_t": 0.025177929550409317
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 14,
+            "timestamp_utc": "2026-04-16T02:38:37.336015+00:00",
+            "action": "click",
+            "selected_item_id": "1270",
+            "selected_title": "Back to the Future",
+            "pces": {
+              "P": 0.3384812956046374,
+              "C": 0.08712677018336634,
+              "E": 0.2567353844642639,
+              "S": 0.6379429395031042
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.22941666841506958,
+              "Bel_t": 0.009924004785716534,
+              "Offense_t": 0.07007599622011185
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 15,
+            "timestamp_utc": "2026-04-16T02:38:41.242513+00:00",
+            "action": "click",
+            "selected_item_id": "1580",
+            "selected_title": "Men in Black",
+            "pces": {
+              "P": 0.33757231057635295,
+              "C": 0.0,
+              "E": 0.31636589765548706,
+              "S": 0.648721714010448
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.24979805946350098,
+              "Bel_t": 0.07646805047988892,
+              "Offense_t": 0.0035319477319717407
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 16,
+            "timestamp_utc": "2026-04-16T02:38:45.063814+00:00",
+            "action": "click",
+            "selected_item_id": "2997",
+            "selected_title": "Being John Malkovich",
+            "pces": {
+              "P": 0.34167038645081477,
+              "C": 0.15143159083640523,
+              "E": 0.23824280500411987,
+              "S": 0.6356683503556855
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.26394277811050415,
+              "Bel_t": 0.034572575241327286,
+              "Offense_t": 0.04542742297053337
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 17,
+            "timestamp_utc": "2026-04-16T02:38:49.569592+00:00",
+            "action": "click",
+            "selected_item_id": "1197",
+            "selected_title": "The Princess Bride",
+            "pces": {
+              "P": 0.3451267517699016,
+              "C": 0.005162564685939154,
+              "E": 0.30460071563720703,
+              "S": 0.6370042827632136
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.26186251640319824,
+              "Bel_t": 0.03416537865996361,
+              "Offense_t": 0.04583461955189705
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 18,
+            "timestamp_utc": "2026-04-16T02:38:52.982709+00:00",
+            "action": "click",
+            "selected_item_id": "527",
+            "selected_title": "Schindler's List",
+            "pces": {
+              "P": 0.3563330737066648,
+              "C": 0.0,
+              "E": 0.3350885510444641,
+              "S": 0.6386366164963551
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3038328289985657,
+              "Bel_t": 0.03509141132235527,
+              "Offense_t": 0.044908586889505386
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 19,
+            "timestamp_utc": "2026-04-16T02:38:57.681577+00:00",
+            "action": "click",
+            "selected_item_id": "858",
+            "selected_title": "The Godfather",
+            "pces": {
+              "P": 0.36139966037819127,
+              "C": 0.11101790307785511,
+              "E": 0.3047805428504944,
+              "S": 0.6456770872766942
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29764580726623535,
+              "Bel_t": 0.053253404796123505,
+              "Offense_t": 0.026746593415737152
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 20,
+            "timestamp_utc": "2026-04-16T02:39:02.894696+00:00",
+            "action": "click",
+            "selected_item_id": "1617",
+            "selected_title": "L.A. Confidential",
+            "pces": {
+              "P": 0.3661279110019476,
+              "C": 0.04044208645761016,
+              "E": 0.2555059790611267,
+              "S": 0.6399788024439335
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.30430084466934204,
+              "Bel_t": 0.012189439497888088,
+              "Offense_t": 0.06781055778265
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      },
+      {
+        "label": "additional_case",
+        "run_id": "20260416_103719_045627_p5853_f9e056",
+        "dataset": "ml1m",
+        "model": "lightgcn",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 20,
+        "summary": {
+          "decisions": 20,
+          "clicks": 20,
+          "skips": 0,
+          "ctr": 1.0,
+          "skip_rate": 0.0,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 6,
+          "latency_per_decision_sec": 6.945399789473684,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 1.95
+        },
+        "ab_judgement": null,
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-16T02:37:32.791493+00:00",
+            "action": "click",
+            "selected_item_id": "1931",
+            "selected_title": "Mutiny on the Bounty",
+            "pces": {
+              "P": 0.5830859392916122,
+              "C": 0.4179527345362451,
+              "E": 0.3983730347845175,
+              "S": 0.5403291435912252
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.08059047162532806
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 2,
+            "timestamp_utc": "2026-04-16T02:37:36.363045+00:00",
+            "action": "click",
+            "selected_item_id": "1196",
+            "selected_title": "The Empire Strikes Back",
+            "pces": {
+              "P": 0.5246377798125275,
+              "C": 0.2637747705659874,
+              "E": 0.282414515671511,
+              "S": 0.5333450015867129
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.43273186683654785,
+              "Bel_t": 0.00817455630749464,
+              "Offense_t": 0.07182544469833374
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 3,
+            "timestamp_utc": "2026-04-16T02:37:42.936729+00:00",
+            "action": "click",
+            "selected_item_id": "480",
+            "selected_title": "Jurassic Park",
+            "pces": {
+              "P": 0.4605131951307129,
+              "C": 0.11988514387823604,
+              "E": 0.31557496995883716,
+              "S": 0.5279429741902277
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3218255639076233,
+              "Bel_t": 0.01311623677611351,
+              "Offense_t": 0.06688375771045685
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 4,
+            "timestamp_utc": "2026-04-16T02:37:48.635046+00:00",
+            "action": "click",
+            "selected_item_id": "589",
+            "selected_title": "Terminator 2: Judgment Day",
+            "pces": {
+              "P": 0.42635936092327864,
+              "C": 0.0,
+              "E": 0.3527008473765618,
+              "S": 0.5154616358457134
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3122870922088623,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1040111556649208
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 5,
+            "timestamp_utc": "2026-04-16T02:37:56.768901+00:00",
+            "action": "click",
+            "selected_item_id": "2028",
+            "selected_title": "Saving Private Ryan",
+            "pces": {
+              "P": 0.4134577703440022,
+              "C": 0.14943431787458508,
+              "E": 0.28532849972773544,
+              "S": 0.5022142520872876
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3516589403152466,
+              "Bel_t": 0.0,
+              "Offense_t": 0.11039486527442932
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 6,
+            "timestamp_utc": "2026-04-16T02:38:08.422424+00:00",
+            "action": "click",
+            "selected_item_id": "2858",
+            "selected_title": "American Beauty",
+            "pces": {
+              "P": 0.4030742738378441,
+              "C": 0.07905345456924642,
+              "E": 0.30640461027328125,
+              "S": 0.4931771980016493
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3080870509147644,
+              "Bel_t": 0.0017587486654520035,
+              "Offense_t": 0.0782412514090538
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 7,
+            "timestamp_utc": "2026-04-16T02:38:19.109907+00:00",
+            "action": "click",
+            "selected_item_id": "260",
+            "selected_title": "Star Wars",
+            "pces": {
+              "P": 0.3392279490722539,
+              "C": 0.0,
+              "E": 0.22596349937137414,
+              "S": 0.4818714476539754
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.10480552911758423,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09421458840370178
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 8,
+            "timestamp_utc": "2026-04-16T02:38:26.638883+00:00",
+            "action": "click",
+            "selected_item_id": "2571",
+            "selected_title": "The Matrix",
+            "pces": {
+              "P": 0.32640490722877635,
+              "C": 0.16603734534283535,
+              "E": 0.2797518867840191,
+              "S": 0.47039399681380023
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2067461609840393,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09564542770385742
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 9,
+            "timestamp_utc": "2026-04-16T02:38:35.263762+00:00",
+            "action": "click",
+            "selected_item_id": "1210",
+            "selected_title": "Return of the Jedi",
+            "pces": {
+              "P": 0.302076777752785,
+              "C": 0.06840998700190574,
+              "E": 0.216564389628737,
+              "S": 0.4577092743827962
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.12966126203536987,
+              "Bel_t": 0.0,
+              "Offense_t": 0.10570602118968964
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 10,
+            "timestamp_utc": "2026-04-16T02:38:45.829489+00:00",
+            "action": "click",
+            "selected_item_id": "2762",
+            "selected_title": "The Sixth Sense",
+            "pces": {
+              "P": 0.32716698210020734,
+              "C": 0.017573049312643,
+              "E": 0.23454961785554157,
+              "S": 0.4425375863327645
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.27234387397766113,
+              "Bel_t": 0.0,
+              "Offense_t": 0.12643073499202728
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 11,
+            "timestamp_utc": "2026-04-16T02:38:53.455598+00:00",
+            "action": "click",
+            "selected_item_id": "110",
+            "selected_title": "Braveheart",
+            "pces": {
+              "P": 0.34662386885210605,
+              "C": 0.0,
+              "E": 0.2429779203484967,
+              "S": 0.4337325082859025
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.30794471502304077,
+              "Bel_t": 0.002483468735590577,
+              "Offense_t": 0.07751652598381042
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 12,
+            "timestamp_utc": "2026-04-16T02:39:05.099626+00:00",
+            "action": "click",
+            "selected_item_id": "1198",
+            "selected_title": "Raiders of the Lost Ark",
+            "pces": {
+              "P": 0.3379387733190509,
+              "C": 0.14447979399725125,
+              "E": 0.27130713717990307,
+              "S": 0.4198433473473415
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.23364412784576416,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1157430112361908
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 13,
+            "timestamp_utc": "2026-04-16T02:39:12.529221+00:00",
+            "action": "click",
+            "selected_item_id": "1270",
+            "selected_title": "Back to the Future",
+            "pces": {
+              "P": 0.33332733471856374,
+              "C": 0.0,
+              "E": 0.26010241416344027,
+              "S": 0.4084434700896964
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.22941666841506958,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09499897807836533
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 14,
+            "timestamp_utc": "2026-04-16T02:39:21.199414+00:00",
+            "action": "click",
+            "selected_item_id": "2396",
+            "selected_title": "Shakespeare in Love",
+            "pces": {
+              "P": 0.35371979811814347,
+              "C": 0.09407753563436291,
+              "E": 0.2490971620926695,
+              "S": 0.40087124735582624
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.31028664112091064,
+              "Bel_t": 0.006335103418678045,
+              "Offense_t": 0.07366489619016647
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 15,
+            "timestamp_utc": "2026-04-16T02:39:26.850852+00:00",
+            "action": "click",
+            "selected_item_id": "1580",
+            "selected_title": "Men in Black",
+            "pces": {
+              "P": 0.34610587198391635,
+              "C": 0.0,
+              "E": 0.30000847720609614,
+              "S": 0.38476733614224945
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.24979805946350098,
+              "Bel_t": 0.0,
+              "Offense_t": 0.13355891406536102
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 16,
+            "timestamp_utc": "2026-04-16T02:39:30.483885+00:00",
+            "action": "click",
+            "selected_item_id": "2997",
+            "selected_title": "Being John Malkovich",
+            "pces": {
+              "P": 0.34644918083905024,
+              "C": 0.15142460892178908,
+              "E": 0.2228022168474797,
+              "S": 0.3689412524225191
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.26394277811050415,
+              "Bel_t": 0.0,
+              "Offense_t": 0.13188403844833374
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 17,
+            "timestamp_utc": "2026-04-16T02:39:32.842174+00:00",
+            "action": "click",
+            "selected_item_id": "1197",
+            "selected_title": "The Princess Bride",
+            "pces": {
+              "P": 0.34780287662731346,
+              "C": 0.005396434008490075,
+              "E": 0.29205839745664497,
+              "S": 0.36406882486771797
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.26186251640319824,
+              "Bel_t": 0.014769522473216057,
+              "Offense_t": 0.06523047387599945
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 18,
+            "timestamp_utc": "2026-04-16T02:39:35.745922+00:00",
+            "action": "click",
+            "selected_item_id": "527",
+            "selected_title": "Schindler's List",
+            "pces": {
+              "P": 0.3578317036268154,
+              "C": 0.0,
+              "E": 0.32180615530140816,
+              "S": 0.35406054935883735
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3038328289985657,
+              "Bel_t": 0.0,
+              "Offense_t": 0.08340229839086533
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 19,
+            "timestamp_utc": "2026-04-16T02:39:39.830373+00:00",
+            "action": "click",
+            "selected_item_id": "858",
+            "selected_title": "The Godfather",
+            "pces": {
+              "P": 0.3622388931334756,
+              "C": 0.11180796705681749,
+              "E": 0.28821953708679604,
+              "S": 0.34277555353473876
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29764580726623535,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09404163062572479
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 20,
+            "timestamp_utc": "2026-04-16T02:39:44.754089+00:00",
+            "action": "click",
+            "selected_item_id": "1617",
+            "selected_title": "L.A. Confidential",
+            "pces": {
+              "P": 0.3665978813449068,
+              "C": 0.04127444776743887,
+              "E": 0.24332500464067558,
+              "S": 0.32769005938898776
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.30430084466934204,
+              "Bel_t": 0.0,
+              "Offense_t": 0.12571245431900024
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      },
+      {
+        "label": "additional_case",
+        "run_id": "20260416_103719_325945_p5855_0632ea",
+        "dataset": "ml1m",
+        "model": "lightgcn",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 20,
+        "summary": {
+          "decisions": 20,
+          "clicks": 20,
+          "skips": 0,
+          "ctr": 1.0,
+          "skip_rate": 0.0,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 6,
+          "latency_per_decision_sec": 7.701466894736843,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 1.95
+        },
+        "ab_judgement": null,
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-16T02:37:35.504945+00:00",
+            "action": "click",
+            "selected_item_id": "63",
+            "selected_title": "Don't Be a Menace to South Central While Drinking Your Juice in the Hood",
+            "pces": {
+              "P": 0.5887106935747364,
+              "C": 0.3118839624217263,
+              "E": 0.4811735153198242,
+              "S": 0.5479483545507355
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.018478363752365112,
+              "Offense_t": 0.061521634459495544
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 2,
+            "timestamp_utc": "2026-04-16T02:37:39.535691+00:00",
+            "action": "click",
+            "selected_item_id": "1210",
+            "selected_title": "Return of the Jedi",
+            "pces": {
+              "P": 0.5089479244121934,
+              "C": 0.24160272169950836,
+              "E": 0.34144580364227295,
+              "S": 0.5376388585875793
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.36692219972610474,
+              "Bel_t": 0.0,
+              "Offense_t": 0.08591246604919434
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 3,
+            "timestamp_utc": "2026-04-16T02:37:48.177861+00:00",
+            "action": "click",
+            "selected_item_id": "480",
+            "selected_title": "Jurassic Park",
+            "pces": {
+              "P": 0.45064275329973835,
+              "C": 0.08987570303234678,
+              "E": 0.3500947952270508,
+              "S": 0.5194744641642137
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.31751757860183716,
+              "Bel_t": 0.0,
+              "Offense_t": 0.15136995911598206
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 4,
+            "timestamp_utc": "2026-04-16T02:37:54.035736+00:00",
+            "action": "click",
+            "selected_item_id": "260",
+            "selected_title": "Star Wars",
+            "pces": {
+              "P": 0.37219261908337536,
+              "C": 0.0,
+              "E": 0.25305142998695374,
+              "S": 0.5055210352159156
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.12966126203536987,
+              "Bel_t": 0.0,
+              "Offense_t": 0.0936749279499054
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 5,
+            "timestamp_utc": "2026-04-16T02:38:02.950649+00:00",
+            "action": "click",
+            "selected_item_id": "589",
+            "selected_title": "Terminator 2: Judgment Day",
+            "pces": {
+              "P": 0.37207966286784794,
+              "C": 0.11711111537114953,
+              "E": 0.3139362335205078,
+              "S": 0.49075315373307604
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29315775632858276,
+              "Bel_t": 0.0,
+              "Offense_t": 0.12306568026542664
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 6,
+            "timestamp_utc": "2026-04-16T02:38:17.037650+00:00",
+            "action": "click",
+            "selected_item_id": "1270",
+            "selected_title": "Back to the Future",
+            "pces": {
+              "P": 0.35244623286589005,
+              "C": 0.0,
+              "E": 0.2877681851387024,
+              "S": 0.48378777915901083
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.22941666841506958,
+              "Bel_t": 0.008231427520513535,
+              "Offense_t": 0.07176856696605682
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 7,
+            "timestamp_utc": "2026-04-16T02:38:28.870303+00:00",
+            "action": "click",
+            "selected_item_id": "2028",
+            "selected_title": "Saving Private Ryan",
+            "pces": {
+              "P": 0.37206641863186457,
+              "C": 0.13359348359441695,
+              "E": 0.24968375265598297,
+              "S": 0.48334400115823883
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3516589403152466,
+              "Bel_t": 0.028607049956917763,
+              "Offense_t": 0.05139295011758804
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 8,
+            "timestamp_utc": "2026-04-16T02:38:37.939016+00:00",
+            "action": "click",
+            "selected_item_id": "2571",
+            "selected_title": "The Matrix",
+            "pces": {
+              "P": 0.3447944501821583,
+              "C": 0.04690977734468266,
+              "E": 0.296347439289093,
+              "S": 0.4778277954767509
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2067461609840393,
+              "Bel_t": 0.012758776545524597,
+              "Offense_t": 0.06724122166633606
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 9,
+            "timestamp_utc": "2026-04-16T02:38:47.479012+00:00",
+            "action": "click",
+            "selected_item_id": "110",
+            "selected_title": "Braveheart",
+            "pces": {
+              "P": 0.3564952509779986,
+              "C": 0.0,
+              "E": 0.28272831439971924,
+              "S": 0.469324492777796
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.30794471502304077,
+              "Bel_t": 0.011611727997660637,
+              "Offense_t": 0.06838826835155487
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 10,
+            "timestamp_utc": "2026-04-16T02:38:58.362064+00:00",
+            "action": "click",
+            "selected_item_id": "2762",
+            "selected_title": "The Sixth Sense",
+            "pces": {
+              "P": 0.35764132710632696,
+              "C": 0.1933501852503452,
+              "E": 0.2755712568759918,
+              "S": 0.4565626745327427
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.27234387397766113,
+              "Bel_t": 0.0,
+              "Offense_t": 0.10634848475456238
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 11,
+            "timestamp_utc": "2026-04-16T02:39:07.688624+00:00",
+            "action": "click",
+            "selected_item_id": "2396",
+            "selected_title": "Shakespeare in Love",
+            "pces": {
+              "P": 0.372554340880342,
+              "C": 0.046907317910605505,
+              "E": 0.26070716977119446,
+              "S": 0.4465461235242947
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.33102595806121826,
+              "Bel_t": 0.01892911083996296,
+              "Offense_t": 0.06107088923454285
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 12,
+            "timestamp_utc": "2026-04-16T02:39:16.711046+00:00",
+            "action": "click",
+            "selected_item_id": "593",
+            "selected_title": "The Silence of the Lambs",
+            "pces": {
+              "P": 0.38528572191386173,
+              "C": 0.0,
+              "E": 0.29436060786247253,
+              "S": 0.43361331166057426
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.34301406145095825,
+              "Bel_t": 0.0,
+              "Offense_t": 0.10777343809604645
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 13,
+            "timestamp_utc": "2026-04-16T02:39:24.683495+00:00",
+            "action": "click",
+            "selected_item_id": "1198",
+            "selected_title": "Raiders of the Lost Ark",
+            "pces": {
+              "P": 0.35958941103363407,
+              "C": 0.13687117873550447,
+              "E": 0.30316442251205444,
+              "S": 0.42034937829999763
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.23364412784576416,
+              "Bel_t": 0.0,
+              "Offense_t": 0.11053278297185898
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 14,
+            "timestamp_utc": "2026-04-16T02:39:30.588591+00:00",
+            "action": "click",
+            "selected_item_id": "1580",
+            "selected_title": "Men in Black",
+            "pces": {
+              "P": 0.3493928552165911,
+              "C": 0.0,
+              "E": 0.3335301876068115,
+              "S": 0.40781388191795487
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.24979805946350098,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09426867961883545
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 15,
+            "timestamp_utc": "2026-04-16T02:39:33.739330+00:00",
+            "action": "click",
+            "selected_item_id": "2997",
+            "selected_title": "Being John Malkovich",
+            "pces": {
+              "P": 0.34828989144934813,
+              "C": 0.146831691357589,
+              "E": 0.24614879488945007,
+              "S": 0.40249108830290425
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.26394277811050415,
+              "Bel_t": 0.016722651198506355,
+              "Offense_t": 0.06327734887599945
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 16,
+            "timestamp_utc": "2026-04-16T02:39:37.245404+00:00",
+            "action": "click",
+            "selected_item_id": "1097",
+            "selected_title": "E.T. the Extra-Terrestrial",
+            "pces": {
+              "P": 0.3476396619396211,
+              "C": 0.011071582604594468,
+              "E": 0.17465326189994812,
+              "S": 0.39124649138944734
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2567846179008484,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09370497614145279
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 17,
+            "timestamp_utc": "2026-04-16T02:39:41.832875+00:00",
+            "action": "click",
+            "selected_item_id": "1197",
+            "selected_title": "The Princess Bride",
+            "pces": {
+              "P": 0.3484695460436331,
+              "C": 0.0,
+              "E": 0.2710244059562683,
+              "S": 0.40481304655373607
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.26186251640319824,
+              "Bel_t": 0.07237495481967926,
+              "Offense_t": 0.0076250433921813965
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 18,
+            "timestamp_utc": "2026-04-16T02:39:48.103225+00:00",
+            "action": "click",
+            "selected_item_id": "527",
+            "selected_title": "Schindler's List",
+            "pces": {
+              "P": 0.35820503849995444,
+              "C": 0.18797701581050066,
+              "E": 0.3177372217178345,
+              "S": 0.4135159673035196
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3038328289985657,
+              "Bel_t": 0.05718045309185982,
+              "Offense_t": 0.02281954512000084
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 19,
+            "timestamp_utc": "2026-04-16T02:39:53.325451+00:00",
+            "action": "click",
+            "selected_item_id": "858",
+            "selected_title": "The Godfather",
+            "pces": {
+              "P": 0.3624479606624335,
+              "C": 0.04959860764262488,
+              "E": 0.285696804523468,
+              "S": 0.40078322855812076
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29764580726623535,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09870284795761108
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 20,
+            "timestamp_utc": "2026-04-16T02:40:01.832816+00:00",
+            "action": "click",
+            "selected_item_id": "1617",
+            "selected_title": "L.A. Confidential",
+            "pces": {
+              "P": 0.36671495916112323,
+              "C": 0.0,
+              "E": 0.24176090955734253,
+              "S": 0.3841742052329755
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.30430084466934204,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1037328913807869
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      },
+      {
+        "label": "additional_case",
+        "run_id": "20260416_103719_513132_p5854_db28c0",
+        "dataset": "ml1m",
+        "model": "lightgcn",
+        "decision_mode": "qwen_with_fast_candidates",
+        "track_target": 20,
+        "summary": {
+          "decisions": 20,
+          "clicks": 20,
+          "skips": 0,
+          "ctr": 1.0,
+          "skip_rate": 0.0,
+          "repeat_rate": 0.0,
+          "recovered_rounds": 6,
+          "latency_per_decision_sec": 5.54864947368421,
+          "fast_hint_coverage": 1.0,
+          "avg_fast_hint_count": 1.95
+        },
+        "ab_judgement": null,
+        "trajectory": [
+          {
+            "step": 1,
+            "timestamp_utc": "2026-04-16T02:37:42.868635+00:00",
+            "action": "click",
+            "selected_item_id": "508",
+            "selected_title": "Philadelphia",
+            "pces": {
+              "P": 0.5868870550864652,
+              "C": 0.39256983495778186,
+              "E": 0.4885514942663609,
+              "S": 0.5182594165205956
+            },
+            "psych_intermediate": {
+              "Nov_t": 1.0,
+              "Bel_t": 0.0,
+              "Offense_t": 0.13189426064491272
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 2,
+            "timestamp_utc": "2026-04-16T02:37:49.467069+00:00",
+            "action": "click",
+            "selected_item_id": "1210",
+            "selected_title": "Return of the Jedi",
+            "pces": {
+              "P": 0.5051302939709308,
+              "C": 0.3217220116185844,
+              "E": 0.34602014626778893,
+              "S": 0.48843297287821774
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.35577231645584106,
+              "Bel_t": 0.0,
+              "Offense_t": 0.13469460606575012
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 3,
+            "timestamp_utc": "2026-04-16T02:37:57.940690+00:00",
+            "action": "click",
+            "selected_item_id": "480",
+            "selected_title": "Jurassic Park",
+            "pces": {
+              "P": 0.4485048802526313,
+              "C": 0.16959074201907082,
+              "E": 0.35293086977347726,
+              "S": 0.4601899024099112
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.31751757860183716,
+              "Bel_t": 0.0,
+              "Offense_t": 0.13479194045066833
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 4,
+            "timestamp_utc": "2026-04-16T02:38:03.725363+00:00",
+            "action": "click",
+            "selected_item_id": "260",
+            "selected_title": "Star Wars",
+            "pces": {
+              "P": 0.37099541017699544,
+              "C": 0.018002262204501136,
+              "E": 0.2548097802614957,
+              "S": 0.43620041403919463
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.12966126203536987,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1271943897008896
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 5,
+            "timestamp_utc": "2026-04-16T02:38:08.647471+00:00",
+            "action": "click",
+            "selected_item_id": "589",
+            "selected_title": "Terminator 2: Judgment Day",
+            "pces": {
+              "P": 0.3714092258802752,
+              "C": 0.0,
+              "E": 0.31502642976421014,
+              "S": 0.4016553780063987
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29315775632858276,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1127394586801529
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 6,
+            "timestamp_utc": "2026-04-16T02:38:14.609687+00:00",
+            "action": "click",
+            "selected_item_id": "1270",
+            "selected_title": "Back to the Future",
+            "pces": {
+              "P": 0.3520707881528493,
+              "C": 0.10482385542462787,
+              "E": 0.2872083755657106,
+              "S": 0.37591344043612485
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.22941666841506958,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1446206271648407
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 7,
+            "timestamp_utc": "2026-04-16T02:38:19.543691+00:00",
+            "action": "click",
+            "selected_item_id": "2858",
+            "selected_title": "American Beauty",
+            "pces": {
+              "P": 0.36869756381079843,
+              "C": 0.03132137950761514,
+              "E": 0.30729349323526206,
+              "S": 0.3345257390290499
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3080870509147644,
+              "Bel_t": 0.0,
+              "Offense_t": 0.14795595407485962
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 8,
+            "timestamp_utc": "2026-04-16T02:38:24.835310+00:00",
+            "action": "click",
+            "selected_item_id": "2571",
+            "selected_title": "The Matrix",
+            "pces": {
+              "P": 0.3429078914823613,
+              "C": 0.0,
+              "E": 0.33199689823803713,
+              "S": 0.3121385597158224
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2067461609840393,
+              "Bel_t": 0.012295512482523918,
+              "Offense_t": 0.06770448386669159
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 9,
+            "timestamp_utc": "2026-04-16T02:38:32.029436+00:00",
+            "action": "click",
+            "selected_item_id": "110",
+            "selected_title": "Braveheart",
+            "pces": {
+              "P": 0.3554387781061123,
+              "C": 0.1300627788278823,
+              "E": 0.30300463004726963,
+              "S": 0.27947357990778987
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.30794471502304077,
+              "Bel_t": 0.0,
+              "Offense_t": 0.17413601279258728
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 10,
+            "timestamp_utc": "2026-04-16T02:38:38.624861+00:00",
+            "action": "click",
+            "selected_item_id": "2028",
+            "selected_title": "Saving Private Ryan",
+            "pces": {
+              "P": 0.3736525687783244,
+              "C": 0.026042230983793768,
+              "E": 0.2545168449835743,
+              "S": 0.25412764535285537
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3513016700744629,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1336744725704193
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 11,
+            "timestamp_utc": "2026-04-16T02:38:45.182642+00:00",
+            "action": "click",
+            "selected_item_id": "593",
+            "selected_title": "The Silence of the Lambs",
+            "pces": {
+              "P": 0.3938173812028963,
+              "C": 0.0,
+              "E": 0.29052259814949777,
+              "S": 0.2436518971342594
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3745729923248291,
+              "Bel_t": 0.0,
+              "Offense_t": 0.08729790151119232
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 1.0
+          },
+          {
+            "step": 12,
+            "timestamp_utc": "2026-04-16T02:38:50.127016+00:00",
+            "action": "click",
+            "selected_item_id": "1198",
+            "selected_title": "Raiders of the Lost Ark",
+            "pces": {
+              "P": 0.36436714023549344,
+              "C": 0.137014960310041,
+              "E": 0.30078483741652373,
+              "S": 0.21284217149950568
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.23364412784576416,
+              "Bel_t": 0.0,
+              "Offense_t": 0.11502119153738022
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 13,
+            "timestamp_utc": "2026-04-16T02:38:54.946074+00:00",
+            "action": "click",
+            "selected_item_id": "2396",
+            "selected_title": "Shakespeare in Love",
+            "pces": {
+              "P": 0.3711020892076241,
+              "C": 0.0,
+              "E": 0.2733224976572024,
+              "S": 0.1712535502854735
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.31028664112091064,
+              "Bel_t": 0.0,
+              "Offense_t": 0.15178132057189941
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 14,
+            "timestamp_utc": "2026-04-16T02:38:58.725329+00:00",
+            "action": "click",
+            "selected_item_id": "1580",
+            "selected_title": "Men in Black",
+            "pces": {
+              "P": 0.3558399549940255,
+              "C": 0.05842220951752984,
+              "E": 0.31502818525610654,
+              "S": 0.1425746292341501
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.24979805946350098,
+              "Bel_t": 0.0,
+              "Offense_t": 0.12624329328536987
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 15,
+            "timestamp_utc": "2026-04-16T02:39:03.854407+00:00",
+            "action": "click",
+            "selected_item_id": "2997",
+            "selected_title": "Being John Malkovich",
+            "pces": {
+              "P": 0.3620316264250532,
+              "C": 0.0,
+              "E": 0.23211443583848615,
+              "S": 0.12005248800851409
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3040958642959595,
+              "Bel_t": 0.0,
+              "Offense_t": 0.09278746694326401
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 16,
+            "timestamp_utc": "2026-04-16T02:39:08.818357+00:00",
+            "action": "click",
+            "selected_item_id": "1097",
+            "selected_title": "E.T. the Extra-Terrestrial",
+            "pces": {
+              "P": 0.35951043575007985,
+              "C": 0.11530825979322129,
+              "E": 0.1659519655468382,
+              "S": 0.09052896262146537
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.27331095933914185,
+              "Bel_t": 0.0,
+              "Offense_t": 0.12603265047073364
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 17,
+            "timestamp_utc": "2026-04-16T02:39:15.453792+00:00",
+            "action": "click",
+            "selected_item_id": "1197",
+            "selected_title": "The Princess Bride",
+            "pces": {
+              "P": 0.35511717937749,
+              "C": 0.0,
+              "E": 0.25455028846230476,
+              "S": 0.062640253873542
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.26186251640319824,
+              "Bel_t": 0.0,
+              "Offense_t": 0.1143256202340126
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 18,
+            "timestamp_utc": "2026-04-16T02:39:20.047109+00:00",
+            "action": "click",
+            "selected_item_id": "527",
+            "selected_title": "Schindler's List",
+            "pces": {
+              "P": 0.3619277131669143,
+              "C": 0.1884819595704593,
+              "E": 0.2985511277249172,
+              "S": 0.026478080498054668
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.3038328289985657,
+              "Bel_t": 0.0,
+              "Offense_t": 0.11238110065460205
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 19,
+            "timestamp_utc": "2026-04-16T02:39:23.564080+00:00",
+            "action": "click",
+            "selected_item_id": "858",
+            "selected_title": "The Godfather",
+            "pces": {
+              "P": 0.364532658475931,
+              "C": 0.05029117420579829,
+              "E": 0.2738014199893716,
+              "S": 0.001814372325316116
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.29764580726623535,
+              "Bel_t": 0.0,
+              "Offense_t": 0.11396317929029465
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          },
+          {
+            "step": 20,
+            "timestamp_utc": "2026-04-16T02:39:28.292975+00:00",
+            "action": "click",
+            "selected_item_id": "2762",
+            "selected_title": "The Sixth Sense",
+            "pces": {
+              "P": 0.3582110770360403,
+              "C": 0.0,
+              "E": 0.27003657667913505,
+              "S": 0.0
+            },
+            "psych_intermediate": {
+              "Nov_t": 0.2567846179008484,
+              "Bel_t": 0.0,
+              "Offense_t": 0.10951443761587143
+            },
+            "strategy_source": "fast_policy",
+            "fast_policy_hint_count": 2.0
+          }
+        ],
+        "interpretation_hint": "Check action switches and PCES trend around high Offense_t/low Bel_t periods to diagnose errors."
+      }
+    ],
+    "notes": [
+      "If ab_cases includes run_id mapping, each case includes explicit A/B judgement.",
+      "Use exported trajectory to draw timeline and PCES line charts."
+    ]
+  }
+}

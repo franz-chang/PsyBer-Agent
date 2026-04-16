@@ -1,5 +1,8 @@
-import numpy as np
+import json
+import os
 import time
+
+import numpy as np
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
@@ -47,12 +50,72 @@ class PsyBerEngine:
                 self.memory.append(_safe_norm(arr))
         
         # 3. 超参数设定
-        # 适度收敛参数：抑制 P/C 饱和，减轻 S 过度下滑
-        self.alpha_1, self.beta_1, self.gamma_1, self.delta_1 = 0.53, 0.24, 0.17, 0.07
-        self.w_load, self.w_sat, self.w_prim, self.w_nov = 0.29, 0.22, 0.10, 0.06
-        self.alpha_3, self.lambda_1, self.lambda_2, self.lambda_3 = 0.58, 0.42, 0.26, 0.32
-        self.mu_1, self.mu_2, self.mu_3, self.mu_4 = 0.20, 0.18, 0.22, 0.28
-        self.theta = 0.12  
+        # 基于当前批次统计的稳态校准：
+        # - C 下降过快（长期贴近 0）-> 降低认知惩罚、提高认知恢复项；
+        # - S 持续单调下滑 -> 降低惩罚并提高 Bel 正反馈；
+        # - E 过快衰减 -> 提高社会反馈占比，减轻中后段坍塌。
+        # 覆盖优先级：
+        # 1) legacy 预设（仅当 PSY_PARAM_PRESET=legacy|old|v1 时启用）
+        # 2) persona["psy_params"]
+        # 3) 环境变量 PSY_PARAMS_JSON（JSON dict，最高优先级）
+        legacy_params = {
+            "alpha_1": 0.53,
+            "beta_1": 0.24,
+            "gamma_1": 0.17,
+            "delta_1": 0.07,
+            "w_load": 0.29,
+            "w_sat": 0.22,
+            "w_prim": 0.10,
+            "w_nov": 0.06,
+            "alpha_3": 0.58,
+            "lambda_1": 0.42,
+            "lambda_2": 0.26,
+            "lambda_3": 0.32,
+            "mu_1": 0.20,
+            "mu_2": 0.18,
+            "mu_3": 0.22,
+            "mu_4": 0.28,
+            "theta": 0.12,
+        }
+
+        preset = os.getenv("PSY_PARAM_PRESET", "").strip().lower()
+        if preset in {"legacy", "old", "v1"}:
+            psy_params = dict(legacy_params)
+        else:
+            psy_params = {}
+
+        persona_psy = self.persona.get("psy_params", {})
+        if isinstance(persona_psy, dict):
+            psy_params.update(persona_psy)
+
+        env_json = os.getenv("PSY_PARAMS_JSON", "").strip()
+        if env_json:
+            try:
+                parsed = json.loads(env_json)
+                if isinstance(parsed, dict):
+                    psy_params.update(parsed)
+            except Exception:
+                pass
+        self.alpha_1 = float(psy_params.get("alpha_1", 0.56))
+        self.beta_1 = float(psy_params.get("beta_1", 0.22))
+        self.gamma_1 = float(psy_params.get("gamma_1", 0.15))
+        self.delta_1 = float(psy_params.get("delta_1", 0.07))
+
+        self.w_load = float(psy_params.get("w_load", 0.21))
+        self.w_sat = float(psy_params.get("w_sat", 0.17))
+        self.w_prim = float(psy_params.get("w_prim", 0.15))
+        self.w_nov = float(psy_params.get("w_nov", 0.09))
+
+        self.alpha_3 = float(psy_params.get("alpha_3", 0.62))
+        self.lambda_1 = float(psy_params.get("lambda_1", 0.34))
+        self.lambda_2 = float(psy_params.get("lambda_2", 0.24))
+        self.lambda_3 = float(psy_params.get("lambda_3", 0.42))
+
+        self.mu_1 = float(psy_params.get("mu_1", 0.14))
+        self.mu_2 = float(psy_params.get("mu_2", 0.12))
+        self.mu_3 = float(psy_params.get("mu_3", 0.15))
+        self.mu_4 = float(psy_params.get("mu_4", 0.34))
+        self.theta = float(psy_params.get("theta", 0.08))
         # When Surf=0, next round auto-recovery for depleted dimensions.
         self.recovery_boost = 0.25
         
