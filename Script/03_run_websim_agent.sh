@@ -10,9 +10,17 @@ unset MallocStackLogging
 unset MallocStackLoggingNoCompact
 
 # Compatibility shim:
-# WebSim_camel_agent.py expects /Users/chongzhang/Web_sim/run_service.sh,
-# while newer Web_sim repos place it under scripts/run_service.sh.
-WEB_SIM_ROOT="/Users/chongzhang/Web_sim"
+# Resolve WebSim root directory with backward compatibility.
+WEB_SIM_ROOT=""
+for cand in "${WEBSIM_DIR:-}" "/Users/chongzhang/WebSim" "/Users/chongzhang/Web_sim"; do
+  if [ -n "${cand}" ] && [ -d "${cand}" ]; then
+    WEB_SIM_ROOT="${cand}"
+    break
+  fi
+done
+if [ -z "${WEB_SIM_ROOT}" ]; then
+  WEB_SIM_ROOT="/Users/chongzhang/WebSim"
+fi
 EXPECTED_SERVICE_SCRIPT="${WEB_SIM_ROOT}/run_service.sh"
 FALLBACK_SERVICE_SCRIPT="${WEB_SIM_ROOT}/scripts/run_service.sh"
 
@@ -27,7 +35,7 @@ EOF
 fi
 
 if [ ! -f "${EXPECTED_SERVICE_SCRIPT}" ]; then
-  echo "[ERROR] Missing Web_sim service launcher script: ${EXPECTED_SERVICE_SCRIPT}" >&2
+  echo "[ERROR] Missing WebSim service launcher script: ${EXPECTED_SERVICE_SCRIPT}" >&2
   echo "Expected fallback was also missing: ${FALLBACK_SERVICE_SCRIPT}" >&2
   exit 1
 fi
@@ -55,13 +63,33 @@ case "${STRICT_FAST_INFERENCE_NORM}" in
 esac
 
 user_disable_fast_inference=0
+user_fast_policy_path=""
+expect_fast_policy_path_value=0
 for arg in "$@"; do
   case "$arg" in
     --disable-fast-inference)
       user_disable_fast_inference=1
       ;;
+    --fast-policy-path)
+      expect_fast_policy_path_value=1
+      ;;
+    --fast-policy-path=*)
+      user_fast_policy_path="${arg#*=}"
+      expect_fast_policy_path_value=0
+      ;;
+    *)
+      if [ "${expect_fast_policy_path_value}" -eq 1 ]; then
+        user_fast_policy_path="${arg}"
+        expect_fast_policy_path_value=0
+      fi
+      ;;
   esac
 done
+
+if [ "${expect_fast_policy_path_value}" -eq 1 ]; then
+  echo "[ERROR] '--fast-policy-path' requires a file path value." >&2
+  exit 1
+fi
 
 EXTRA_ARGS=()
 if [ "${STRICT_FAST_INFERENCE}" -eq 1 ]; then
@@ -71,8 +99,21 @@ if [ "${STRICT_FAST_INFERENCE}" -eq 1 ]; then
     exit 1
   fi
 
-  MISSING_FAST_POLICY="$(
-    PROJECT_ROOT_FOR_POLICY_CHECK="${PROJECT_ROOT}" "${PYTHON_BIN}" - <<'PY'
+  if [ -n "${user_fast_policy_path}" ]; then
+    if [ "${user_fast_policy_path#/}" != "${user_fast_policy_path}" ]; then
+      RESOLVED_FAST_POLICY_PATH="${user_fast_policy_path}"
+    else
+      RESOLVED_FAST_POLICY_PATH="${PROJECT_ROOT}/${user_fast_policy_path}"
+    fi
+
+    if [ ! -f "${RESOLVED_FAST_POLICY_PATH}" ]; then
+      echo "[ERROR] Provided fast policy file was not found: ${user_fast_policy_path}" >&2
+      echo "Resolved path: ${RESOLVED_FAST_POLICY_PATH}" >&2
+      exit 1
+    fi
+  else
+    MISSING_FAST_POLICY="$(
+      PROJECT_ROOT_FOR_POLICY_CHECK="${PROJECT_ROOT}" "${PYTHON_BIN}" - <<'PY'
 import os
 from pathlib import Path
 import yaml
@@ -150,13 +191,14 @@ for key in resolved:
 
 print("\n".join(missing))
 PY
-  )"
+    )"
 
-  if [ -n "${MISSING_FAST_POLICY}" ]; then
-    echo "[ERROR] Missing fast policy bundle(s) required by stage-03 inference:" >&2
-    printf '%s\n' "${MISSING_FAST_POLICY}" >&2
-    echo "Please run Script/02_run_alignment_pretrain_agent.sh first (or provide --fast-policy-path)." >&2
-    exit 1
+    if [ -n "${MISSING_FAST_POLICY}" ]; then
+      echo "[ERROR] Missing fast policy bundle(s) required by stage-03 inference:" >&2
+      printf '%s\n' "${MISSING_FAST_POLICY}" >&2
+      echo "Please run script/02_run_alignment_pretrain_agent.sh first (or provide --fast-policy-path)." >&2
+      exit 1
+    fi
   fi
 
   EXTRA_ARGS+=(--require-fast-inference)

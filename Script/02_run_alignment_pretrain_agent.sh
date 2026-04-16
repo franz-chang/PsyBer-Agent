@@ -129,8 +129,8 @@ fi
 
 # Use a practical default training length for stage-02.
 if [ "${has_epochs}" -eq 0 ]; then
-  set -- --epochs 20 "$@"
-  epochs_note="default(20)"
+  set -- --epochs 100 "$@"
+  epochs_note="default(100)"
 else
   epochs_note="user"
 fi
@@ -177,7 +177,7 @@ if [ "${alignment_mode}" = "softlabel_ugw" ]; then
     set -- --ugw-init-time-weight 0.40 "$@"
   fi
   if [ "${has_ugw_init_reg_epochs}" -eq 0 ]; then
-    set -- --ugw-init-reg-epochs 100 "$@"
+    set -- --ugw-init-reg-epochs 500 "$@"
   fi
   if [ "${has_ugw_init_reg_batch_size}" -eq 0 ]; then
     set -- --ugw-init-reg-batch-size 4096 "$@"

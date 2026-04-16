@@ -1,0 +1,587 @@
+{
+  "meta": {
+    "generated_at": "2026-04-16T20:45:19.830423",
+    "runs_root": "/Users/chongzhang/PsyBer-Agent/runs",
+    "dataset_key": "ml1m",
+    "used_run_count": 200,
+    "offline_ratings_file": "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/ratings.dat",
+    "offline_titles_file": "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/movies.dat",
+    "rating_threshold": 0.0,
+    "top_k": 30,
+    "alpha": 0.9,
+    "agent_total_clicks_used_for_calibration": 3981
+  },
+  "metrics": {
+    "raw": {
+      "js_divergence_to_offline": 0.5631735076320966,
+      "l1_distance_to_offline": 1.8307555740443313,
+      "topk_overlap_count": 21,
+      "topk_jaccard": 0.5384615384615384,
+      "unique_items": 329
+    },
+    "calibrated": {
+      "js_divergence_to_offline": 0.043336655910848634,
+      "l1_distance_to_offline": 0.3021211309865628,
+      "topk_overlap_count": 30,
+      "topk_jaccard": 1.0,
+      "unique_items": 1921
+    },
+    "improvement": {
+      "js_reduction": 0.5198368517212479,
+      "l1_reduction": 1.5286344430577685
+    }
+  },
+  "top_items": {
+    "raw_top_k": [
+      {
+        "item_id": "480",
+        "title": "Jurassic Park",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "1210",
+        "title": "Return of the Jedi",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "589",
+        "title": "Terminator 2: Judgment Day",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "1270",
+        "title": "Back to the Future",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "2028",
+        "title": "Saving Private Ryan",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "2571",
+        "title": "The Matrix",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "1198",
+        "title": "Raiders of the Lost Ark",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "2762",
+        "title": "The Sixth Sense",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "1580",
+        "title": "Men in Black",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "1197",
+        "title": "The Princess Bride",
+        "count": 168,
+        "prob": 0.04220045214770158
+      },
+      {
+        "item_id": "110",
+        "title": "Braveheart",
+        "count": 167,
+        "prob": 0.04194925898015574
+      },
+      {
+        "item_id": "527",
+        "title": "Schindler's List",
+        "count": 167,
+        "prob": 0.04194925898015574
+      },
+      {
+        "item_id": "2858",
+        "title": "American Beauty",
+        "count": 166,
+        "prob": 0.041698065812609895
+      },
+      {
+        "item_id": "858",
+        "title": "The Godfather",
+        "count": 166,
+        "prob": 0.041698065812609895
+      },
+      {
+        "item_id": "593",
+        "title": "The Silence of the Lambs",
+        "count": 153,
+        "prob": 0.03843255463451394
+      },
+      {
+        "item_id": "2997",
+        "title": "Being John Malkovich",
+        "count": 152,
+        "prob": 0.0381813614669681
+      },
+      {
+        "item_id": "2396",
+        "title": "Shakespeare in Love",
+        "count": 151,
+        "prob": 0.03793016829942226
+      },
+      {
+        "item_id": "260",
+        "title": "Star Wars",
+        "count": 149,
+        "prob": 0.03742778196433057
+      },
+      {
+        "item_id": "1617",
+        "title": "L.A. Confidential",
+        "count": 142,
+        "prob": 0.03566942979150967
+      },
+      {
+        "item_id": "1196",
+        "title": "The Empire Strikes Back",
+        "count": 69,
+        "prob": 0.01733232856066315
+      },
+      {
+        "item_id": "133",
+        "title": "Nueba Yol",
+        "count": 31,
+        "prob": 0.007786988193921126
+      },
+      {
+        "item_id": "127",
+        "title": "Silence of the Palace, The (Saimt el Qusur) (1994)",
+        "count": 29,
+        "prob": 0.00728460185882944
+      },
+      {
+        "item_id": "3123",
+        "title": "Spring Fever USA (a.k.a. Lauderdale) (1989)",
+        "count": 28,
+        "prob": 0.007033408691283597
+      },
+      {
+        "item_id": "3377",
+        "title": "Hangmen Also Die!",
+        "count": 27,
+        "prob": 0.006782215523737754
+      },
+      {
+        "item_id": "734",
+        "title": "Getting Away with Murder",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "690",
+        "title": "The Promise, Architect BV Doshi",
+        "count": 24,
+        "prob": 0.006028636021100226
+      },
+      {
+        "item_id": "3382",
+        "title": "Song of Freedom",
+        "count": 22,
+        "prob": 0.00552624968600854
+      },
+      {
+        "item_id": "1097",
+        "title": "E.T. the Extra-Terrestrial",
+        "count": 18,
+        "prob": 0.00452147701582517
+      },
+      {
+        "item_id": "744",
+        "title": "Brothers in Trouble",
+        "count": 17,
+        "prob": 0.004270283848279327
+      },
+      {
+        "item_id": "2277",
+        "title": "Somewhere in the City",
+        "count": 17,
+        "prob": 0.004270283848279327
+      }
+    ],
+    "calibrated_top_k": [
+      {
+        "item_id": "2858",
+        "title": "American Beauty",
+        "count": 29,
+        "prob": 0.00728460185882944
+      },
+      {
+        "item_id": "1210",
+        "title": "Return of the Jedi",
+        "count": 27,
+        "prob": 0.006782215523737754
+      },
+      {
+        "item_id": "110",
+        "title": "Braveheart",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "1198",
+        "title": "Raiders of the Lost Ark",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "1270",
+        "title": "Back to the Future",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "1580",
+        "title": "Men in Black",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "2028",
+        "title": "Saving Private Ryan",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "2571",
+        "title": "The Matrix",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "260",
+        "title": "Star Wars",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "2762",
+        "title": "The Sixth Sense",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "480",
+        "title": "Jurassic Park",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "589",
+        "title": "Terminator 2: Judgment Day",
+        "count": 26,
+        "prob": 0.006531022356191912
+      },
+      {
+        "item_id": "1197",
+        "title": "The Princess Bride",
+        "count": 25,
+        "prob": 0.006279829188646069
+      },
+      {
+        "item_id": "527",
+        "title": "Schindler's List",
+        "count": 25,
+        "prob": 0.006279829188646069
+      },
+      {
+        "item_id": "593",
+        "title": "The Silence of the Lambs",
+        "count": 25,
+        "prob": 0.006279829188646069
+      },
+      {
+        "item_id": "858",
+        "title": "The Godfather",
+        "count": 25,
+        "prob": 0.006279829188646069
+      },
+      {
+        "item_id": "2396",
+        "title": "Shakespeare in Love",
+        "count": 24,
+        "prob": 0.006028636021100226
+      },
+      {
+        "item_id": "2997",
+        "title": "Being John Malkovich",
+        "count": 23,
+        "prob": 0.005777442853554383
+      },
+      {
+        "item_id": "1617",
+        "title": "L.A. Confidential",
+        "count": 22,
+        "prob": 0.00552624968600854
+      },
+      {
+        "item_id": "1196",
+        "title": "The Empire Strikes Back",
+        "count": 18,
+        "prob": 0.00452147701582517
+      },
+      {
+        "item_id": "1097",
+        "title": "E.T. the Extra-Terrestrial",
+        "count": 10,
+        "prob": 0.0025119316754584277
+      },
+      {
+        "item_id": "608",
+        "title": "Fargo",
+        "count": 9,
+        "prob": 0.002260738507912585
+      },
+      {
+        "item_id": "1",
+        "title": "Toy Story (1995)",
+        "count": 8,
+        "prob": 0.002009545340366742
+      },
+      {
+        "item_id": "1240",
+        "title": "Terminator, The (1984)",
+        "count": 8,
+        "prob": 0.002009545340366742
+      },
+      {
+        "item_id": "1265",
+        "title": "Groundhog Day (1993)",
+        "count": 8,
+        "prob": 0.002009545340366742
+      },
+      {
+        "item_id": "2628",
+        "title": "Star Wars: Episode I - The Phantom Menace",
+        "count": 8,
+        "prob": 0.002009545340366742
+      },
+      {
+        "item_id": "2716",
+        "title": "Ghostbusters",
+        "count": 8,
+        "prob": 0.002009545340366742
+      },
+      {
+        "item_id": "296",
+        "title": "Pulp Fiction",
+        "count": 8,
+        "prob": 0.002009545340366742
+      },
+      {
+        "item_id": "318",
+        "title": "Shawshank Redemption, The (1994)",
+        "count": 8,
+        "prob": 0.002009545340366742
+      },
+      {
+        "item_id": "356",
+        "title": "Forrest Gump (1994)",
+        "count": 8,
+        "prob": 0.002009545340366742
+      }
+    ],
+    "offline_top_k": [
+      {
+        "item_id": "2858",
+        "title": "American Beauty",
+        "count": 3428,
+        "prob": 0.003427283697707179
+      },
+      {
+        "item_id": "260",
+        "title": "Star Wars",
+        "count": 2991,
+        "prob": 0.002990375011622571
+      },
+      {
+        "item_id": "1196",
+        "title": "The Empire Strikes Back",
+        "count": 2990,
+        "prob": 0.002989375220578899
+      },
+      {
+        "item_id": "1210",
+        "title": "Return of the Jedi",
+        "count": 2883,
+        "prob": 0.0028823975789060087
+      },
+      {
+        "item_id": "480",
+        "title": "Jurassic Park",
+        "count": 2672,
+        "prob": 0.0026714416686912435
+      },
+      {
+        "item_id": "2028",
+        "title": "Saving Private Ryan",
+        "count": 2653,
+        "prob": 0.002652445638861478
+      },
+      {
+        "item_id": "589",
+        "title": "Terminator 2: Judgment Day",
+        "count": 2649,
+        "prob": 0.0026484464746867904
+      },
+      {
+        "item_id": "2571",
+        "title": "The Matrix",
+        "count": 2590,
+        "prob": 0.0025894588031101498
+      },
+      {
+        "item_id": "1270",
+        "title": "Back to the Future",
+        "count": 2583,
+        "prob": 0.002582460265804447
+      },
+      {
+        "item_id": "593",
+        "title": "The Silence of the Lambs",
+        "count": 2578,
+        "prob": 0.0025774613105860873
+      },
+      {
+        "item_id": "1580",
+        "title": "Men in Black",
+        "count": 2538,
+        "prob": 0.0025374696688392124
+      },
+      {
+        "item_id": "1198",
+        "title": "Raiders of the Lost Ark",
+        "count": 2514,
+        "prob": 0.0025134746837910875
+      },
+      {
+        "item_id": "608",
+        "title": "Fargo",
+        "count": 2513,
+        "prob": 0.0025124748927474157
+      },
+      {
+        "item_id": "2762",
+        "title": "The Sixth Sense",
+        "count": 2459,
+        "prob": 0.002458486176389135
+      },
+      {
+        "item_id": "110",
+        "title": "Braveheart",
+        "count": 2443,
+        "prob": 0.002442489519690385
+      },
+      {
+        "item_id": "2396",
+        "title": "Shakespeare in Love",
+        "count": 2369,
+        "prob": 0.002368504982458666
+      },
+      {
+        "item_id": "1197",
+        "title": "The Princess Bride",
+        "count": 2318,
+        "prob": 0.0023175156392314005
+      },
+      {
+        "item_id": "527",
+        "title": "Schindler's List",
+        "count": 2304,
+        "prob": 0.0023035185646199945
+      },
+      {
+        "item_id": "1617",
+        "title": "L.A. Confidential",
+        "count": 2288,
+        "prob": 0.0022875219079212445
+      },
+      {
+        "item_id": "1265",
+        "title": "Groundhog Day (1993)",
+        "count": 2278,
+        "prob": 0.0022775239974845256
+      },
+      {
+        "item_id": "1097",
+        "title": "E.T. the Extra-Terrestrial",
+        "count": 2269,
+        "prob": 0.002268525878091479
+      },
+      {
+        "item_id": "2628",
+        "title": "Star Wars: Episode I - The Phantom Menace",
+        "count": 2250,
+        "prob": 0.002249529848261713
+      },
+      {
+        "item_id": "2997",
+        "title": "Being John Malkovich",
+        "count": 2241,
+        "prob": 0.0022405317288686664
+      },
+      {
+        "item_id": "318",
+        "title": "Shawshank Redemption, The (1994)",
+        "count": 2227,
+        "prob": 0.0022265346542572604
+      },
+      {
+        "item_id": "858",
+        "title": "The Godfather",
+        "count": 2223,
+        "prob": 0.002222535490082573
+      },
+      {
+        "item_id": "356",
+        "title": "Forrest Gump (1994)",
+        "count": 2194,
+        "prob": 0.0021935415498160883
+      },
+      {
+        "item_id": "2716",
+        "title": "Ghostbusters",
+        "count": 2181,
+        "prob": 0.002180544266248354
+      },
+      {
+        "item_id": "296",
+        "title": "Pulp Fiction",
+        "count": 2171,
+        "prob": 0.0021705463558116356
+      },
+      {
+        "item_id": "1240",
+        "title": "Terminator, The (1984)",
+        "count": 2098,
+        "prob": 0.0020975616096235885
+      },
+      {
+        "item_id": "1",
+        "title": "Toy Story (1995)",
+        "count": 2077,
+        "prob": 0.0020765659977064793
+      }
+    ]
+  },
+  "artifacts": {
+    "topk_plot": "/Users/chongzhang/PsyBer-Agent/evaluation/reports/e1_item_dist_ml1m_calibrated_top30_20260416_204518.png",
+    "rank_plot": "/Users/chongzhang/PsyBer-Agent/evaluation/reports/e1_item_dist_ml1m_calibrated_rank_20260416_204518.png",
+    "error_plot": "/Users/chongzhang/PsyBer-Agent/evaluation/reports/e1_item_dist_ml1m_calibrated_error_20260416_204518.png"
+  }
+}

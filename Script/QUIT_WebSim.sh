@@ -12,7 +12,7 @@ PATTERNS=(
   "run_websim_agent.sh"
 )
 
-# Web_sim default service port.
+# WebSim default service port.
 SERVICE_PORT="${SERVICE_PORT:-19002}"
 
 collect_pattern_pids() {

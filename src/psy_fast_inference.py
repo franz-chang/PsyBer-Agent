@@ -11,12 +11,16 @@ import torch
 from torch import nn
 
 
-STATE_KEYS = ("P", "C", "E", "S")
-STATE_DIM = 4
+STATE_KEYS = ("C", "E", "S")
+STATE_DIM = 3
+LEGACY_STATE_KEYS = ("P", "C", "E", "S")
+LEGACY_STATE_DIM = 4
+OBJECTIVE_DIM_INDICES = (1, 2, 3)
 ACTION_COUNT = 5  # click1..click4 + skip
 # Bump when network architecture changes to keep backward compatibility.
-FEATURE_VERSION = 2
-FEATURE_DIM = 13
+FEATURE_VERSION = 3
+FEATURE_DIM = 11
+LEGACY_FEATURE_DIM = 13
 DEFAULT_HIDDEN_DIM = 64
 SKIP_GUARD_STATE_FLOOR = 0.08
 SKIP_GUARD_MIN_SUM_GAIN = 0.01
@@ -26,7 +30,7 @@ SKIP_GUARD_MIN_DIM_GAIN = 0.03
 class FastPolicyNetV1(nn.Module):
     """Original 1-layer scorer kept for loading old checkpoints (feature_version=1)."""
 
-    def __init__(self, feature_dim: int = FEATURE_DIM, hidden_dim: int = 32):
+    def __init__(self, feature_dim: int = LEGACY_FEATURE_DIM, hidden_dim: int = 32):
         super().__init__()
         self.feature_dim = int(feature_dim)
         self.hidden_dim = int(hidden_dim)
@@ -76,11 +80,35 @@ def state_dict_to_vec(state: dict[str, Any]) -> np.ndarray:
     return np.array([float(state.get(k, 0.0)) for k in STATE_KEYS], dtype=np.float32)
 
 
+def _to_core_state_vec(state: np.ndarray | list[float] | tuple[float, ...]) -> np.ndarray:
+    arr = np.array(state, dtype=np.float32).reshape(-1)
+    if arr.size == STATE_DIM:
+        return arr.astype(np.float32)
+    if arr.size == LEGACY_STATE_DIM:
+        return arr[list(OBJECTIVE_DIM_INDICES)].astype(np.float32)
+    raise ValueError(f"state vector must have {STATE_DIM} or {LEGACY_STATE_DIM} dims, got {arr.shape}")
+
+
+def _to_core_delta_mat(deltas: np.ndarray | list[list[float]]) -> np.ndarray:
+    arr = np.array(deltas, dtype=np.float32)
+    if arr.ndim != 2 or arr.shape[1] not in {STATE_DIM, LEGACY_STATE_DIM}:
+        raise ValueError(
+            f"deltas shape must be [N, {STATE_DIM}] or [N, {LEGACY_STATE_DIM}], got {arr.shape}"
+        )
+    if arr.shape[1] == LEGACY_STATE_DIM:
+        arr = arr[:, list(OBJECTIVE_DIM_INDICES)]
+    return arr.astype(np.float32)
+
+
 def pareto_front_indices(deltas: np.ndarray, eps: float = 1e-8) -> list[int]:
     """Return non-dominated action indices on objective deltas."""
     arr = np.array(deltas, dtype=np.float32)
-    if arr.ndim != 2 or arr.shape[1] != STATE_DIM:
-        raise ValueError(f"deltas shape must be [N, {STATE_DIM}], got {arr.shape}")
+    if arr.ndim != 2 or arr.shape[1] not in {STATE_DIM, LEGACY_STATE_DIM}:
+        raise ValueError(
+            f"deltas shape must be [N, {STATE_DIM}] or [N, {LEGACY_STATE_DIM}], got {arr.shape}"
+        )
+    if arr.shape[1] == LEGACY_STATE_DIM:
+        arr = arr[:, OBJECTIVE_DIM_INDICES]
     n = int(arr.shape[0])
     dominated = np.zeros(n, dtype=bool)
     for i in range(n):
@@ -125,12 +153,15 @@ def should_allow_skip_action(
     min_dim_gain: float = SKIP_GUARD_MIN_DIM_GAIN,
 ) -> bool:
     """Allow skip only when no safe/improving click candidate exists."""
-    state = np.array(state_before, dtype=np.float32).reshape(-1)
-    delta_mat = np.array(deltas, dtype=np.float32)
-    if state.size != STATE_DIM:
+    state_raw = np.array(state_before, dtype=np.float32).reshape(-1)
+    delta_mat_raw = np.array(deltas, dtype=np.float32)
+    if state_raw.size not in {STATE_DIM, LEGACY_STATE_DIM}:
         return True
-    if delta_mat.ndim != 2 or delta_mat.shape[1] != STATE_DIM:
+    if delta_mat_raw.ndim != 2 or delta_mat_raw.shape[1] not in {STATE_DIM, LEGACY_STATE_DIM}:
         return True
+
+    state = _to_core_state_vec(state_raw)
+    delta_mat = _to_core_delta_mat(delta_mat_raw)
 
     valid = [int(i) for i in candidate_indices if 0 <= int(i) < len(actions)]
     click_indices = [i for i in valid if str(actions[i].get("action") or "") == "click"]
@@ -192,12 +223,16 @@ def apply_skip_transition(
     - If a dimension is depleted (<=0), skip recovers it by `recovery_boost`.
     - Otherwise skip causes slight natural drift (less arousal, mild cognitive recovery).
     """
-    before = np.array(state_vec, dtype=np.float32).reshape(-1)
-    if before.size != STATE_DIM:
-        raise ValueError(f"state_vec must have {STATE_DIM} dims, got {before.shape}")
+    before_raw = np.array(state_vec, dtype=np.float32).reshape(-1)
+    if before_raw.size not in {STATE_DIM, LEGACY_STATE_DIM}:
+        raise ValueError(
+            f"state_vec must have {STATE_DIM} or {LEGACY_STATE_DIM} dims, got {before_raw.shape}"
+        )
 
+    before = _to_core_state_vec(before_raw)
     after = before.copy()
     recovered: list[str] = []
+    drift = np.array([0.04, -0.01, 0.02], dtype=np.float32)
 
     for i, key in enumerate(STATE_KEYS):
         if float(after[i]) <= 0.0:
@@ -205,7 +240,6 @@ def apply_skip_transition(
             recovered.append(key)
 
     if not recovered:
-        drift = np.array([-0.03, 0.04, -0.01, 0.02], dtype=np.float32)
         after = np.clip(after + drift, 0.0, 1.0)
 
     delta = (after - before).astype(np.float32)
@@ -213,6 +247,11 @@ def apply_skip_transition(
         "skip_delta_norm": float(np.linalg.norm(delta)),
         "skip_recovered_dims": float(len(recovered)),
     }
+    if before_raw.size == LEGACY_STATE_DIM:
+        after_raw = before_raw.copy()
+        after_raw[list(OBJECTIVE_DIM_INDICES)] = after
+        delta_raw = (after_raw - before_raw).astype(np.float32)
+        return after_raw.astype(np.float32), delta_raw, recovered, metrics
     return after.astype(np.float32), delta, recovered, metrics
 
 
@@ -225,12 +264,12 @@ def apply_skip_to_engine(
     after, delta, recovered, metrics = apply_skip_transition(
         before, recovery_boost=recovery_boost
     )
-    engine.P = float(after[0])
-    engine.C = float(after[1])
-    engine.E = float(after[2])
-    engine.S = float(after[3])
-    engine.Surf = 1 if np.all(after > 0.0) else 0
-    return delta, recovered, metrics
+    after_core = _to_core_state_vec(after)
+    engine.C = float(after_core[0])
+    engine.E = float(after_core[1])
+    engine.S = float(after_core[2])
+    engine.Surf = 1 if min(float(engine.C), float(engine.E), float(engine.S)) > 0.0 else 0
+    return _to_core_state_vec(delta), recovered, metrics
 
 
 def simulate_action_matrix(
@@ -240,7 +279,7 @@ def simulate_action_matrix(
     include_skip: bool = True,
     recovery_boost: float = 0.3,
 ) -> dict[str, Any]:
-    """Simulate 4-click (+skip) action consequences from current engine state."""
+    """Simulate click (+skip) action consequences from current engine state."""
     actions: list[dict[str, Any]] = []
     deltas: list[np.ndarray] = []
 
@@ -250,7 +289,7 @@ def simulate_action_matrix(
         c = float(cand.get("c", 0.0))
         pop = float(cand.get("pop", 0.0))
         _, delta, _, metrics = engine._calculate_transitions(v, n, c, pop)
-        delta_arr = np.array(delta, dtype=np.float32)
+        delta_arr = _to_core_state_vec(delta)
         deltas.append(delta_arr)
         actions.append(
             {
@@ -301,13 +340,19 @@ def build_action_features(
     state_before: np.ndarray,
     actions: list[dict[str, Any]],
     deltas: np.ndarray,
+    *,
+    feature_dim: int | None = None,
+    compatibility_p: float = 0.5,
 ) -> np.ndarray:
-    state_vec = np.array(state_before, dtype=np.float32).reshape(-1)
-    if state_vec.size != STATE_DIM:
-        raise ValueError(f"state_before must have {STATE_DIM} dims, got {state_vec.shape}")
-    delta_mat = np.array(deltas, dtype=np.float32)
-    if delta_mat.ndim != 2 or delta_mat.shape[1] != STATE_DIM:
-        raise ValueError(f"deltas shape must be [N, {STATE_DIM}], got {delta_mat.shape}")
+    state_raw = np.array(state_before, dtype=np.float32).reshape(-1)
+    if state_raw.size not in {STATE_DIM, LEGACY_STATE_DIM}:
+        raise ValueError(
+            f"state_before must have {STATE_DIM} or {LEGACY_STATE_DIM} dims, got {state_raw.shape}"
+        )
+    state_vec = _to_core_state_vec(state_raw)
+    delta_mat = _to_core_delta_mat(deltas)
+    target_feature_dim = int(feature_dim or FEATURE_DIM)
+    compat_p = float(state_raw[0]) if state_raw.size == LEGACY_STATE_DIM else float(compatibility_p)
 
     rows: list[np.ndarray] = []
     for idx, action in enumerate(actions):
@@ -318,28 +363,50 @@ def build_action_features(
         item_pop = float(action.get("pop", 0.0))
         delta_norm = float(np.linalg.norm(delta))
 
-        row = np.array(
-            [
-                state_vec[0],
-                state_vec[1],
-                state_vec[2],
-                state_vec[3],
-                delta[0],
-                delta[1],
-                delta[2],
-                delta[3],
-                item_n,
-                item_c,
-                item_pop,
-                is_skip,
-                delta_norm,
-            ],
-            dtype=np.float32,
-        )
+        if target_feature_dim == FEATURE_DIM:
+            row = np.array(
+                [
+                    state_vec[0],
+                    state_vec[1],
+                    state_vec[2],
+                    delta[0],
+                    delta[1],
+                    delta[2],
+                    item_n,
+                    item_c,
+                    item_pop,
+                    is_skip,
+                    delta_norm,
+                ],
+                dtype=np.float32,
+            )
+        elif target_feature_dim == LEGACY_FEATURE_DIM:
+            row = np.array(
+                [
+                    compat_p,
+                    state_vec[0],
+                    state_vec[1],
+                    state_vec[2],
+                    0.0,
+                    delta[0],
+                    delta[1],
+                    delta[2],
+                    item_n,
+                    item_c,
+                    item_pop,
+                    is_skip,
+                    delta_norm,
+                ],
+                dtype=np.float32,
+            )
+        else:
+            raise ValueError(
+                f"Unsupported feature_dim={target_feature_dim}; expected {FEATURE_DIM} or {LEGACY_FEATURE_DIM}"
+            )
         rows.append(row)
 
     if not rows:
-        return np.zeros((0, FEATURE_DIM), dtype=np.float32)
+        return np.zeros((0, target_feature_dim), dtype=np.float32)
     return np.stack(rows, axis=0)
 
 
@@ -400,9 +467,13 @@ def load_fast_policy_bundle(path: Path, *, device: str = "cpu") -> dict[str, Any
     if not isinstance(metadata, dict):
         raise FastPolicyLoadError("Invalid metadata in policy bundle")
 
-    feature_dim = int(metadata.get("feature_dim", FEATURE_DIM))
-    hidden_dim = int(metadata.get("hidden_dim", DEFAULT_HIDDEN_DIM))
     feature_version = int(metadata.get("feature_version", 1))
+    if feature_version <= 2:
+        default_feature_dim = LEGACY_FEATURE_DIM
+    else:
+        default_feature_dim = FEATURE_DIM
+    feature_dim = int(metadata.get("feature_dim", default_feature_dim))
+    hidden_dim = int(metadata.get("hidden_dim", DEFAULT_HIDDEN_DIM))
 
     if feature_version <= 1:
         model = FastPolicyNetV1(feature_dim=feature_dim, hidden_dim=hidden_dim)

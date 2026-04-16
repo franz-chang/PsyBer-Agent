@@ -39,7 +39,7 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
 ## 功能
 
 - 从 `/Users/chongzhang/PsyBer-Agent/settings/task.yaml` 读取任务设置：`dataset`、`model`、`track`、`agent_num`（兼容 `Settings/task.yaml`）
-- 通过 `/Users/chongzhang/Web_sim/run_service.sh` 确保服务运行在 `http://127.0.0.1:19002/`
+- 通过 `/Users/chongzhang/WebSim/run_service.sh`（兼容旧目录 `/Users/chongzhang/Web_sim`）确保服务运行在 `http://127.0.0.1:19002/`
 - 打开网页后自动：
   - 选择数据集与模型
   - 点击“随机重置”

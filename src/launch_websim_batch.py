@@ -16,6 +16,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import signal
 import socket
 import subprocess
@@ -34,10 +35,31 @@ SRC_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SRC_DIR.parent
 DEFAULT_AGENT_SCRIPT = SRC_DIR / "WebSim_camel_agent.py"
 DEFAULT_OUTPUT_ROOT = PROJECT_DIR
-DEFAULT_WEB_SIM_DIR = Path("/Users/chongzhang/Web_sim")
+
+
+def resolve_default_websim_dir() -> Path:
+    env_dir = os.getenv("WEBSIM_DIR", "").strip()
+    candidates: list[Path] = []
+    if env_dir:
+        candidates.append(Path(env_dir).expanduser())
+    candidates.extend(
+        [
+            Path("/Users/chongzhang/WebSim"),
+            Path("/Users/chongzhang/Web_sim"),
+        ]
+    )
+    for cand in candidates:
+        if cand.exists():
+            return cand
+    return candidates[0]
+
+
+DEFAULT_WEB_SIM_DIR = resolve_default_websim_dir()
 DEFAULT_API_POOL_FILE = PROJECT_DIR / "settings" / "api_pool.yaml"
 if not DEFAULT_API_POOL_FILE.exists():
     DEFAULT_API_POOL_FILE = PROJECT_DIR / "Settings" / "api_pool.yaml"
+
+MEMORY_PATH_RE = re.compile(r"(?m)^- memory:\s*(.+?)\s*$")
 
 
 def utc_now() -> str:
@@ -99,6 +121,11 @@ class LaunchResult:
     log_file: str
     command: list[str]
     error: str = ""
+    memory_file: str = ""
+    qwen_decision_total: int = 0
+    qwen_success: int = 0
+    qwen_failure: int = 0
+    qwen_stats_error: str = ""
 
 
 @dataclass
@@ -110,6 +137,12 @@ class SharedStats:
     failed: int = 0
     timeout: int = 0
     spawn_error: int = 0
+    qwen_runs_with_stats: int = 0
+    qwen_decision_total: int = 0
+    qwen_success: int = 0
+    qwen_failure: int = 0
+    qwen_stats_missing: int = 0
+    qwen_stats_error: int = 0
 
 
 @dataclass(frozen=True)
@@ -140,6 +173,47 @@ class StartRateLimiter:
                 await asyncio.sleep(wait_for)
                 now = time.monotonic()
             self.next_ready = max(self.next_ready, now) + self.interval
+
+
+def extract_memory_file_from_log(log_file: Path) -> Path | None:
+    if not log_file.exists():
+        return None
+    try:
+        text = log_file.read_text(encoding="utf-8", errors="ignore")
+    except Exception:
+        return None
+    matches = MEMORY_PATH_RE.findall(text)
+    if not matches:
+        return None
+    memory_path = Path(matches[-1].strip()).expanduser()
+    return memory_path
+
+
+def collect_qwen_stats_from_memory(memory_file: Path) -> dict[str, int]:
+    data = json.loads(memory_file.read_text(encoding="utf-8"))
+    history = data.get("psy_state_history", [])
+    if not isinstance(history, list):
+        history = []
+
+    total = 0
+    success = 0
+    failure = 0
+    for item in history:
+        if not isinstance(item, dict):
+            continue
+        if "qwen_call_success" not in item:
+            continue
+        total += 1
+        if bool(item.get("qwen_call_success")):
+            success += 1
+        else:
+            failure += 1
+
+    return {
+        "qwen_decision_total": int(total),
+        "qwen_success": int(success),
+        "qwen_failure": int(failure),
+    }
 
 
 def _str_or_empty(value: Any) -> str:
@@ -453,12 +527,18 @@ async def progress_reporter(
             failed = stats.failed
             timeout = stats.timeout
             spawn_error = stats.spawn_error
+            qwen_total = stats.qwen_decision_total
+            qwen_success = stats.qwen_success
+            qwen_failure = stats.qwen_failure
         elapsed = max(0.0, time.perf_counter() - start_monotonic)
         rps = finished / elapsed if elapsed > 0 else 0.0
+        qwen_rate = (qwen_success / qwen_total) if qwen_total > 0 else 0.0
         print(
             f"[Progress] finished={finished}/{submitted} running={running} "
             f"ok={success} fail={failed} timeout={timeout} spawn_err={spawn_error} "
-            f"elapsed={elapsed:.1f}s done_rate={rps:.2f}/s"
+            f"elapsed={elapsed:.1f}s done_rate={rps:.2f}/s "
+            f"qwen_ok={qwen_success}/{qwen_total} qwen_fail={qwen_failure} "
+            f"qwen_rate={qwen_rate:.1%}"
         )
         if finished >= submitted:
             return
@@ -622,6 +702,24 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
                     api_slot_queue.put_nowait(api_slot)
                 queue.task_done()
 
+            if result.status == "success" and (not args.dry_run):
+                log_path = Path(result.log_file)
+                memory_file = extract_memory_file_from_log(log_path)
+                if memory_file is None:
+                    result.qwen_stats_error = "memory_file_not_found_in_log"
+                else:
+                    result.memory_file = str(memory_file)
+                    if not memory_file.exists():
+                        result.qwen_stats_error = f"memory_file_missing:{memory_file}"
+                    else:
+                        try:
+                            qwen_stats = collect_qwen_stats_from_memory(memory_file)
+                            result.qwen_decision_total = int(qwen_stats["qwen_decision_total"])
+                            result.qwen_success = int(qwen_stats["qwen_success"])
+                            result.qwen_failure = int(qwen_stats["qwen_failure"])
+                        except Exception as err:
+                            result.qwen_stats_error = str(err)
+
             async with lock:
                 results.append(result)
                 stats.finished += 1
@@ -633,6 +731,16 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
                     stats.spawn_error += 1
                 else:
                     stats.failed += 1
+                if result.status == "success":
+                    if result.qwen_decision_total > 0:
+                        stats.qwen_runs_with_stats += 1
+                        stats.qwen_decision_total += int(result.qwen_decision_total)
+                        stats.qwen_success += int(result.qwen_success)
+                        stats.qwen_failure += int(result.qwen_failure)
+                    elif result.qwen_stats_error:
+                        stats.qwen_stats_error += 1
+                    else:
+                        stats.qwen_stats_missing += 1
 
     start_t = time.perf_counter()
     workers = [
@@ -701,6 +809,19 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
             "spawn_error": stats.spawn_error,
             "throughput_tasks_per_sec": (stats.finished / elapsed) if elapsed > 0 else 0.0,
         },
+        "qwen_stats": {
+            "runs_with_stats": stats.qwen_runs_with_stats,
+            "decision_total": stats.qwen_decision_total,
+            "success": stats.qwen_success,
+            "failure": stats.qwen_failure,
+            "success_rate": (
+                (stats.qwen_success / stats.qwen_decision_total)
+                if stats.qwen_decision_total > 0
+                else 0.0
+            ),
+            "stats_missing": stats.qwen_stats_missing,
+            "stats_error": stats.qwen_stats_error,
+        },
         "batch_dir": str(batch_dir),
         "failed_task_count": len(failed_tasks),
         "failed_tasks": failed_tasks[:5000],
@@ -725,6 +846,13 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
         "- stats: "
         f"submitted={stats.submitted}, success={stats.success}, failed={stats.failed}, "
         f"timeout={stats.timeout}, spawn_error={stats.spawn_error}, elapsed={elapsed:.1f}s"
+    )
+    print(
+        "- qwen: "
+        f"runs_with_stats={stats.qwen_runs_with_stats}, "
+        f"success={stats.qwen_success}, failure={stats.qwen_failure}, "
+        f"total={stats.qwen_decision_total}, "
+        f"success_rate={((stats.qwen_success / stats.qwen_decision_total) if stats.qwen_decision_total > 0 else 0.0):.1%}"
     )
     return summary
 

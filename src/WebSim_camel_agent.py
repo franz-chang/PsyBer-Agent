@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Web_sim click simulator based on CAMEL HybridBrowserToolkit.
+"""WebSim click simulator based on CAMEL HybridBrowserToolkit.
 Workflow:
 1) Read task config from /Users/chongzhang/PsyBer-Agent/settings/task.yaml.
-2) Ensure Web_sim service is running at http://127.0.0.1:19002/.
+2) Ensure WebSim service is running at http://127.0.0.1:19002/.
 3) Use CAMEL Browser Toolkit to select dataset/model, click reset, then
    repeatedly click one of four items or go to next page.
 4) Record click sequence into agent memory until track target is reached.
@@ -60,7 +60,24 @@ from psy_fast_inference import (  # noqa: E402
 )
 
 
-WEB_SIM_DIR = Path("/Users/chongzhang/Web_sim")
+def _resolve_websim_dir() -> Path:
+    env_dir = os.getenv("WEBSIM_DIR", "").strip()
+    candidates: list[Path] = []
+    if env_dir:
+        candidates.append(Path(env_dir).expanduser())
+    candidates.extend(
+        [
+            Path("/Users/chongzhang/WebSim"),
+            Path("/Users/chongzhang/Web_sim"),
+        ]
+    )
+    for cand in candidates:
+        if cand.exists():
+            return cand
+    return candidates[0]
+
+
+WEB_SIM_DIR = _resolve_websim_dir()
 SRC_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SRC_DIR.parent
 SETTINGS_DIR = PROJECT_DIR / "settings"
@@ -268,6 +285,15 @@ class WebSimCamelAgent:
             or os.getenv("QWEN_BASE_URL", "").strip()
             or QWEN_BASE_URL_DEFAULT
         )
+        qwen_wait_text = os.getenv("QWEN_DECISION_WAIT_SEC", "").strip()
+        if qwen_wait_text:
+            try:
+                qwen_wait_sec = float(qwen_wait_text)
+            except Exception:
+                qwen_wait_sec = 0.2
+        else:
+            qwen_wait_sec = 0.2
+        self.qwen_decision_wait_sec = max(0.0, qwen_wait_sec)
         self.assigned_api_id = os.getenv("QWEN_API_ID", "").strip()
         self.fast_inference_enabled = (
             (not disable_fast_inference)
@@ -487,7 +513,7 @@ class WebSimCamelAgent:
             except Exception:
                 pass
         raise RuntimeError(
-            "Web_sim service did not become ready in time. "
+            "WebSim service did not become ready in time. "
             f"Check log: {self.service_log_file}"
         )
 
@@ -749,7 +775,18 @@ class WebSimCamelAgent:
             valid_indices = [int(fallback_idx)]
             skip_allowed = str(actions[int(fallback_idx)].get("action") or "") == "skip"
 
-        features = build_action_features(state_before, actions, deltas)
+        metadata = self.fast_policy_bundle.get("metadata") or {}
+        try:
+            policy_feature_dim = int(metadata.get("feature_dim", 0))
+        except Exception:
+            policy_feature_dim = 0
+        features = build_action_features(
+            state_before,
+            actions,
+            deltas,
+            feature_dim=policy_feature_dim or None,
+            compatibility_p=float(state_before_dict.get("P", 0.5)),
+        )
         model = self.fast_policy_bundle["model"]
         with torch.no_grad():
             logits = model(torch.tensor(features, dtype=torch.float32)).squeeze(-1).cpu().numpy()
@@ -955,6 +992,35 @@ class WebSimCamelAgent:
         encoded = base64.b64encode(payload).decode("ascii")
         return f"data:image/png;base64,{encoded}"
 
+    @staticmethod
+    def _core_psy_state_view(psy_state: dict[str, Any]) -> dict[str, Any]:
+        state = dict(psy_state or {})
+        out = {
+            "C": float(state.get("C", 0.0)),
+            "E": float(state.get("E", 0.0)),
+            "S": float(state.get("S", 0.0)),
+            "Surf": int(state.get("Surf", 1)),
+            "state_dim": 3,
+        }
+        if "memory_size" in state:
+            out["memory_size"] = int(state.get("memory_size", 0))
+        return out
+
+    @staticmethod
+    def _core_psy_delta_list(deltas: Any) -> list[float]:
+        arr = np.array(deltas, dtype=np.float32).reshape(-1)
+        if arr.size >= 4:
+            arr = arr[1:4]
+        elif arr.size > 3:
+            arr = arr[:3]
+        if arr.size < 3:
+            arr = np.pad(arr, (0, 3 - arr.size), constant_values=0.0)
+        return [float(x) for x in arr[:3].tolist()]
+
+    @staticmethod
+    def _qwen_status_label(success: bool) -> str:
+        return "[成功：🟢]" if success else "[未成功：🔴]"
+
     def _decide_action_from_agent_reply(
         self,
         reply_text: str,
@@ -1020,6 +1086,7 @@ class WebSimCamelAgent:
     ) -> str:
         clicked_item_ids = sorted(self._collect_clicked_item_ids(memory))
         clicked_item_set = set(clicked_item_ids)
+        psy_state_view = self._core_psy_state_view(psy_state)
         card_lines = []
         for idx, card in enumerate(cards, start=1):
             item_id = str(card.get("item_id", ""))
@@ -1086,7 +1153,7 @@ class WebSimCamelAgent:
             f"dataset={memory.selected_dataset_key}, model={memory.selected_model_key}\n"
             f"next_enabled={str(next_enabled).lower()}\n"
             f"status_text={status_text}\n"
-            f"psy_state={psy_state}\n"
+            f"psy_state={psy_state_view}\n"
             # f"psy_engine_choice={psy_engine_choice}\n"
             f"psy_pareto_front={psy_pareto_front}\n"
             f"psy_candidates={psy_candidate_text}\n"
@@ -1155,7 +1222,7 @@ class WebSimCamelAgent:
         psy_pareto_front: list[int],
         fast_policy_hints: dict[str, Any] | None,
         forbidden_item_ids: set[str] | None = None,
-    ) -> tuple[str, str, str]:
+    ) -> tuple[str, str, str, bool, str]:
         prompt = self._build_decision_prompt(
             cards=cards,
             next_enabled=next_enabled,
@@ -1167,10 +1234,18 @@ class WebSimCamelAgent:
             psy_pareto_front=psy_pareto_front,
             fast_policy_hints=fast_policy_hints,
         )
-        reply_text = self._call_openai_decision(
-            prompt=prompt,
-            screenshot_path=screenshot_path,
-        )
+        reply_text = ""
+        qwen_call_success = False
+        qwen_error = ""
+        try:
+            reply_text = self._call_openai_decision(
+                prompt=prompt,
+                screenshot_path=screenshot_path,
+            )
+            qwen_call_success = True
+        except Exception as err:
+            qwen_error = str(err)
+            print(f"[Qwen] decision call failed, fallback to local parser: {err}")
         action, item_id = self._decide_action_from_agent_reply(
             reply_text,
             cards,
@@ -1178,7 +1253,7 @@ class WebSimCamelAgent:
             fast_policy_hints=fast_policy_hints,
             forbidden_item_ids=forbidden_item_ids,
         )
-        return action, item_id, reply_text
+        return action, item_id, reply_text, qwen_call_success, qwen_error
 
     @staticmethod
     async def _ensure_snapshot(toolkit: HybridBrowserToolkit) -> None:
@@ -1452,6 +1527,10 @@ class WebSimCamelAgent:
                 screenshot_path = await self._capture_som_screenshot_path(toolkit)
                 decision_step += 1
                 decision_start = time.perf_counter()
+                # Leave a small buffer before each Qwen decision so page state is stable
+                # and the remote model call is not rushed by rapid page transitions.
+                if self.qwen_decision_wait_sec > 0.0:
+                    await asyncio.sleep(self.qwen_decision_wait_sec)
                 psy_recovered_pre = list(self.psy_engine.apply_recovery_if_needed())
                 psy_state_before = self.psy_engine.export_state()
                 psy_candidates = self._build_psy_candidates(decision_cards)
@@ -1501,7 +1580,7 @@ class WebSimCamelAgent:
                                 "Fast policy returned no candidate actions while strict inference mode is enabled"
                             )
 
-                action, selected_item_id, _ = self._decide_action_with_agent(
+                action, selected_item_id, _, qwen_call_success, qwen_error = self._decide_action_with_agent(
                     screenshot_path=screenshot_path,
                     cards=decision_cards,
                     next_enabled=next_enabled,
@@ -1574,6 +1653,10 @@ class WebSimCamelAgent:
                         else 0.0,
                     }
                 decision_tag = "QWEN+FAST" if fast_policy_hints is not None else "QWEN"
+                qwen_status = self._qwen_status_label(qwen_call_success)
+                psy_state_core = self._core_psy_state_view(psy_state)
+                psy_state_before_core = self._core_psy_state_view(psy_state_before)
+                psy_delta_vals = self._core_psy_delta_list(psy_deltas)
 
                 psy_record = {
                     "step": decision_step,
@@ -1581,32 +1664,33 @@ class WebSimCamelAgent:
                     "selected_item_id": selected_item_id,
                     "selected_title": selected_title,
                     "pareto_front": [int(x) for x in pareto_front],
-                    "deltas": [float(x) for x in np.array(psy_deltas, dtype=np.float32).tolist()],
+                    "deltas": list(psy_delta_vals),
                     "recovered_before_round": list(psy_recovered_pre),
                     "recovered": list(psy_recovered),
                     "metrics": {k: float(v) for k, v in psy_metrics.items()},
-                    "state_before": psy_state_before,
-                    "state": psy_state,
+                    "state_before": psy_state_before_core,
+                    "state": psy_state_core,
+                    "qwen_call_success": bool(qwen_call_success),
+                    "qwen_status": qwen_status,
                 }
+                if qwen_error:
+                    psy_record["qwen_error"] = qwen_error
                 if fast_policy_hints is not None:
                     psy_record["fast_policy_candidates"] = fast_policy_hints.get("choices", [])
                     psy_record["fast_policy_pareto_front"] = fast_policy_hints.get("pareto_front", [])
                 memory.append_psy_state(psy_record)
                 decision_seconds = time.perf_counter() - decision_start
-                psy_delta_vals = np.array(psy_deltas, dtype=np.float32).tolist()
                 psy_state_log = (
-                    f"P={float(psy_state.get('P', 0.0)):.3f},"
-                    f"C={float(psy_state.get('C', 0.0)):.3f},"
-                    f"E={float(psy_state.get('E', 0.0)):.3f},"
-                    f"S={float(psy_state.get('S', 0.0)):.3f},"
-                    f"Surf={int(psy_state.get('Surf', 1))}"
+                    f"C={float(psy_state_core.get('C', 0.0)):.3f},"
+                    f"E={float(psy_state_core.get('E', 0.0)):.3f},"
+                    f"S={float(psy_state_core.get('S', 0.0)):.3f},"
+                    f"Surf={int(psy_state_core.get('Surf', 1))}"
                 )
                 recovered_log = ",".join(psy_recovered_pre) if psy_recovered_pre else "-"
                 psy_delta_log = (
-                    f"dP={float(psy_delta_vals[0]):+.3f},"
-                    f"dC={float(psy_delta_vals[1]):+.3f},"
-                    f"dE={float(psy_delta_vals[2]):+.3f},"
-                    f"dS={float(psy_delta_vals[3]):+.3f}"
+                    f"dC={float(psy_delta_vals[0]):+.3f},"
+                    f"dE={float(psy_delta_vals[1]):+.3f},"
+                    f"dS={float(psy_delta_vals[2]):+.3f}"
                 )
                 page_pos: str | int = "-"
                 if action == "click":
@@ -1617,6 +1701,7 @@ class WebSimCamelAgent:
                 decision_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(
                     f"[{decision_tag}] {decision_time} step={decision_step} "
+                    f"qwen_status={qwen_status} "
                     f"action={action} item_id={selected_item_id or '-'} "
                     f"page_pos={page_pos} DT={decision_seconds:.3f} "
                     f"recovered_before_round={recovered_log} "
@@ -1782,7 +1867,7 @@ class WebSimCamelAgent:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Web_sim CAMEL browser agent")
+    parser = argparse.ArgumentParser(description="WebSim CAMEL browser agent")
     parser.add_argument(
         "--output-root",
         type=Path,
@@ -1821,7 +1906,7 @@ def main() -> None:
     parser.add_argument(
         "--close-service-when-done",
         action="store_true",
-        help="Stop Web_sim service at the end if this run started it",
+        help="Stop WebSim service at the end if this run started it",
     )
     parser.add_argument(
         "--track-override",

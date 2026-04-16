@@ -32,6 +32,7 @@ from torch import nn
 
 from psy_fast_inference import (
     FEATURE_DIM,
+    STATE_DIM,
     FastPolicyNet,
     apply_skip_guard_to_candidates,
     apply_skip_to_engine,
@@ -88,7 +89,7 @@ class UGWInitRegressor(nn.Module):
             nn.GELU(),
             nn.Linear(h, h),
             nn.GELU(),
-            nn.Linear(h, 4),
+            nn.Linear(h, STATE_DIM),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -201,8 +202,8 @@ def build_agent_structure_distance(
     time_weight: float,
 ) -> np.ndarray:
     arr = np.array(states, dtype=np.float32)
-    if arr.ndim != 2 or arr.shape[1] != 4:
-        raise ValueError(f"agent states shape must be [N,4], got {arr.shape}")
+    if arr.ndim != 2 or arr.shape[1] != STATE_DIM:
+        raise ValueError(f"agent states shape must be [N,{STATE_DIM}], got {arr.shape}")
     d_state = pairwise_l2(arr)
     delta = forward_state_increments(arr)
     d_delta = pairwise_l2(delta)
@@ -785,7 +786,7 @@ class AlignmentPretrainAgent:
             if gt_states is None:
                 continue
             gt = np.array(gt_states, dtype=np.float32)
-            if gt.ndim != 2 or gt.shape[1] != 4 or gt.shape[0] == 0:
+            if gt.ndim != 2 or gt.shape[1] != STATE_DIM or gt.shape[0] == 0:
                 continue
 
             m = min(len(seq), int(gt.shape[0]))
@@ -885,13 +886,18 @@ class AlignmentPretrainAgent:
         item_vecs = self._expert_item_vectors(expert_item_seq)
         m = int(item_vecs.shape[0])
         if m <= 0:
-            return np.zeros((0, 4), dtype=np.float32)
+            return np.zeros((0, STATE_DIM), dtype=np.float32)
 
         if self.ugw_init_regressor is None:
             gt = self.expert_states.get(user_id)
-            if isinstance(gt, np.ndarray) and gt.ndim == 2 and gt.shape[1] == 4 and gt.shape[0] >= m:
+            if (
+                isinstance(gt, np.ndarray)
+                and gt.ndim == 2
+                and gt.shape[1] == STATE_DIM
+                and gt.shape[0] >= m
+            ):
                 return np.array(gt[:m], dtype=np.float32)
-            return np.zeros((m, 4), dtype=np.float32)
+            return np.zeros((m, STATE_DIM), dtype=np.float32)
 
         feats = self._build_ugw_regression_features(
             user_id=user_id,
@@ -911,7 +917,7 @@ class AlignmentPretrainAgent:
     ) -> np.ndarray:
         a = np.array(agent_states, dtype=np.float32)
         b = np.array(pseudo_expert_states, dtype=np.float32)
-        if a.ndim != 2 or b.ndim != 2 or a.shape[1] != 4 or b.shape[1] != 4:
+        if a.ndim != 2 or b.ndim != 2 or a.shape[1] != STATE_DIM or b.shape[1] != STATE_DIM:
             raise ValueError(f"UGW init states shape invalid: agent={a.shape}, expert={b.shape}")
 
         dist_state = np.sum((a[:, None, :] - b[None, :, :]) ** 2, axis=2)
@@ -1174,7 +1180,11 @@ class AlignmentPretrainAgent:
                     )
                 step_entries.append(entry)
 
-        states_np = np.stack(agent_states, axis=0).astype(np.float32) if agent_states else np.zeros((0, 4), dtype=np.float32)
+        states_np = (
+            np.stack(agent_states, axis=0).astype(np.float32)
+            if agent_states
+            else np.zeros((0, STATE_DIM), dtype=np.float32)
+        )
         return {
             "states": states_np,
             "steps": step_entries,
@@ -1650,12 +1660,12 @@ class AlignmentPretrainAgent:
                 {
                     "id": "step2_expert_intent_conversion",
                     "implemented": True,
-                    "evidence": "_build_expert_intent_states(): per-item consume -> 4D [P,C,E,S]",
+                    "evidence": "_build_expert_intent_states(): per-item consume -> 3D core state [C,E,S]",
                 },
                 {
                     "id": "step2_intent_mapping",
                     "implemented": True,
-                    "evidence": "OT alignment directly uses raw 4D psychological trajectories [P,C,E,S].",
+                    "evidence": "OT alignment directly uses raw 3D psychological trajectories [C,E,S].",
                 },
                 {
                     "id": "step2_agent_slate_5d_action",
@@ -1685,14 +1695,14 @@ class AlignmentPretrainAgent:
                 {
                     "id": "step4_online_fast_inference",
                     "implemented": True,
-                    "evidence": "export fast_inference_policy.pt for web_sim matrixized online path",
+                    "evidence": "export fast_inference_policy.pt for WebSim matrixized online path",
                 },
             ],
             "psy_engine_modeling_pdf": [
                 {
-                    "id": "state_vector_PCES",
+                    "id": "state_vector_CES",
                     "implemented": True,
-                    "evidence": "PsyBerEngine export_state()/consume_item() with P,C,E,S",
+                    "evidence": "PsyBerEngine core state and downstream alignment use [C,E,S]; P is compatibility-only.",
                 },
                 {
                     "id": "input_features_v_n_c_pop",
@@ -1737,7 +1747,7 @@ class AlignmentPretrainAgent:
         print(f"[Train] fast policy (mode={self.alignment_mode})")
         model, history = self._fit()
 
-        ot_representation_dim = 4
+        ot_representation_dim = STATE_DIM
 
         metadata = {
             "trained_utc": datetime.now(timezone.utc).isoformat(),
@@ -1854,7 +1864,7 @@ class AlignmentPretrainAgent:
                 "item_count": len(self.item_pool),
                 "embedding_dim": self.emb_dim,
                 "user_count": len(self.user_sequences),
-                "expert_state_dim": 4,
+                "expert_state_dim": STATE_DIM,
                 "ot_representation_dim": int(ot_representation_dim),
             },
             "history": history,
@@ -1906,7 +1916,7 @@ def parse_args() -> argparse.Namespace:
         help="Optional JSON file to persist per-step training rollout logs.",
     )
 
-    parser.add_argument("--max-users", type=int, default=4000)
+    parser.add_argument("--max-users", type=int, default=100)
     parser.add_argument("--max-steps", type=int, default=80)
     parser.add_argument("--min-seq-len", type=int, default=20)
     parser.add_argument("--slate-size", type=int, default=4)

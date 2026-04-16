@@ -1,0 +1,26 @@
+[FastPolicy] loaded: /Users/chongzhang/PsyBer-Agent/outputs/fast_policies/ml1m/fast_inference_policy.pt
+[QWEN+FAST] 2026-04-16 20:04:19 step=1 qwen_status=[成功：🟢] action=click item_id=2962 page_pos=4 DT=4.458 recovered_before_round=- psy_state=(C=0.617,E=0.444,S=0.358,Surf=1) psy_delta=(dC=+0.067,dE=-0.106,dS=-0.192)
+[QWEN+FAST] 2026-04-16 20:04:25 step=2 qwen_status=[成功：🟢] action=click item_id=2960 page_pos=1 DT=5.375 recovered_before_round=- psy_state=(C=0.472,E=0.373,S=0.237,Surf=1) psy_delta=(dC=-0.145,dE=-0.071,dS=-0.120)
+[QWEN+FAST] 2026-04-16 20:04:30 step=3 qwen_status=[成功：🟢] action=click item_id=484 page_pos=3 DT=3.652 recovered_before_round=- psy_state=(C=0.421,E=0.319,S=0.158,Surf=1) psy_delta=(dC=-0.051,dE=-0.054,dS=-0.079)
+[QWEN+FAST] 2026-04-16 20:04:41 step=4 qwen_status=[成功：🟢] action=click item_id=2723 page_pos=1 DT=9.698 recovered_before_round=- psy_state=(C=0.339,E=0.321,S=0.105,Surf=1) psy_delta=(dC=-0.082,dE=+0.002,dS=-0.054)
+[QWEN+FAST] 2026-04-16 20:04:54 step=5 qwen_status=[成功：🟢] action=click item_id=480 page_pos=4 DT=3.062 recovered_before_round=- psy_state=(C=0.199,E=0.310,S=0.068,Surf=1) psy_delta=(dC=-0.141,dE=-0.011,dS=-0.037)
+[QWEN+FAST] 2026-04-16 20:05:07 step=6 qwen_status=[成功：🟢] action=click item_id=2858 page_pos=1 DT=10.893 recovered_before_round=- psy_state=(C=0.133,E=0.296,S=0.044,Surf=1) psy_delta=(dC=-0.066,dE=-0.014,dS=-0.024)
+[QWEN+FAST] 2026-04-16 20:05:17 step=7 qwen_status=[成功：🟢] action=click item_id=1210 page_pos=3 DT=8.392 recovered_before_round=- psy_state=(C=0.044,E=0.224,S=0.029,Surf=1) psy_delta=(dC=-0.089,dE=-0.072,dS=-0.015)
+[QWEN+FAST] 2026-04-16 20:05:25 step=8 qwen_status=[成功：🟢] action=click item_id=2028 page_pos=4 DT=6.843 recovered_before_round=- psy_state=(C=0.000,E=0.195,S=0.021,Surf=0) psy_delta=(dC=-0.044,dE=-0.028,dS=-0.007)
+[QWEN+FAST] 2026-04-16 20:05:33 step=9 qwen_status=[成功：🟢] action=click item_id=589 page_pos=3 DT=6.775 recovered_before_round=C psy_state=(C=0.118,E=0.242,S=0.014,Surf=1) psy_delta=(dC=-0.132,dE=+0.046,dS=-0.007)
+[QWEN+FAST] 2026-04-16 20:05:40 step=10 qwen_status=[成功：🟢] action=click item_id=593 page_pos=4 DT=5.341 recovered_before_round=- psy_state=(C=0.000,E=0.263,S=0.027,Surf=0) psy_delta=(dC=-0.118,dE=+0.021,dS=+0.013)
+[QWEN+FAST] 2026-04-16 20:05:49 step=11 qwen_status=[成功：🟢] action=click item_id=2571 page_pos=4 DT=8.131 recovered_before_round=C psy_state=(C=0.152,E=0.273,S=0.018,Surf=1) psy_delta=(dC=-0.098,dE=+0.010,dS=-0.010)
+[QWEN+FAST] 2026-04-16 20:05:58 step=12 qwen_status=[成功：🟢] action=click item_id=110 page_pos=4 DT=5.048 recovered_before_round=- psy_state=(C=0.041,E=0.256,S=0.030,Surf=1) psy_delta=(dC=-0.111,dE=-0.017,dS=+0.012)
+[QWEN+FAST] 2026-04-16 20:06:05 step=13 qwen_status=[成功：🟢] action=click item_id=2762 page_pos=4 DT=5.371 recovered_before_round=- psy_state=(C=0.000,E=0.241,S=0.022,Surf=0) psy_delta=(dC=-0.041,dE=-0.015,dS=-0.007)
+[QWEN+FAST] 2026-04-16 20:06:12 step=14 qwen_status=[成功：🟢] action=click item_id=1270 page_pos=3 DT=5.812 recovered_before_round=C psy_state=(C=0.089,E=0.224,S=0.015,Surf=1) psy_delta=(dC=-0.161,dE=-0.017,dS=-0.008)
+[QWEN+FAST] 2026-04-16 20:06:18 step=15 qwen_status=[成功：🟢] action=click item_id=1198 page_pos=4 DT=5.000 recovered_before_round=- psy_state=(C=0.000,E=0.234,S=0.009,Surf=0) psy_delta=(dC=-0.089,dE=+0.010,dS=-0.005)
+[QWEN+FAST] 2026-04-16 20:06:23 step=16 qwen_status=[成功：🟢] action=click item_id=2396 page_pos=3 DT=3.078 recovered_before_round=C psy_state=(C=0.112,E=0.215,S=0.006,Surf=1) psy_delta=(dC=-0.138,dE=-0.018,dS=-0.003)
+[QWEN+FAST] 2026-04-16 20:06:29 step=17 qwen_status=[成功：🟢] action=click item_id=1580 page_pos=4 DT=3.725 recovered_before_round=- psy_state=(C=0.000,E=0.246,S=0.004,Surf=0) psy_delta=(dC=-0.112,dE=+0.031,dS=-0.002)
+[QWEN+FAST] 2026-04-16 20:06:32 step=18 qwen_status=[成功：🟢] action=click item_id=260 page_pos=1 DT=1.819 recovered_before_round=C psy_state=(C=0.081,E=0.186,S=0.003,Surf=1) psy_delta=(dC=-0.169,dE=-0.060,dS=-0.001)
+[QWEN+FAST] 2026-04-16 20:06:36 step=19 qwen_status=[成功：🟢] action=click item_id=2997 page_pos=3 DT=1.384 recovered_before_round=- psy_state=(C=0.000,E=0.148,S=0.002,Surf=0) psy_delta=(dC=-0.081,dE=-0.038,dS=-0.001)
+[QWEN+FAST] 2026-04-16 20:06:39 step=20 qwen_status=[成功：🟢] action=click item_id=1197 page_pos=4 DT=1.126 recovered_before_round=C psy_state=(C=0.109,E=0.208,S=0.004,Surf=1) psy_delta=(dC=-0.141,dE=+0.060,dS=+0.002)
+[Cleanup] removed 20 image(s) from /Users/chongzhang/PsyBer-Agent/runs/20260416_200356_276624_p64249_17ee1a/browser_cache
+Run completed.
+- output: /Users/chongzhang/PsyBer-Agent/runs/20260416_200356_276624_p64249_17ee1a
+- memory: /Users/chongzhang/PsyBer-Agent/runs/20260416_200356_276624_p64249_17ee1a/memory.json
+- clicks: 20 / 20

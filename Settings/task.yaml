@@ -3,11 +3,11 @@ dataset:
   # - Amazon All Beauty
   # - Amazon Magazine Subscriptions
 model:
-  - LightGCN
+  # - LightGCN
   # - PopRec
   # - BPR-MF
   # - GRU4Rec
-  # - BERT4Rec
+  - BERT4Rec
   # - SASRec
   # - Mult-VAE
 track: 30
