@@ -1,6 +1,5 @@
 # PsyBer-Agent：A psychological behavior-driven user Agent
 
-基于 CAMEL `HybridBrowserToolkit` 的网页点击模拟 Agent。
 
 ## 环境配置
 
