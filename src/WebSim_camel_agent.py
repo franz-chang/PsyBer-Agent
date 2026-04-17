@@ -1142,8 +1142,6 @@ class WebSimCamelAgent:
             '1) {"action":"click","item_id":"<候选中的item_id>","reason":"..."}\n'
             "规则:\n"
             "- 只能在候选 item_id 中选择 click。\n"
-            "- 严禁重复点击: clicked_item_ids 中出现过的 item_id 不能再次点击。\n"
-            "- 尽量不选择next,只有当 next_enabled=true 且psy_candidates和fast_policy_candidates第一个都是next, 且你对当前 4 项都不感兴趣时才选 next。\n"
             "- 如果 next_enabled=true, 如果 fast_policy_candidates 中没有Next则必须选 click。且参考recent_clicks不能连续选择 next。\n"
             "- 如果当前页候选都已经在 clicked_item_ids 中, 且 next_enabled=true, 必须选 next。\n"
             "- 如果 next_enabled=false, 必须选 click。\n\n"
