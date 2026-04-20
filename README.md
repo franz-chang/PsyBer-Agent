@@ -1,5 +1,7 @@
 # PsyBer-Agent：A psychological behavior-driven user Agent
 
+![What is PayBer-Agent](Method.png "PsyBerAgent")
+
 PsyBer-Agent is a psychology-driven user agent framework for recommender systems. It simulates realistic, long-horizon user interactions by modeling persona, cognition, and behavioral dynamics, and supports pre-deployment evaluation through WebSim, a lightweight simulation platform for interactive recommendation benchmarking. The project provides a unified environment for studying user behavior fidelity, online A/B testing reliability, model evaluation, and robustness across multiple recommendation scenarios, including movie, shopping, image-text feed, and short-video recommendation.
 
 ## 环境配置
