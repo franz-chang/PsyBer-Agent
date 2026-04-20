@@ -2,7 +2,7 @@
 
 ![What is PayBer-Agent](Method.png "PsyBerAgent")
 
-PsyBer-Agent is a psychology-driven user agent framework for recommender systems. It simulates realistic, long-horizon user interactions by modeling persona, cognition, and behavioral dynamics, and supports pre-deployment evaluation through WebSim, a lightweight simulation platform for interactive recommendation benchmarking. The project provides a unified environment for studying user behavior fidelity, online A/B testing reliability, model evaluation, and robustness across multiple recommendation scenarios, including movie, shopping, image-text feed, and short-video recommendation.
+PsyBer-Agent是一个基于心理驱动的推荐系统用户agent框架。通过对角色、认知和行为动力学进行建模，模拟真实的、长时间的用户交互，并通过轻量级的交互推荐基准仿真平台WebSim支持部署前的评估。该项目提供了一个统一的环境，用于研究用户行为的保真度、在线a /B测试的可靠性、模型评估和跨多个推荐场景的鲁棒性，包括电影、购物、图文和短视频推荐。
 
 ## 环境配置
 
