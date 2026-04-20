@@ -46,18 +46,12 @@ conda run -n psyber pip freeze | LC_ALL=C sort > /Users/chongzhang/PsyBer-Agent/
 - 新增离线对齐预训练阶段：`src/alignment_pretrain_agent.py` 会从 `ratings.dat` 重建隐式轨迹，进行 OT 对齐训练，并输出在线快速策略模型 `fast_inference_policy.pt`（默认保存到 `PsyBer-Agent/outputs/fast_policies/{ml1m|amazon_mi}/fast_inference_policy.pt`）
 - 在线阶段优先使用快速策略推理（5 动作并行评估 + 帕累托过滤 + 轻量策略采样）；若策略文件不存在则自动回退到 Qwen 决策
 
-## 实验设计
+## 实验平台配置
 
-- 统一后的实验设计文档见：[EXPERIMENT_DESIGN.md](EXPERIMENT_DESIGN.md)
-- 其中 `E1-E5` 为主实验，`E6-E7` 作为 `Robustness & Interpretability` 附加章节
+这里需要使用到WebSim平台：[https://github.com/franz-chang/Web_simulation.git](https://github.com/franz-chang/Web_simulation.git "配置平台")
 
-> 说明：截图决策使用 OpenAI Responses API，模型固定为 `gpt-5.1-codex-mini`。  
-> 你可以二选一配置 API：  
-> 1) 环境变量 `OPENAI_API_KEY`（可选 `OPENAI_BASE_URL`）  
-> 2) 直接在 `src/WebSim_camel_agent.py` 顶部填写 `OPENAI_API_KEY_OVERRIDE` / `OPENAI_BASE_URL_OVERRIDE`。  
-> 若 API 不可用，会自动回退到随机策略，避免任务中断。
 
-## 运行
+## 预训练阶段
 
 离线预处理流水线（建议顺序）：
 
@@ -69,7 +63,7 @@ cd /Users/chongzhang/PsyBer-Agent
 
 说明：`02_run_alignment_pretrain_agent.sh` 默认启用 `softlabel_ugw`，即先训练回归先验生成 UGW 初始对齐，再由结构对齐生成动作软标签做监督训练；如需旧版 RL 流程，可追加 `--alignment-mode legacy_rl`。
 
-在线仿真：
+## 在线模拟用户阶段：
 
 ```bash
 cd /Users/chongzhang/PsyBer-Agent
