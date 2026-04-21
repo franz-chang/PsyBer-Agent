@@ -29,10 +29,14 @@ def main() -> None:
     ax1 = fig.add_subplot(gs[0, 0])
     ax2 = fig.add_subplot(gs[0, 1])
 
-    plot_scene_coverage(ax1, bar_width=0.62)
+    plot_scene_coverage(
+        ax1,
+        bar_width=0.62,
+        colors=["#C6E5FB", "#F79B9D", "#F7D097"],
+    )
     plot_backbone_coverage(
         ax2,
-        colors=["#009E74", "#D26101", "#0073B1", "#E59F05", "#D2ECFA"],
+        colors=["#DCDCDC", "#CFE9FC", "#F9B8BB", "#F9DCA9", "#D7EFFD"],
     )
 
     add_panel_label(ax1, "(C)", x=-0.24, y=1.14)

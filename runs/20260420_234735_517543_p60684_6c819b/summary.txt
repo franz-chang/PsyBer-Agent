@@ -1,0 +1,11 @@
+run_dir=/Users/chongzhang/PsyBer-Agent/runs/20260420_234735_517543_p60684_6c819b
+task_file=/Users/chongzhang/PsyBer-Agent/settings/task.yaml
+dataset=amazon_magazine_subscriptions
+model=bert4rec
+decision_mode=qwen_with_fast_candidates
+track_target=20
+click_count=20
+skip_count=0
+memory_file=/Users/chongzhang/PsyBer-Agent/runs/20260420_234735_517543_p60684_6c819b/memory.json
+fast_policy_path=/Users/chongzhang/PsyBer-Agent/outputs/fast_policies/ml1m/fast_inference_policy.pt
+api_id=api-069

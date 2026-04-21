@@ -130,6 +130,8 @@ def normalize_columns(values: np.ndarray, floor: float = 0.22) -> np.ndarray:
 
 
 def format_metric_value(metric_key: str, value: float) -> str:
+    if metric_key == "sparsity":
+        return f"{value:.2f}%"
     if metric_key == "avg_len":
         return f"{value:.1f}"
     if value >= 1_000_000:
@@ -146,6 +148,21 @@ def upright_rotation(theta: float) -> tuple[float, str]:
         return rotation, "right"
     if rotation > 90:
         rotation -= 180
+        return rotation, "right"
+    return rotation, "left"
+
+
+def tangent_rotation(theta: float) -> tuple[float, str]:
+    rotation = 180 - np.degrees(theta)
+    while rotation > 180:
+        rotation -= 360
+    while rotation <= -180:
+        rotation += 360
+    if rotation > 90:
+        rotation -= 180
+        return rotation, "right"
+    if rotation < -90:
+        rotation += 180
         return rotation, "right"
     return rotation, "left"
 
@@ -169,19 +186,35 @@ def style_cartesian_axis(ax: plt.Axes) -> None:
     ax.set_axisbelow(True)
 
 
-def plot_radial_benchmark_wheel(ax: plt.Axes) -> None:
+def plot_radial_benchmark_wheel(
+    ax: plt.Axes,
+    *,
+    metrics: list[tuple[str, str, str]] | None = None,
+    bar_fill_ratio: float = 0.92,
+    dataset_label_mode: str = "scene",
+    center_lines: list[str] | None = None,
+    use_inner_dataset_ring: bool = False,
+    inner_ring_radius_offset: float = 0.46,
+    inner_ring_fontsize: float = 8.2,
+    angular_offset: float = 0.0,
+    draw_inner_arcs: bool = False,
+    inner_arc_radius_offset: float = 0.10,
+    legend_ncol: int = 4,
+    legend_bbox: tuple[float, float] = (0.5, -0.10),
+) -> None:
+    metrics = metrics or RADIAL_METRICS
     raw_values = np.array(
-        [[row[metric_key] for metric_key, _, _ in RADIAL_METRICS] for row in DATASETS],
+        [[row[metric_key] for metric_key, _, _ in metrics] for row in DATASETS],
         dtype=float,
     )
     normalized_values = normalize_columns(raw_values)
 
     num_groups = len(DATASETS)
-    bars_per_group = len(RADIAL_METRICS)
+    bars_per_group = len(metrics)
     group_gap = np.deg2rad(7.5)
     total_bar_slots = num_groups * bars_per_group
     bar_width = (2 * np.pi - group_gap * num_groups) / total_bar_slots
-    full_bar_width = bar_width * 0.92
+    full_bar_width = bar_width * bar_fill_ratio
 
     inner_radius = 2.15
     radial_span = 2.65
@@ -205,10 +238,10 @@ def plot_radial_benchmark_wheel(ax: plt.Axes) -> None:
             lw=0.75,
             zorder=0,
         )
-        ax.text(0.0, radius, label, fontsize=8, color="#6E6E6E", ha="center", va="bottom")
+        ax.text(0.0, radius, label, fontsize=10, color="#6E6E6E", ha="center", va="bottom")
 
     for group_idx, row in enumerate(DATASETS):
-        start_angle = group_idx * (bars_per_group * bar_width + group_gap)
+        start_angle = angular_offset + group_idx * (bars_per_group * bar_width + group_gap)
         end_angle = start_angle + bars_per_group * bar_width
         group_mid = start_angle + (bars_per_group - 1) * bar_width / 2
 
@@ -228,21 +261,23 @@ def plot_radial_benchmark_wheel(ax: plt.Axes) -> None:
                 zorder=1,
             )
 
-        rotation, align = upright_rotation(group_mid)
-        ax.text(
-            group_mid,
-            inner_radius - 0.28,
-            row["short"],
-            fontsize=8.4,
-            color=SCENE_COLORS[row["scene"]],
-            rotation=rotation,
-            rotation_mode="anchor",
-            ha=align,
-            va="center",
-            fontweight="bold",
-        )
+        if dataset_label_mode != "none":
+            rotation, align = upright_rotation(group_mid)
+            label_color = SCENE_COLORS[row["scene"]] if dataset_label_mode == "scene" else "#616161"
+            ax.text(
+                group_mid,
+                inner_radius - 0.28,
+                row["short"],
+                fontsize=8.4,
+                color=label_color,
+                rotation=rotation,
+                rotation_mode="anchor",
+                ha=align,
+                va="center",
+                fontweight="bold",
+            )
 
-        for bar_idx, (metric_key, _, color) in enumerate(RADIAL_METRICS):
+        for bar_idx, (metric_key, _, color) in enumerate(metrics):
             theta = start_angle + bar_idx * bar_width
             bar_length = normalized_values[group_idx, bar_idx] * radial_span
             value = row[metric_key]
@@ -259,12 +294,12 @@ def plot_radial_benchmark_wheel(ax: plt.Axes) -> None:
             )
 
             label_radius = inner_radius + bar_length + 0.14
-            rotation, align = upright_rotation(theta)
+            rotation, align = tangent_rotation(theta)
             ax.text(
                 theta,
                 label_radius,
                 format_metric_value(metric_key, value),
-                fontsize=8.6,
+                fontsize=10.2,
                 rotation=rotation,
                 rotation_mode="anchor",
                 ha=align,
@@ -287,60 +322,76 @@ def plot_radial_benchmark_wheel(ax: plt.Axes) -> None:
         )
     )
 
-    ax.text(
-        0.5,
-        0.56,
-        "PsyBer-Test",
-        transform=ax.transAxes,
-        ha="center",
-        va="center",
-        fontsize=17,
-        fontweight="bold",
-        zorder=20,
-    )
-    ax.text(
-        0.5,
-        0.48,
-        "7 datasets",
-        transform=ax.transAxes,
-        ha="center",
-        va="center",
-        fontsize=10,
-        color="#5C5C5C",
-        zorder=20,
-    )
-    ax.text(
-        0.5,
-        0.42,
-        "3 scenes · 7 backbones",
-        transform=ax.transAxes,
-        ha="center",
-        va="center",
-        fontsize=10,
-        color="#5C5C5C",
-        zorder=20,
-    )
-    ax.text(
-        0.5,
-        0.36,
-        "4 normalized metrics",
-        transform=ax.transAxes,
-        ha="center",
-        va="center",
-        fontsize=10,
-        color="#5C5C5C",
-        zorder=20,
-    )
+    if use_inner_dataset_ring:
+        ring_radius = inner_radius - inner_ring_radius_offset
+        for group_idx, row in enumerate(DATASETS):
+            start_angle = angular_offset + group_idx * (bars_per_group * bar_width + group_gap)
+            end_angle = start_angle + bars_per_group * bar_width
+            theta = start_angle + (bars_per_group - 1) * bar_width / 2
+            rotation = 90 - np.degrees(theta)
+            if rotation > 90:
+                rotation -= 180
+            elif rotation < -90:
+                rotation += 180
+
+            ax.text(
+                theta,
+                ring_radius,
+                row["short"],
+                fontsize=inner_ring_fontsize,
+                color="#3E3E3E",
+                rotation=rotation,
+                rotation_mode="anchor",
+                ha="center",
+                va="center",
+                fontweight="bold",
+                zorder=20,
+            )
+
+            if draw_inner_arcs:
+                arc = np.linspace(start_angle + 0.05, end_angle - 0.05, 80)
+                ax.plot(
+                    arc,
+                    np.full_like(arc, inner_radius - inner_arc_radius_offset),
+                    color="#222222",
+                    lw=0.8,
+                    zorder=19,
+                )
+
+    if center_lines is None:
+        center_lines = [
+            "PsyBer-Test",
+            "7 datasets",
+            "3 scenes · 7 backbones",
+            "4 normalized metrics",
+        ]
+    center_y = [0.56, 0.48, 0.42, 0.36]
+    center_sizes = [17, 10, 10, 10]
+    center_weights = ["bold", "normal", "normal", "normal"]
+    center_colors = ["#1E1E1E", "#5C5C5C", "#5C5C5C", "#5C5C5C"]
+    for text, y, size, weight, color in zip(center_lines, center_y, center_sizes, center_weights, center_colors):
+        ax.text(
+            0.5,
+            y,
+            text,
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=size,
+            fontweight=weight,
+            color=color,
+            zorder=20,
+        )
 
     legend_handles = [
         Line2D([0], [0], color=color, lw=8, solid_capstyle="butt", label=label)
-        for _, label, color in RADIAL_METRICS
+        for _, label, color in metrics
     ]
     ax.legend(
         handles=legend_handles,
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.10),
-        ncol=4,
+        bbox_to_anchor=legend_bbox,
+        ncol=legend_ncol,
         frameon=False,
         fontsize=9,
         columnspacing=1.2,
@@ -368,11 +419,13 @@ def plot_users_items(
     ax.barh(y + offset, users, height=0.32, color=user_color, label="#Users")
     ax.barh(y - offset, items, height=0.32, color=item_color, label="#Items")
     ax.set_yticks(y)
-    ax.set_yticklabels(dataset_names, fontsize=8.6)
+    ax.set_yticklabels(dataset_names, fontsize=11.5)
     ax.set_xscale("log")
-    ax.set_xlabel("Count (log scale)", fontsize=10)
-    ax.set_title("Users and Items", fontsize=11)
-    ax.legend(frameon=False, fontsize=8, loc=legend_loc)
+    ax.set_xlabel("Count (log scale)", fontsize=14)
+    ax.set_title("Users and Items", fontsize=15)
+    ax.tick_params(axis="x", labelsize=11.5)
+    ax.tick_params(axis="y", labelsize=11.5)
+    ax.legend(frameon=False, fontsize=10, loc=legend_loc)
     ax.invert_yaxis()
 
 
@@ -419,7 +472,7 @@ def plot_density_bubble(
             (x, y),
             textcoords="offset points",
             xytext=label_offsets.get(row["short"], (6, 5)),
-            fontsize=8.0,
+            fontsize=10.0,
             color="#333333",
         )
 
@@ -427,14 +480,16 @@ def plot_density_bubble(
         Line2D([0], [0], marker="o", color="w", label=scene, markerfacecolor=color, markersize=8)
         for scene, color in scene_colors.items()
     ]
-    ax.legend(handles=scene_handles, frameon=False, fontsize=8, loc="lower left")
+    ax.legend(handles=scene_handles, frameon=False, fontsize=10, loc="lower left")
 
     ax.set_xscale("log")
-    ax.set_xlabel("Avg. sequence length (log scale)", fontsize=10)
-    ax.set_ylabel("Sparsity (%)", fontsize=10)
-    ax.set_title("Density and Sequence Length", fontsize=11)
+    ax.set_xlabel("Avg. sequence length (log scale)", fontsize=14)
+    ax.set_ylabel("Sparsity (%)", fontsize=14)
+    ax.set_title("Density and Sequence Length", fontsize=15)
     ax.set_xlim(*(xlim or (5.5, 220.0)))
     ax.set_ylim(*(ylim or (94.8, 100.35)))
+    ax.tick_params(axis="x", labelsize=11.5)
+    ax.tick_params(axis="y", labelsize=11.5)
 
     size_levels = [1e4, 5e5, 5e6]
     size_handles = [
@@ -446,14 +501,14 @@ def plot_density_bubble(
         size_handles,
         size_labels,
         frameon=False,
-        fontsize=8,
+        fontsize=10,
         loc="upper center",
         bbox_to_anchor=(0.90, 1.02),
         title="Bubble size",
-        title_fontsize=8,
+        title_fontsize=10,
     )
     ax.add_artist(size_legend)
-    ax.legend(handles=scene_handles, frameon=False, fontsize=8, loc="lower left")
+    ax.legend(handles=scene_handles, frameon=False, fontsize=10, loc="lower left")
 
 
 def plot_scene_coverage(
@@ -477,9 +532,11 @@ def plot_scene_coverage(
         edgecolor="white",
         linewidth=0.8,
     )
-    ax.set_title("Scenario Coverage", fontsize=11)
-    ax.set_ylabel("#Datasets", fontsize=10)
+    ax.set_title("Scenario Coverage", fontsize=15)
+    ax.set_ylabel("#Datasets", fontsize=14)
     ax.set_ylim(0, max(counts) + 1.2)
+    ax.tick_params(axis="x", labelsize=11.5)
+    ax.tick_params(axis="y", labelsize=11.5)
 
     for bar, count in zip(bars, counts):
         pct = 100.0 * count / total
@@ -489,7 +546,7 @@ def plot_scene_coverage(
             f"{count} ({pct:.1f}%)",
             ha="center",
             va="bottom",
-            fontsize=8.8,
+            fontsize=10.5,
             fontweight="bold",
         )
 
@@ -506,10 +563,11 @@ def plot_backbone_coverage(
     colors = colors or [row[2] for row in BACKBONE_FAMILIES]
 
     bars = ax.bar(labels, values, color=colors, edgecolor="white", linewidth=0.8)
-    ax.set_title("Backbone Families", fontsize=11)
-    ax.set_ylabel("#Models", fontsize=10)
+    ax.set_title("Backbone Families", fontsize=15)
+    ax.set_ylabel("#Models", fontsize=14)
     ax.set_ylim(0, max(values) + 1.0)
-    ax.tick_params(axis="x", labelrotation=20)
+    ax.tick_params(axis="x", labelrotation=20, labelsize=11.5)
+    ax.tick_params(axis="y", labelsize=11.5)
 
     for bar, value in zip(bars, values):
         ax.text(
@@ -518,6 +576,6 @@ def plot_backbone_coverage(
             str(value),
             ha="center",
             va="bottom",
-            fontsize=8.8,
+            fontsize=10.5,
             fontweight="bold",
         )
