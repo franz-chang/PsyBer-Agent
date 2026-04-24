@@ -1,7 +1,7 @@
 dataset:
-  # - MovieLens-1M
+  - MovieLens-1M
   # - Amazon All Beauty
-  - Amazon Magazine Subscriptions
+  # - Amazon Magazine Subscriptions
 model:
   # - LightGCN
   # - PopRec

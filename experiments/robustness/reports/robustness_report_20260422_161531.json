@@ -1,0 +1,554 @@
+{
+  "generated_at": "2026-04-22T16:54:42.588626",
+  "behavior_robustness": [
+    {
+      "condition_id": "base_clean",
+      "setting": "Base",
+      "severity": "clean",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.329587,
+        "ci95": 0.12431190286924064,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.4736505733689625,
+      "State Drift": null,
+      "Action Flip Rate": null,
+      "Policy Shift": null
+    }
+  ],
+  "decision_robustness": [
+    {
+      "condition_id": "decision_mask_10",
+      "setting": "Click/history mask",
+      "severity": "10%",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.25415396619797986,
+        "ci95": 0.430213350055126,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.002507804717180527,
+        "ci95": 0.0045919557297833076,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.328251649122808,
+        "ci95": 0.014091494415640251,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 6.668883371428599,
+        "ci95": 10.791429175655091,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.03465735902699726,
+      "State Drift": 0.002507804717180527,
+      "Action Flip Rate": 0.0,
+      "Policy Shift": 0.0
+    },
+    {
+      "condition_id": "decision_mask_20",
+      "setting": "Click/history mask",
+      "severity": "20%",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.25415396619797986,
+        "ci95": 0.430213350055126,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.0027269862393446385,
+        "ci95": 0.004964318802121042,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.438911385964912,
+        "ci95": 0.10783631076610518,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 7.290849104401679,
+        "ci95": 11.193393276508411,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.03465735902699726,
+      "State Drift": 0.0027269862393446385,
+      "Action Flip Rate": 0.0,
+      "Policy Shift": 0.0
+    },
+    {
+      "condition_id": "decision_mask_30",
+      "setting": "Click/history mask",
+      "severity": "30%",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.25415396619797986,
+        "ci95": 0.430213350055126,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.0033256453946247117,
+        "ci95": 0.004166335061985765,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.429498122807018,
+        "ci95": 0.14965236867669704,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 7.356546815106651,
+        "ci95": 11.116330570187607,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.03465735902699726,
+      "State Drift": 0.0033256453946247117,
+      "Action Flip Rate": 0.0,
+      "Policy Shift": 0.0
+    },
+    {
+      "condition_id": "decision_adjacent_swap",
+      "setting": "Adjacent swap",
+      "severity": "1 pair",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.25415396619797986,
+        "ci95": 0.430213350055126,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.003343298374527942,
+        "ci95": 0.004100122534430991,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.439883052631578,
+        "ci95": 0.1250243232488369,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 7.102829537855725,
+        "ci95": 11.57689420085256,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.03465735902699726,
+      "State Drift": 0.003343298374527942,
+      "Action Flip Rate": 0.0,
+      "Policy Shift": 0.0
+    },
+    {
+      "condition_id": "decision_top1_replacement",
+      "setting": "Top-rank replacement",
+      "severity": "top-1",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.26570641920697896,
+        "ci95": 0.41935067076951976,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.0037666580949105312,
+        "ci95": 0.0031267841899665916,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.428507912280701,
+        "ci95": 0.09201573824761143,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 7.406241461363229,
+        "ci95": 10.288403923903784,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.05776226504499543,
+      "State Drift": 0.0037666580949105312,
+      "Action Flip Rate": 0.0,
+      "Policy Shift": 0.0
+    },
+    {
+      "condition_id": "decision_distractor_insertion",
+      "setting": "Distractor insertion",
+      "severity": "1 item",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.25415396619797986,
+        "ci95": 0.430213350055126,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.003596805673213866,
+        "ci95": 0.0027901696955069735,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.4748372105263154,
+        "ci95": 0.24826445855594984,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 7.703993942448219,
+        "ci95": 11.664363263077762,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.03465735902699726,
+      "State Drift": 0.003596805673213866,
+      "Action Flip Rate": 0.0,
+      "Policy Shift": 0.0
+    },
+    {
+      "condition_id": "decision_conflicting_signals",
+      "setting": "Conflicting signals",
+      "severity": "mixed",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.01587301587301589,
+        "ci95": 0.031111111111111145,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.28881132522497716,
+        "ci95": 0.3967340445351642,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.0038399180863214685,
+        "ci95": 0.00380363266039904,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.481695903508772,
+        "ci95": 0.19791003481994662,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 8.890080243703911,
+        "ci95": 9.805492944800971,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.05776226504499543,
+      "State Drift": 0.0038399180863214685,
+      "Action Flip Rate": 0.016666666666666666,
+      "Policy Shift": 0.015873015873015883
+    }
+  ],
+  "system_robustness": [],
+  "inputs": {
+    "project_root": "/Users/chongzhang/PsyBer-Agent",
+    "python_bin": "/opt/anaconda3/envs/psyber/bin/python",
+    "agent_script": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/robust_websim_agent.py",
+    "batch_script": "/Users/chongzhang/PsyBer-Agent/src/launch_websim_batch.py",
+    "seeds": [
+      101,
+      202,
+      303
+    ],
+    "base_track": 20,
+    "base_dataset": "MovieLens-1M",
+    "base_model": "LightGCN",
+    "cross_domain_dataset": "Amazon Magazine Subscriptions",
+    "decision_model": "qwen-plus",
+    "qwen_base_url": null,
+    "ab_cases_file": null,
+    "skip_launch": false,
+    "dry_run": false
+  },
+  "artifacts": {
+    "run_manifest": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_run_manifest_20260422_161531.jsonl",
+    "batch_manifest": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_batch_manifest_20260422_161531.jsonl",
+    "report_json": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_report_20260422_161531.json",
+    "report_md": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_report_20260422_161531.md"
+  }
+}

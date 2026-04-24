@@ -1,0 +1,7 @@
+[FastPolicy] loaded: /Users/chongzhang/PsyBer-Agent/outputs/fast_policies/ml1m/fast_inference_policy.pt
+[QWEN+FAST] 2026-04-23 20:51:33 step=1 qwen_status=[成功：🟢] action=click item_id=3050 page_pos=1 DT=4.004 recovered_before_round=- psy_state=(C=0.700,E=0.428,S=0.363,Surf=1) psy_delta=(dC=+0.150,dE=-0.122,dS=-0.187)
+[Cleanup] removed 1 image(s) from /Users/chongzhang/PsyBer-Agent/runs/20260423_205120_709570_p88509_b2090e/browser_cache
+Run completed.
+- output: /Users/chongzhang/PsyBer-Agent/runs/20260423_205120_709570_p88509_b2090e
+- memory: /Users/chongzhang/PsyBer-Agent/runs/20260423_205120_709570_p88509_b2090e/memory.json
+- clicks: 1 / 1

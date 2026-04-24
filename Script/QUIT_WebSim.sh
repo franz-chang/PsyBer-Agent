@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 # Processes launched by run_10k_sim.sh / run_websim_agent.sh.
 PATTERNS=(
   "launch_websim_batch.py"
-  "WebSim_camel_agent.py"
+  "WebSim_agent.py"
   "web_sim_camel_agent.py"
   "run_10k_sim.sh"
   "run_websim_agent.sh"

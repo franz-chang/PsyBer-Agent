@@ -1,0 +1,224 @@
+{
+  "generated_at": "2026-04-23T13:22:17.776839",
+  "behavior_robustness": [
+    {
+      "condition_id": "base_clean",
+      "setting": "Base",
+      "severity": "clean",
+      "run_count": 1,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Item Exposure JS": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Latency per Decision": {
+        "mean": 5.117572052631579,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Relative Drop (%)": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Intra-profile Exposure JS": null,
+      "State Drift": null,
+      "Completion Rate": {
+        "mean": 1.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Skip/Next Rate": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Round Overrun Rate": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Qwen Call Success Rate": {
+        "mean": 1.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Action Flip Rate": null,
+      "Action Flip Rate CI": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Decision Agreement": null,
+      "Policy Shift": null,
+      "Policy Shift CI": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      }
+    }
+  ],
+  "decision_robustness": [
+    {
+      "condition_id": "decision_conflicting_signals",
+      "setting": "Conflicting signals",
+      "severity": "mixed",
+      "run_count": 1,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Item Exposure JS": {
+        "mean": 0.06931471805399453,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.0014895262467515334,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Latency per Decision": {
+        "mean": 4.886201736842105,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Relative Drop (%)": {
+        "mean": 1.7701061075186515,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Intra-profile Exposure JS": null,
+      "State Drift": 0.0014895262467515334,
+      "Completion Rate": {
+        "mean": 1.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Skip/Next Rate": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Round Overrun Rate": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Qwen Call Success Rate": {
+        "mean": 1.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Action Flip Rate": 0.0,
+      "Action Flip Rate CI": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      },
+      "Decision Agreement": 1.0,
+      "Policy Shift": 0.0,
+      "Policy Shift CI": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 1
+      }
+    }
+  ],
+  "system_robustness": [],
+  "inputs": {
+    "project_root": "/Users/chongzhang/PsyBer-Agent",
+    "python_bin": "/opt/anaconda3/bin/python",
+    "agent_script": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/robust_websim_agent.py",
+    "batch_script": "/Users/chongzhang/PsyBer-Agent/src/launch_websim_batch.py",
+    "seeds": [
+      101
+    ],
+    "base_track": 20,
+    "base_dataset": "MovieLens-1M",
+    "base_model": "LightGCN",
+    "cross_domain_dataset": "Amazon Magazine Subscriptions",
+    "decision_model": "qwen-plus",
+    "qwen_base_url": null,
+    "ab_cases_file": null,
+    "skip_launch": false,
+    "dry_run": false
+  },
+  "artifacts": {
+    "run_manifest": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_run_manifest_20260423_131837.jsonl",
+    "batch_manifest": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_batch_manifest_20260423_131837.jsonl",
+    "report_json": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_report_20260423_131837.json",
+    "report_md": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_report_20260423_131837.md"
+  }
+}

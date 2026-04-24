@@ -1,0 +1,98 @@
+{
+  "generated_at": "2026-04-21T20:48:03.886119",
+  "behavior_robustness": [
+    {
+      "condition_id": "base_clean",
+      "setting": "Base",
+      "severity": "clean",
+      "run_count": 3,
+      "Sign Accuracy": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Lift MAE": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Type-I Error": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(1%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(3%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "Power@δ(5%)": {
+        "mean": null,
+        "ci95": null,
+        "n": 0
+      },
+      "CTR Gap": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Item Exposure JS": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "PCES Trajectory MSE": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Latency per Decision": {
+        "mean": 4.375826070175439,
+        "ci95": 0.23173352967801594,
+        "n": 3
+      },
+      "Relative Drop (%)": {
+        "mean": 0.0,
+        "ci95": 0.0,
+        "n": 3
+      },
+      "Intra-profile Exposure JS": 0.4736505733689628,
+      "State Drift": null,
+      "Action Flip Rate": null,
+      "Policy Shift": null
+    }
+  ],
+  "decision_robustness": [],
+  "system_robustness": [],
+  "inputs": {
+    "project_root": "/Users/chongzhang/PsyBer-Agent",
+    "python_bin": "/opt/anaconda3/bin/python",
+    "agent_script": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/robust_websim_agent.py",
+    "batch_script": "/Users/chongzhang/PsyBer-Agent/src/launch_websim_batch.py",
+    "seeds": [
+      101,
+      202,
+      303
+    ],
+    "base_track": 20,
+    "base_dataset": "MovieLens-1M",
+    "base_model": "LightGCN",
+    "cross_domain_dataset": "Amazon Magazine Subscriptions",
+    "decision_model": "qwen-plus",
+    "qwen_base_url": null,
+    "ab_cases_file": null,
+    "skip_launch": false,
+    "dry_run": false
+  },
+  "artifacts": {
+    "run_manifest": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_run_manifest_20260421_204310.jsonl",
+    "batch_manifest": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_batch_manifest_20260421_204310.jsonl",
+    "report_json": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_report_20260421_204310.json",
+    "report_md": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_report_20260421_204310.md"
+  }
+}

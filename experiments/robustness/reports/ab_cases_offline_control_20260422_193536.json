@@ -1,0 +1,305 @@
+{
+  "meta": {
+    "generated_at": "2026-04-22T19:35:36.149801",
+    "source_manifest": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_run_manifest_20260422_161531.jsonl",
+    "dataset_name": "MovieLens-1M",
+    "dataset_root": "/Users/chongzhang/WebSim_Dataset",
+    "ratings_path": "/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main/ratings.dat",
+    "positive_threshold": 4.0,
+    "real_ctr_offline": 0.5751607913945985,
+    "base_condition_id": "base_clean",
+    "base_seed_count": 3,
+    "case_count": 24,
+    "note": "oracle_lift is taken from base condition per-seed lift (run_ctr - offline_real_ctr); pred_lift is each condition per-seed lift."
+  },
+  "ab_cases": [
+    {
+      "condition": "base_clean",
+      "seed": "101",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_161533_525997_p6628_ed4da6/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "base_clean",
+      "seed": "202",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_161709_369565_p6743_1412aa/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "base_clean",
+      "seed": "303",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_161847_520953_p7195_bb3186/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_adjacent_swap",
+      "seed": "101",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_163458_911838_p9054_017179/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_adjacent_swap",
+      "seed": "202",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_163635_786355_p9105_91d601/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_adjacent_swap",
+      "seed": "303",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_163813_656481_p9156_886ff8/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_conflicting_signals",
+      "seed": "101",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.3772201609863538,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_164944_658683_p10049_4b1c87/memory.json",
+        "run_ctr": 0.9523809523809523
+      }
+    },
+    {
+      "condition": "decision_conflicting_signals",
+      "seed": "202",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_165130_653278_p10299_96b335/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_conflicting_signals",
+      "seed": "303",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_165305_486105_p10351_ae5646/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_distractor_insertion",
+      "seed": "101",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_164447_487588_p9366_975333/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_distractor_insertion",
+      "seed": "202",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_164626_947198_p9469_c337d5/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_distractor_insertion",
+      "seed": "303",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_164802_737567_p9597_286f8c/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_10",
+      "seed": "101",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_162023_568080_p7507_3fc58b/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_10",
+      "seed": "202",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_162159_298457_p7583_4a7797/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_10",
+      "seed": "303",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_162334_739424_p7937_39b04f/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_20",
+      "seed": "101",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_162511_557418_p8272_71d6cc/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_20",
+      "seed": "202",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_162650_020212_p8555_b72c4c/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_20",
+      "seed": "303",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_162826_100304_p8687_475483/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_30",
+      "seed": "101",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_163005_301371_p8866_28d3e5/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_30",
+      "seed": "202",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_163145_037227_p8930_2f61a7/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_mask_30",
+      "seed": "303",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_163320_041985_p8995_bc1cf2/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_top1_replacement",
+      "seed": "101",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_163954_255984_p9204_14289f/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_top1_replacement",
+      "seed": "202",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_164133_513535_p9261_ceb04b/memory.json",
+        "run_ctr": 1.0
+      }
+    },
+    {
+      "condition": "decision_top1_replacement",
+      "seed": "303",
+      "oracle_lift": 0.4248392086054015,
+      "pred_lift": 0.4248392086054015,
+      "meta": {
+        "oracle_source": "offline_control_base_seed_lift",
+        "real_ctr_offline": 0.5751607913945985,
+        "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260422_164310_647023_p9313_aad946/memory.json",
+        "run_ctr": 1.0
+      }
+    }
+  ]
+}

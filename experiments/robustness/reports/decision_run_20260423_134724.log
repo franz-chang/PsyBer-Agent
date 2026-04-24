@@ -1,0 +1,7 @@
+[Warn] No --ab-cases-file provided. Sign Accuracy/Lift MAE/Type-I may be N/A.
+[Info] Project root: /Users/chongzhang/PsyBer-Agent
+[Info] Python: /opt/anaconda3/envs/psyber/bin/python
+[Info] Decision model: qwen-plus
+[Info] Seeds: 101,202,303
+[Info] Condition IDs: base_clean,decision_mask_10,decision_mask_20,decision_mask_30,decision_adjacent_swap,decision_top1_replacement,decision_distractor_insertion,decision_conflicting_signals
+[Run] /opt/anaconda3/envs/psyber/bin/python /Users/chongzhang/PsyBer-Agent/experiments/robustness/run_robustness_suite.py --condition-ids base_clean,decision_mask_10,decision_mask_20,decision_mask_30,decision_adjacent_swap,decision_top1_replacement,decision_distractor_insertion,decision_conflicting_signals --base-track 20 --base-dataset MovieLens-1M --base-model LightGCN --decision-model qwen-plus --seeds 101,202,303 --headless

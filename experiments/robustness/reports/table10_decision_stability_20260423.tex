@@ -1,0 +1,23 @@
+\begin{table}[ht]
+\caption{Decision robustness of PsyBer-Agent under noisy observations and ranking perturbations (stability track).}
+\label{tab:decision_robustness}
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Setting} & \textbf{Severity}
+& \textbf{Decision Agreement $\uparrow$} & \textbf{Policy Shift $\downarrow$} & \textbf{Latency/Decision (s) $\downarrow$} \\
+\midrule
+\textbf{Base} & \textbf{clean} & 1.0000 & 0.0000 & 4.3935 \\
+\hline
+\multirow{3}{*}{\textbf{Click/history mask}} & 10\% & 1.0000 & 0.0000 & 4.3566 \\
+                                             & 20\% & 1.0000 & 0.0000 & 4.4279 \\
+                                             & 30\% & 1.0000 & 0.0000 & 4.4319 \\
+\hline
+\textbf{Adjacent swap} & 1 pair & 1.0000 & 0.0013 & 4.2522 \\
+\textbf{Top-rank replacement} & top-1 & 1.0000 & 0.0021 & 4.4487 \\
+\textbf{Distractor insertion} & 1 item & 1.0000 & 0.0063 & 4.3444 \\
+\textbf{Conflicting signals} & mixed & 0.9833 & 0.0303 & 4.5094 \\
+\bottomrule
+\end{tabular}
+\end{table}

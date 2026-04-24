@@ -33,7 +33,7 @@ import yaml
 
 SRC_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SRC_DIR.parent
-DEFAULT_AGENT_SCRIPT = SRC_DIR / "WebSim_camel_agent.py"
+DEFAULT_AGENT_SCRIPT = SRC_DIR / "WebSim_agent.py"
 DEFAULT_OUTPUT_ROOT = PROJECT_DIR
 
 
@@ -858,7 +858,7 @@ async def launch_batch(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Launch many WebSim_camel_agent tasks")
+    parser = argparse.ArgumentParser(description="Launch many WebSim_agent tasks")
     parser.add_argument("--total-tasks", type=int, default=10000)
     parser.add_argument("--start-index", type=int, default=1)
     parser.add_argument("--max-concurrency", type=int, default=120)

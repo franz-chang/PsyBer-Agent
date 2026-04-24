@@ -1,0 +1,11 @@
+run_dir=/Users/chongzhang/PsyBer-Agent/runs/20260423_205120_709571_p88513_03da2d
+task_file=/Users/chongzhang/PsyBer-Agent/settings/task.yaml
+dataset=ml1m
+model=bert4rec
+decision_mode=qwen_with_fast_candidates
+track_target=1
+click_count=1
+skip_count=0
+memory_file=/Users/chongzhang/PsyBer-Agent/runs/20260423_205120_709571_p88513_03da2d/memory.json
+fast_policy_path=/Users/chongzhang/PsyBer-Agent/outputs/fast_policies/ml1m/fast_inference_policy.pt
+api_id=api-005

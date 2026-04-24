@@ -174,7 +174,7 @@ for item in datasets:
     if key:
         resolved.append(key)
 if not resolved:
-    # Keep consistent with WebSim_camel_agent.py fallback dataset.
+    # Keep consistent with WebSim_agent.py fallback dataset.
     resolved = ["ml1m"]
 
 checked = []
@@ -206,12 +206,12 @@ fi
 
 # Qwen is the final decider (fast policy only provides candidate actions), so key is always required.
 INLINE_KEY="$(
-  "${PYTHON_BIN}" -c "import re; from pathlib import Path; text=Path('${PROJECT_ROOT}/src/WebSim_camel_agent.py').read_text(encoding='utf-8'); m=re.search(r'^\\s*QWEN_API_KEY\\s*=\\s*[\\\"\\'](.*)[\\\"\\']\\s*$', text, flags=re.MULTILINE); print((m.group(1).strip() if m else ''))"
+  "${PYTHON_BIN}" -c "import re; from pathlib import Path; text=Path('${PROJECT_ROOT}/src/WebSim_agent.py').read_text(encoding='utf-8'); m=re.search(r'^\\s*QWEN_API_KEY\\s*=\\s*[\\\"\\'](.*)[\\\"\\']\\s*$', text, flags=re.MULTILINE); print((m.group(1).strip() if m else ''))"
 )"
 
 if [ -z "${QWEN_API_KEY:-}" ] && [ -z "${DASHSCOPE_API_KEY:-}" ] && [ -z "${INLINE_KEY}" ]; then
   echo "[ERROR] Missing Qwen API key." >&2
-  echo "Set QWEN_API_KEY or DASHSCOPE_API_KEY, or fill QWEN_API_KEY in src/WebSim_camel_agent.py." >&2
+  echo "Set QWEN_API_KEY or DASHSCOPE_API_KEY, or fill QWEN_API_KEY in src/WebSim_agent.py." >&2
   exit 1
 fi
 
@@ -221,5 +221,5 @@ if ! "${PYTHON_BIN}" -c "import os,sys; from playwright.sync_api import sync_pla
   "${PYTHON_BIN}" -m playwright install chromium
 fi
 
-exec "${PYTHON_BIN}" "${PROJECT_ROOT}/src/WebSim_camel_agent.py" \
+exec "${PYTHON_BIN}" "${PROJECT_ROOT}/src/WebSim_agent.py" \
   "${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}" "$@"

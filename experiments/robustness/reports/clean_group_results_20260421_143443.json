@@ -1,0 +1,69 @@
+{
+  "generated_at": "2026-04-21T14:34:43.579940",
+  "source_manifest": "/Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_run_manifest_20260421_143131.jsonl",
+  "condition_id": "base_clean",
+  "n_runs": 3,
+  "runs": [
+    {
+      "seed": "101",
+      "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260421_143133_461966_p91764_a342ee/memory.json",
+      "clicks": 20,
+      "track_target": 20,
+      "success": 1.0,
+      "latency_per_decision": 1.6661965263157896,
+      "recovery_rounds": 5
+    },
+    {
+      "seed": "202",
+      "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260421_143220_119173_p91916_5b7d58/memory.json",
+      "clicks": 20,
+      "track_target": 20,
+      "success": 1.0,
+      "latency_per_decision": 1.6986353684210524,
+      "recovery_rounds": 5
+    },
+    {
+      "seed": "303",
+      "memory_path": "/Users/chongzhang/PsyBer-Agent/runs/20260421_143303_815365_p92017_7d941d/memory.json",
+      "clicks": 20,
+      "track_target": 20,
+      "success": 1.0,
+      "latency_per_decision": 1.6015204736842106,
+      "recovery_rounds": 0
+    }
+  ],
+  "table5_clean": {
+    "CTR Gap": 0.0,
+    "Exposure JS": 0.0,
+    "PCES MSE": 0.0,
+    "Relative Drop (%)": 0.0
+  },
+  "table6_clean": {
+    "Sign Accuracy": null,
+    "Lift MAE": null,
+    "Type-I Error": null,
+    "Power@δ(1%)": null,
+    "Power@δ(3%)": null,
+    "Power@δ(5%)": null,
+    "note": "No oracle_lift/pred_lift AB cases were provided for clean condition."
+  },
+  "table7_clean": {
+    "Success Rate": {
+      "mean": 1.0,
+      "ci95": 0.0,
+      "n": 3
+    },
+    "p95 Latency per Decision (s)": 1.8574144,
+    "Mean Latency per Decision (s)": {
+      "mean": 1.655450789473684,
+      "ci95": 0.05594794554556336,
+      "n": 3
+    },
+    "Recovery Rounds": {
+      "mean": 3.3333333333333335,
+      "ci95": 3.2666666666666666,
+      "n": 3
+    },
+    "Sign Accuracy": null
+  }
+}

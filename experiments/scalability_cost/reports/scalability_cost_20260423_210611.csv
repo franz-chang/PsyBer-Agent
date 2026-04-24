@@ -1,0 +1,2 @@
+N,runs_ok,runs_total,throughput_tasks_per_sec_mean,p95_latency_per_decision_sec_mean,success_rate_mean,cost_token_mean,runtime_sec_mean,throughput_tasks_per_sec_std,p95_latency_per_decision_sec_std,success_rate_std,cost_token_std,runtime_sec_std
+3,1,1,0.2999575535144776,,1.0,0.0,10.001415083068423,,,,,

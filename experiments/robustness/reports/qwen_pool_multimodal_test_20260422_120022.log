@@ -1,0 +1,391 @@
+=== API Pool Multimodal Smoke Test ===
+pool_file: /Users/chongzhang/PsyBer-Agent/settings/api_pool.yaml
+model: qwen-plus-0112
+question: 请用一句中文回复：连通性正常
+image: /Users/chongzhang/PsyBer-Agent/Method.png
+selected_slots: 95 / 95
+
+[1/95] slot=api-001 key=sk-e59...ac2f base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (10.67s)
+  reply: 网络连接状态良好。
+
+[2/95] slot=api-002 key=sk-1b5...1daf base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.07s)
+  reply: 网络连接状态良好。
+
+[3/95] slot=api-003 key=sk-c3c...16e2 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.79s)
+  reply: 网络连接状态良好。
+
+[4/95] slot=api-004 key=sk-47e...326f base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.20s)
+  reply: 网络连接状况良好。
+
+[5/95] slot=api-005 key=sk-430...c983 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.29s)
+  reply: 网络连接状态良好。
+
+[6/95] slot=api-006 key=sk-cf5...374b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.05s)
+  reply: 网络连接状态良好。
+
+[7/95] slot=api-007 key=sk-055...e676 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.97s)
+  reply: 网络连接状况良好。
+
+[8/95] slot=api-008 key=sk-7ad...7768 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.10s)
+  reply: 网络连接状态良好。
+
+[9/95] slot=api-009 key=sk-5dc...aff6 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.52s)
+  reply: 网络连接状态良好。
+
+[10/95] slot=api-010 key=sk-e41...2492 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (6.05s)
+  reply: 网络连接状态良好。
+
+[11/95] slot=api-011 key=sk-e6e...990e base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.51s)
+  reply: 网络连接状态良好。
+
+[12/95] slot=api-012 key=sk-51a...144b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.13s)
+  reply: 网络连接状态良好。
+
+[13/95] slot=api-013 key=sk-0c9...f4ea base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.94s)
+  reply: 网络连接状态良好。
+
+[14/95] slot=api-014 key=sk-102...a248 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.35s)
+  reply: 网络连接状态良好。
+
+[15/95] slot=api-015 key=sk-572...7dde base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.99s)
+  reply: 网络连接状态良好。
+
+[16/95] slot=api-016 key=sk-e88...9f1b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.56s)
+  reply: 网络连接状态良好。
+
+[17/95] slot=api-017 key=sk-60a...3f90 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.85s)
+  reply: 网络连接状态良好。
+
+[18/95] slot=api-018 key=sk-8fe...aa7d base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.34s)
+  reply: 网络连接状态良好。
+
+[19/95] slot=api-019 key=sk-ae8...c7b5 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.80s)
+  reply: 网络连接状态良好。
+
+[20/95] slot=api-020 key=sk-b07...7af2 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.11s)
+  reply: 网络连接状态良好。
+
+[21/95] slot=api-021 key=sk-f94...01c7 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.23s)
+  reply: 网络连接状态良好。
+
+[22/95] slot=api-022 key=sk-81e...70e1 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.26s)
+  reply: 网络连接状态良好。
+
+[23/95] slot=api-023 key=sk-31f...5707 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.23s)
+  reply: 网络连接状态良好。
+
+[24/95] slot=api-024 key=sk-19b...263f base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.67s)
+  reply: 网络连接状态良好。
+
+[25/95] slot=api-025 key=sk-8d3...63fb base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.18s)
+  reply: 网络连接状态良好。
+
+[26/95] slot=api-026 key=sk-e9e...598d base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (6.04s)
+  reply: 网络连接状态良好。
+
+[27/95] slot=api-027 key=sk-728...bb2c base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.08s)
+  reply: 网络连接状况良好。
+
+[28/95] slot=api-028 key=sk-f8e...78b9 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.98s)
+  reply: 网络连接状态良好。
+
+[29/95] slot=api-029 key=sk-5ba...4ecc base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.14s)
+  reply: 网络连接状态良好。
+
+[30/95] slot=api-030 key=sk-21c...e160 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.07s)
+  reply: 网络连接状态良好。
+
+[31/95] slot=api-031 key=sk-f59...4223 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.33s)
+  reply: 网络连接状况良好。
+
+[32/95] slot=api-032 key=sk-de1...7fb9 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.61s)
+  reply: 网络连接状态良好。
+
+[33/95] slot=api-033 key=sk-a4d...ca1d base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.80s)
+  reply: 网络连接状态良好。
+
+[34/95] slot=api-034 key=sk-b12...73da base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.11s)
+  reply: 网络连接状态良好。
+
+[35/95] slot=api-035 key=sk-7c0...efea base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (7.16s)
+  reply: 网络连接状况良好。
+
+[36/95] slot=api-036 key=sk-649...11ce base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.12s)
+  reply: 网络连接状态良好。
+
+[37/95] slot=api-037 key=sk-992...3de2 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.29s)
+  reply: 网络连接状态良好。
+
+[38/95] slot=api-038 key=sk-590...c95e base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.07s)
+  reply: 网络连接状态良好。
+
+[39/95] slot=api-039 key=sk-c60...39be base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.75s)
+  reply: 网络连接状况良好。
+
+[40/95] slot=api-040 key=sk-82d...f10e base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.06s)
+  reply: 网络连接状态良好。
+
+[41/95] slot=api-041 key=sk-cb7...2d0b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (6.32s)
+  reply: 网络连接状态良好。
+
+[42/95] slot=api-042 key=sk-185...d286 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.81s)
+  reply: 网络连接状态良好。
+
+[43/95] slot=api-043 key=sk-cea...74c9 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.87s)
+  reply: 网络连接状况良好。
+
+[44/95] slot=api-044 key=sk-46c...b030 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.37s)
+  reply: 网络连接状态良好。
+
+[45/95] slot=api-045 key=sk-2b0...971b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.30s)
+  reply: 网络连接状态良好。
+
+[46/95] slot=api-046 key=sk-dde...7a3b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.08s)
+  reply: 网络连接状态良好。
+
+[47/95] slot=api-047 key=sk-a79...3fc2 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.10s)
+  reply: 网络连接状态良好。
+
+[48/95] slot=api-048 key=sk-30f...cdc2 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.14s)
+  reply: 网络连接状态良好。
+
+[49/95] slot=api-049 key=sk-291...f2c5 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.34s)
+  reply: 网络连接状态良好。
+
+[50/95] slot=api-050 key=sk-eee...7a04 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (11.49s)
+  reply: 网络连接状态良好。
+
+[51/95] slot=api-051 key=sk-cdd...bf3d base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.30s)
+  reply: 网络连接状态良好。
+
+[52/95] slot=api-052 key=sk-cf5...e637 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.14s)
+  reply: 网络连接状态良好。
+
+[53/95] slot=api-053 key=sk-086...9348 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.31s)
+  reply: 网络连接状况良好。
+
+[54/95] slot=api-054 key=sk-e90...a792 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.55s)
+  reply: 网络连接状态良好。
+
+[55/95] slot=api-055 key=sk-1d3...5344 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.18s)
+  reply: 网络连接状态良好。
+
+[56/95] slot=api-056 key=sk-d89...27a2 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.10s)
+  reply: 网络连接状态良好。
+
+[57/95] slot=api-057 key=sk-c17...ca91 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.40s)
+  reply: 网络连接状态良好。
+
+[58/95] slot=api-058 key=sk-baf...961f base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.40s)
+  reply: 网络连接状态良好。
+
+[59/95] slot=api-059 key=sk-c55...639d base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.28s)
+  reply: 网络连接状态良好。
+
+[60/95] slot=api-060 key=sk-e2f...cc72 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.56s)
+  reply: 网络连接状态良好。
+
+[61/95] slot=api-061 key=sk-54b...d436 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.08s)
+  reply: 网络连接状态良好。
+
+[62/95] slot=api-062 key=sk-5a5...17c8 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.11s)
+  reply: 网络连接状态良好。
+
+[63/95] slot=api-063 key=sk-f7c...bad3 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (11.30s)
+  reply: 网络连接状态良好。
+
+[64/95] slot=api-064 key=sk-722...d148 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.15s)
+  reply: 网络连接状态良好。
+
+[65/95] slot=api-065 key=sk-0c3...c13a base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.19s)
+  reply: 网络连接状态良好。
+
+[66/95] slot=api-066 key=sk-ed5...713b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.33s)
+  reply: 网络连接状况良好。
+
+[67/95] slot=api-067 key=sk-371...1e42 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.47s)
+  reply: 网络连接状态良好。
+
+[68/95] slot=api-068 key=sk-1f0...61d9 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.49s)
+  reply: 网络连接状况良好。
+
+[69/95] slot=api-069 key=sk-83f...e94e base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.11s)
+  reply: 网络连接状况良好。
+
+[70/95] slot=api-070 key=sk-f49...467b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (6.22s)
+  reply: 网络连接状态良好。
+
+[71/95] slot=api-071 key=sk-4bf...d421 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.06s)
+  reply: 网络连接状态良好。
+
+[72/95] slot=api-072 key=sk-c38...e4b8 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.73s)
+  reply: 网络连接状态良好。
+
+[73/95] slot=api-073 key=sk-8ec...dfd7 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.73s)
+  reply: 网络连接状态良好。
+
+[74/95] slot=api-074 key=sk-2da...aecc base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.20s)
+  reply: 网络连接状态良好。
+
+[75/95] slot=api-075 key=sk-1c6...e140 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.18s)
+  reply: 网络连接状态良好。
+
+[76/95] slot=api-076 key=sk-65f...d95c base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.94s)
+  reply: 网络连接状况良好。
+
+[77/95] slot=api-077 key=sk-8f8...f76b base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.17s)
+  reply: 网络连接状态良好。
+
+[78/95] slot=api-078 key=sk-538...2240 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.17s)
+  reply: 网络连接状态良好。
+
+[79/95] slot=api-079 key=sk-6df...ebe2 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.82s)
+  reply: 网络连接状态良好。
+
+[80/95] slot=api-080 key=sk-834...a125 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.11s)
+  reply: 网络连接状态良好。
+
+[81/95] slot=api-081 key=sk-6c5...4102 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.11s)
+  reply: 网络连接状态良好。
+
+[82/95] slot=api-082 key=sk-996...968a base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.04s)
+  reply: 网络连接状态良好。
+
+[83/95] slot=api-083 key=sk-62c...a2b5 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.11s)
+  reply: 网络连接状态良好。
+
+[84/95] slot=api-084 key=sk-261...b307 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.47s)
+  reply: 网络连接状态良好。
+
+[85/95] slot=api-085 key=sk-c01...ff26 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.48s)
+  reply: 网络连接状态良好。
+
+[86/95] slot=api-086 key=sk-eb9...0879 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.21s)
+  reply: 网络连接状态良好。
+
+[87/95] slot=api-087 key=sk-f98...5051 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.26s)
+  reply: 网络连接状态良好。
+
+[88/95] slot=api-088 key=sk-610...67c8 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.21s)
+  reply: 网络连接状态良好。
+
+[89/95] slot=api-089 key=sk-7b6...9474 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.11s)
+  reply: 网络连接状态良好。
+
+[90/95] slot=api-090 key=sk-ba9...4212 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (4.01s)
+  reply: 网络连接状态良好。
+
+[91/95] slot=api-091 key=sk-4ca...71b4 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.66s)
+  reply: 网络连接状态良好。
+
+[92/95] slot=api-092 key=sk-cb9...8211 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.54s)
+  reply: 网络连接状态良好。
+
+[93/95] slot=api-093 key=sk-952...324d base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (3.49s)
+  reply: 网络连接状态良好。
+
+[94/95] slot=api-094 key=sk-7dc...7f52 base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (7.30s)
+  reply: 网络连接状态良好。
+
+[95/95] slot=api-095 key=sk-b31...328d base_url=https://dashscope.aliyuncs.com/compatible-mode/v1
+  status: OK (5.58s)
+  reply: 网络连接状态良好。
+
+=== Summary ===
+success: 95
+failed: 0
+tested: 95

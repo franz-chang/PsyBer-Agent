@@ -1,0 +1,36 @@
+[Warn] No --ab-cases-file provided. Sign Accuracy/Lift MAE/Type-I may be N/A.
+[Info] Project root: /Users/chongzhang/PsyBer-Agent
+[Info] Python: /opt/anaconda3/envs/psyber/bin/python
+[Info] Decision model: qwen-plus
+[Info] Seeds: 101,202,303
+[Info] Condition IDs: base_clean,decision_mask_10,decision_mask_20,decision_mask_30,decision_adjacent_swap,decision_top1_replacement,decision_distractor_insertion,decision_conflicting_signals
+[Run] /opt/anaconda3/envs/psyber/bin/python /Users/chongzhang/PsyBer-Agent/experiments/robustness/run_robustness_suite.py --condition-ids base_clean,decision_mask_10,decision_mask_20,decision_mask_30,decision_adjacent_swap,decision_top1_replacement,decision_distractor_insertion,decision_conflicting_signals --base-track 20 --base-dataset MovieLens-1M --base-model LightGCN --decision-model qwen-plus --seeds 101,202,303 --headless
+[Run] base_clean seed=101: success
+[Run] base_clean seed=202: success
+[Run] base_clean seed=303: success
+[Run] decision_mask_10 seed=101: success
+[Run] decision_mask_10 seed=202: success
+[Run] decision_mask_10 seed=303: success
+[Run] decision_mask_20 seed=101: success
+[Run] decision_mask_20 seed=202: success
+[Run] decision_mask_20 seed=303: success
+[Run] decision_mask_30 seed=101: success
+[Run] decision_mask_30 seed=202: success
+[Run] decision_mask_30 seed=303: success
+[Run] decision_adjacent_swap seed=101: success
+[Run] decision_adjacent_swap seed=202: success
+[Run] decision_adjacent_swap seed=303: success
+[Run] decision_top1_replacement seed=101: success
+[Run] decision_top1_replacement seed=202: success
+[Run] decision_top1_replacement seed=303: success
+[Run] decision_distractor_insertion seed=101: success
+[Run] decision_distractor_insertion seed=202: success
+[Run] decision_distractor_insertion seed=303: success
+[Run] decision_conflicting_signals seed=101: success
+[Run] decision_conflicting_signals seed=202: success
+[Run] decision_conflicting_signals seed=303: success
+Robustness suite report generated.
+- run manifest: /Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_run_manifest_20260423_173229.jsonl
+- batch manifest: /Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_batch_manifest_20260423_173229.jsonl
+- report json: /Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_report_20260423_173229.json
+- report md: /Users/chongzhang/PsyBer-Agent/experiments/robustness/reports/robustness_report_20260423_173229.md

@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-04-23T19:56:41.098026",
+  "project_root": "/Users/chongzhang/PsyBer-Agent",
+  "batch_script": "/Users/chongzhang/PsyBer-Agent/src/launch_websim_batch.py",
+  "args": {
+    "project_root": "/Users/chongzhang/PsyBer-Agent",
+    "python_bin": "/opt/anaconda3/envs/psyber/bin/python",
+    "batch_script": "src/launch_websim_batch.py",
+    "n_list": "500,1000,100000,1000000,5000000",
+    "n": 2,
+    "repeats": 1,
+    "total_tasks_override": null,
+    "max_concurrency_cap": 2,
+    "launch_rate": 2.0,
+    "task_timeout_sec": 300.0,
+    "track_override": 1,
+    "decision_model": "qwen-plus",
+    "qwen_base_url": null,
+    "headless": true,
+    "dry_run": false,
+    "output_dir": "experiments/scalability_cost/reports"
+  },
+  "raw_runs": [
+    {
+      "n": 2,
+      "repeat_id": 1,
+      "status": "success",
+      "return_code": 0,
+      "batch_dir": "/Users/chongzhang/PsyBer-Agent/batch_launches/20260423_195621",
+      "throughput_tasks_per_sec": 0.09997629437050472,
+      "p95_latency_per_decision_sec": 3.7741999999999996,
+      "success_rate": 1.0,
+      "cost_token": 1960,
+      "runtime_sec": 20.00474225007929,
+      "submitted": 2,
+      "success": 2,
+      "failed": 0,
+      "timeout": 0,
+      "spawn_error": 0,
+      "note": ""
+    }
+  ],
+  "table_rows": [
+    {
+      "N": 2,
+      "runs_ok": 1,
+      "runs_total": 1,
+      "throughput_tasks_per_sec_mean": 0.09997629437050472,
+      "throughput_tasks_per_sec_std": null,
+      "p95_latency_per_decision_sec_mean": 3.7741999999999996,
+      "p95_latency_per_decision_sec_std": null,
+      "success_rate_mean": 1.0,
+      "success_rate_std": null,
+      "cost_token_mean": 1960.0,
+      "cost_token_std": null,
+      "runtime_sec_mean": 20.00474225007929,
+      "runtime_sec_std": null
+    }
+  ]
+}

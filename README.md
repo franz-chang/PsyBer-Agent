@@ -17,7 +17,7 @@ conda activate psyber
 pip install -U pip
 pip install -r requirements.txt
 
-# 3) 安装 Playwright 浏览器（给 WebSim_camel_agent 用）
+# 3) 安装 Playwright 浏览器（给 WebSim_agent 用）
 playwright install chromium
 ```
 
@@ -26,7 +26,7 @@ playwright install chromium
 ```bash
 python src/prelearning_agent.py --help
 python src/alignment_pretrain_agent.py --help
-python src/WebSim_camel_agent.py --help
+python src/WebSim_agent.py --help
 python app.py
 ```
 
@@ -83,7 +83,7 @@ cd /Users/chongzhang/PsyBer-Agent
 ## 在线模拟用户阶段：
 
 ```bash
-/PsyBer-Agent/src/WebSim_camel_agent.py       # 用户模拟Agent
+/PsyBer-Agent/src/WebSim_agent.py       # 用户模拟Agent
 ```
 
 可选参数：

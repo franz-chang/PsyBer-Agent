@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Alignment pretraining agent.
 
-Pipeline (between prelearning_agent.py and WebSim_camel_agent.py):
+Pipeline (between prelearning_agent.py and WebSim_agent.py):
 1) Rebuild implicit click trajectories from ML-1M ratings.dat.
 2) Simulate 5-action slate decisions (Click1..Click4 + Skip) and collect agent states.
 3) Build structure distances for agent-state and expert-item trajectories.
 4) Learn regression prior and initialize UGW transport from pseudo-state matching.
 5) Solve UGW-style transport and convert it into per-step action soft labels.
 6) Train lightweight fast policy network via supervised CE + entropy regularization.
-7) Export fast policy for online inference in WebSim_camel_agent.py.
+7) Export fast policy for online inference in WebSim_agent.py.
 
 Legacy RL-reward objective is still available via `--alignment-mode legacy_rl`.
 """
@@ -48,7 +48,8 @@ from psy_fast_inference import (
 SRC_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SRC_DIR.parent
 FAST_POLICY_DIR = PROJECT_DIR / "outputs" / "fast_policies"
-DEFAULT_DATASET_DIR = Path("/Users/chongzhang/WebSim_Dataset/MM-ML-1M-main")
+DEFAULT_DATASET_ROOT = PROJECT_DIR.parent / "WebSim_Dataset"
+DEFAULT_DATASET_DIR = DEFAULT_DATASET_ROOT / "MM-ML-1M-main"
 DEFAULT_EMBEDDINGS_FILE = DEFAULT_DATASET_DIR / "Embeddings" / "item_embeddings.json"
 DEFAULT_PROFILES_FILE = DEFAULT_DATASET_DIR / "Embeddings" / "agent_profiles.json"
 DEFAULT_POLICY_OUT = FAST_POLICY_DIR / "ml1m" / "fast_inference_policy.pt"
